@@ -1,0 +1,4 @@
+#!/usr/bin/env Rscript
+
+require("roxygen")
+roxygenize("skel", "../pkg/locClass", use.Rd2=TRUE, unlink.target=TRUE)
