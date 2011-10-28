@@ -95,7 +95,7 @@ wlda <- function(x, ...)
 #' @S3method wlda formula
 
 wlda.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subset, na.action) {
-    m <- match.call()
+    m <- match.call(expand.dots = FALSE)
     m$... <- NULL
     m[[1L]] <- as.name("model.frame")
     m$weights <- weights
