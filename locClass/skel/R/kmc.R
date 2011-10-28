@@ -203,8 +203,8 @@ kmc.default <- function(x, grouping, K = 2, wf = c("biweight", "cauchy", "cosine
     n <- nrow(x)
     if (any(!is.finite(x)))
         stop("infinite, NA or NaN values in 'x'")
-    if (missing(grouping))
-        stop('argument "grouping" is missing, with no default')
+    #if (missing(grouping))
+    #    stop('argument "grouping" is missing, with no default')
     if (!is.factor(grouping))
         warning("'grouping' was coerced to a factor")
 	g <- as.factor(grouping)
@@ -241,16 +241,16 @@ kmc.default <- function(x, grouping, K = 2, wf = c("biweight", "cauchy", "cosine
             domain = NA)
 	}
 	nproto <- ifelse(length(K) == 1, length(lev1) * K, sum(K))
-	###
-    if (!is.numeric(nstart) || !length(nstart))
-        stop("'nstart' must be numeric of length > 0")
-    if (nstart <= 0)
-        stop("'nstart' must be larger than zero")
-    if (abs(nstart - round(nstart)) > .Machine$double.eps^0.5) {
-        nstart <- round(nstart)
-        warning("'nstart' must be a whole number and was rounded")
+	if (!missing(nstart)) {
+    	if (!is.numeric(nstart) || !length(nstart))
+        	stop("'nstart' must be numeric of length > 0")
+    	if (nstart <= 0)
+        	stop("'nstart' must be larger than zero")
+    	if (abs(nstart - round(nstart)) > .Machine$double.eps^0.5) {
+        	nstart <- round(nstart)
+        	warning("'nstart' must be a whole number and was rounded")
+    	}
     }
-    ###
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
     	m$x <- m$grouping <- m$K <- m$nstart <- m$... <- NULL
