@@ -25,11 +25,12 @@
  *  s_wf:		weight function, either R function or integer mapping to the name of the function
  *  s_bw:		bandwidth parameter of window function
  *  s_k:		number of nearest neighbors
+ *  s_method:	integer indicating if unbiased or ML estimates are required
  *  s_env:		environment for evaluation of R functions
  *
  */
 
-SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, SEXP s_k, SEXP s_env)
+SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, SEXP s_k, SEXP s_method, SEXP s_env)
 {
 	const R_len_t p = ncols(s_test);		// dimensionality
 	const R_len_t N_learn = nrows(s_learn);	// # training observations
@@ -39,6 +40,8 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 	double *learn = REAL(s_learn);			// pointer to training data set
 	int *g = INTEGER(s_grouping);			// pointer to class labels
 	const int k = INTEGER(s_k)[0];			// number of nearest neighbors
+	const int method = INTEGER(s_method)[0];	// method for scaling the covariance matrices
+	Rprintf("%u\n", method);
 	
 	SEXP s_posterior;						// initialize posteriors
 	PROTECT(s_posterior = allocMatrix(REALSXP, N_test, K));
@@ -54,6 +57,7 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 	
 	double sum_weights;						// sum of weights
 	double class_weights[K];				// class wise sum of weights
+	double norm_weights;					// normalization factor for unbiased version of covariance matrix
 	double center[K][p];					// class means
 	double covmatrix[p * p];				// pooled covariance matrix
 	double z[p * K];						// difference between trial point and class center
@@ -111,14 +115,19 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 			Rprintf("weights %f\n", weights[i]);
 		}*/
 		
-		// 3. calculate sum of weights, class wise sum of weights and unnormalized class means
+		// 3. initialization
 		sum_weights = 0;
 		for (m = 0; m < K; m++) {
 			class_weights[m] = 0;
 			for (j = 0; j < p; j++) {
 				center[m][j] = 0;
+				for (l = 0; l <= j; l++) {
+					covmatrix[j + p * l] = 0;
+				}				
 			}
 		}
+
+		// 4. calculate sum of weights, class wise sum of weights and unnormalized class means
 		for (i = 0; i < N_learn; i++) {
 			sum_weights += weights[i];
 			for (m = 0; m < K; m++) {
@@ -132,21 +141,44 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 		}
 		
 		
-		// 4. calculate covariance matrix, only lower triangle
-		for (j = 0; j < p; j++) {
-			for (l = 0; l <= j; l++) {
-				covmatrix[j + p * l] = 0;
-			}	
-		}
-		for (m = 0; m < K; m++) {
-			if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+		// 5. calculate covariance matrix, only lower triangle
+		if (method == 1) { // unbiased
+			norm_weights = 0;
+			for (m = 0; m < K; m++) {
 				for (i = 0; i < N_learn; i++) {
 					if (g[i] == m + 1) {
-						for (j = 0; j < p; j++) {
-							for (l = 0; l <= j; l++) {
-								covmatrix[j + p * l] += weights[i]/sum_weights * 
-								(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
-								(learn[i + N_learn * l] - center[m][l]/class_weights[m]);
+						norm_weights += class_weights[m]/sum_weights * pow(weights[i]/class_weights[m], 2);
+					}
+				}
+			}
+			//Rprintf("norm_weights %f\n", norm_weights);
+			for (m = 0; m < K; m++) {
+				if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+					for (i = 0; i < N_learn; i++) {
+						if (g[i] == m + 1) {
+							for (j = 0; j < p; j++) {
+								for (l = 0; l <= j; l++) {
+									covmatrix[j + p * l] += weights[i]/sum_weights * 
+									(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
+									(learn[i + N_learn * l] - center[m][l]/class_weights[m])/
+									(1 - norm_weights);
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {			// ML
+			for (m = 0; m < K; m++) {
+				if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+					for (i = 0; i < N_learn; i++) {
+						if (g[i] == m + 1) {
+							for (j = 0; j < p; j++) {
+								for (l = 0; l <= j; l++) {
+									covmatrix[j + p * l] += weights[i]/sum_weights * 
+									(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
+									(learn[i + N_learn * l] - center[m][l]/class_weights[m]);
+								}
 							}
 						}
 					}
@@ -154,11 +186,11 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 			}
 		}
 
-		// 5. calculate inverse of covmatrix
+		// 6. calculate inverse of covmatrix
 		F77_CALL(dpotrf)(&uplo, &p, covmatrix, &p, &info);
 		F77_CALL(dpotri)(&uplo, &p, covmatrix, &p, &info);
 		
-		// 6. calculate difference between n-th test observation and all class centers
+		// 7. calculate difference between n-th test observation and all class centers
 		for (m = 0; m < K; m++) {
 			if (class_weights[m] > 0) {	// only for classes with positive sum of weights
 				for (j = 0; j < p; j++) {
@@ -171,17 +203,17 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 			}
 		}
 
-		// 7. calcualte C = covmatrix * z
+		// 8. calcualte C = covmatrix * z
 		F77_CALL(dsymm)(&side, &uplo, &p, &K, &onedouble, covmatrix, &p, z, &p, &zerodouble, C, &p);
 		
-		// 8. calculate t(z) * C (mahalanobis distance) and unnormalized posterior probabilities
+		// 9. calculate t(z) * C (mahalanobis distance) and unnormalized posterior probabilities
 		for (m = 0; m < K; m++) {
 			if (class_weights[m] > 0) {
 				post[m] = 0;
 				for (j = 0; j < p; j++) {
 					post[m] += C[j + p * m] * z[j + p * m];
 				}
-				posterior[n + N_test * m] = class_weights[m]/sum_weights * exp(-0.5 * post[m]);
+				posterior[n + N_test * m] = log(class_weights[m]/sum_weights) - 0.5 * post[m];
 			} else {
 				posterior[n + N_test * m] = 0;
 			}
@@ -191,7 +223,7 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 	// end loop over test observations
 		
 	
-	// 9. set dimnames of s_posterior
+	// 10. set dimnames of s_posterior
 	SEXP dimnames;
 	PROTECT(dimnames = allocVector(VECSXP, 2));
 	SET_VECTOR_ELT(dimnames, 0, VECTOR_ELT(getAttrib(s_test, R_DimNamesSymbol), 0));

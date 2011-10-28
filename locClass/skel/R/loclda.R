@@ -49,6 +49,7 @@
 #' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=generatewf]{wfs}}.)
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=generatewf]{wfs}}.)
+#' @param method Method for scaling the pooled weighted covariance matrix, either \code{"unbiased"} or maximum-likelihood (\code{"ML"}). Defaults to \code{"unbiased"}.
 #' @param \dots Further arguments.
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
 #' @param na.action A function to specify the action to be taken if NAs are found. The default action is first
@@ -56,7 +57,7 @@
 #' An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
 #' variable. (NOTE: If given, this argument must be named.)
 #'
-#' @return An object of class \code{"wlda"}, a \code{list} containing the following components:
+#' @return An object of class \code{"loclda"}, a \code{list} containing the following components:
 #'   \item{x}{A \code{matrix} containing the explanatory variables.}
 #'   \item{grouping}{A \code{factor} specifying the class membership for each observation.}
 #'   \item{counts}{The number of observations per class.}
@@ -71,6 +72,7 @@
 #'	 specified.) \code{TRUE} if only the \code{k} nearest neighbors recieve a positive weight, \code{FALSE} otherwise.}
 #'   \item{adaptive}{(Logical.) \code{TRUE} if the bandwidth of \code{wf} is adaptive to the local density of data points, \code{FALSE} if the bandwidth
 #'	  is fixed.}
+#'   \item{method}{The method for scaling the weighted covariance matrices, either \code{"unbiased"} or \code{"ML"}.}
 #'   \item{variant}{(Only if \code{wf} is a string or one of the window functions documented in \code{\link[=generatewf]{wfs}} is used, for internal use only). 
 #'	  An integer indicating which weighting scheme is implied by \code{bw}, \code{k} and \code{nn.only}.}
 #'   \item{call}{The (matched) function call.}
@@ -174,7 +176,8 @@ loclda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
 #' @S3method loclda default
 
 loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "cosine", "epanechnikov", 
-	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, ...) {
+	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, 
+	method = c("unbiased", "ML"), ...) {
 	if (is.null(dim(x))) 
         stop("'x' is not a matrix")
     x <- as.matrix(x)
@@ -198,17 +201,18 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
         counts <- as.vector(table(g))
     }
 	names(counts) <- lev1
+	method <- match.arg(method)
 	## checks on k and bw
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$... <- NULL
+    	m$x <- m$grouping <- m$method <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("checkwf")
     	check <- eval.parent(m)
     	cl <- match.call()
     	cl[[1]] <- as.name("kda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = check$wf, bw = check$bw, k = check$k, nn.only = check$nn.only, 
-    		adaptive = check$adaptive, variant = check$variant, call = cl), class = "loclda"))
+    		adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "loclda"))
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
@@ -240,8 +244,8 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     		variant <- NULL
     	cl <- match.call()
     	cl[[1]] <- as.name("kda")
-    	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), 
-    		adaptive = attr(wf, "adaptive"), variant = variant, call = cl), class = "loclda"))
+    	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
+    		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "loclda"))
     } else
 		stop("argument 'wf' has to be either a character or a function")
 }	
@@ -346,6 +350,8 @@ predict.loclda <- function(object, newdata, ...) {
             dim(newdata) <- c(1, length(newdata))
         x <- as.matrix(newdata)
     }
+    methods <- c("unbiased", "ML")
+    object$method <- match(object$method, methods)
 	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
 		"optcosine", "rectangular", "triangular")
 	if (is.function(object$wf) && !is.null(attr(object$wf,"name")) && attr(object$wf, "name") %in% wfs)
@@ -356,10 +362,11 @@ predict.loclda <- function(object, newdata, ...) {
 		object$wf <- paste(object$wf, object$variant, sep = "")
 		object$wf <- match(object$wf, wfs)
 	}
-    posterior <- .Call("predkda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
-    	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), new.env())
+    posterior <- .Call("predloclda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
+    	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
 	lev1 <- levels(object$grouping)	# class labels that are in training data
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+    posterior <- exp(posterior)
     posterior <- posterior/rowSums(posterior)
     return(list(class = gr, posterior = posterior))
 }
