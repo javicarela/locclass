@@ -1,5 +1,5 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' A local version of Linear Discriminant Analysis that puts increased emphasis on a good model fit near the decision boundary.
+#' A local version of Quadratic Discriminant Analysis that puts increased emphasis on a good model fit near the decision boundary.
 #'
 #' The idea of Hand and Vinciotti (2003) to put increased weight on observations near the decision boundary is generalized to the multiclass case and applied to 
 #' Quadratic Discriminant Analysis (QDA).
@@ -40,7 +40,7 @@
 #' See help on \code{\link[=generatewf]{wfs}} for details.
 #'
 #'
-#' @title Discriminant Adaptive Linear Discriminant Analysis
+#' @title Discriminant Adaptive Quadratic Discriminant Analysis
 #'
 #' @param formula A formula of the form \code{groups ~ x1 + x2 + ...}, that is, the response
 #' is the grouping \code{factor} and the right hand side specifies the (normally non-\code{factor})
@@ -57,6 +57,7 @@
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=generatewf]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
+#' @param weights Initial observation weights (defaults to a vector of 1s).
 #' @param \dots Further arguments to be passed to \code{\link{wqda}}.
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
 #' @param na.action A function to specify the action to be taken if NAs are found. The default action is first
@@ -89,7 +90,7 @@
 #' @references Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @seealso \code{\link{predict.daqda}}, \code{\link{wqda}} for a weighted version of Linear Discriminant Analysis and \code{\link{llr}} for discriminant adaptive logistic regression.
+#' @seealso \code{\link{predict.daqda}}, \code{\link{wqda}} for a weighted version of Quadratic Discriminant Analysis and \code{\link{llr}} for discriminant adaptive logistic regression.
 #'
 #' @examples
 #' fit <- daqda(Species ~ Sepal.Length + Sepal.Width, data = iris,
@@ -113,18 +114,20 @@ daqda <- function(x, ...)
 #'
 #' @S3method daqda formula
 
-daqda.formula <- function(formula, data, ..., subset, na.action) {
+daqda.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subset, na.action) {
     m <- match.call(expand.dots = FALSE)
     m$... <- NULL
     m[[1L]] <- as.name("model.frame")
+    m$weights <- weights
     m <- eval.parent(m)
     Terms <- attr(m, "terms")
+    weights <- m[,"(weights)"]
     grouping <- model.response(m)
     x <- model.matrix(Terms, m)
     xint <- match("(Intercept)", colnames(x), nomatch = 0L)
     if (xint > 0) 
         x <- x[, -xint, drop = FALSE]
-    res <- daqda.default(x, grouping, ...)
+    res <- daqda.default(x, grouping, weights = weights, ...)
     res$terms <- Terms
     cl <- match.call()
     cl[[1L]] <- as.name("daqda")
@@ -157,10 +160,11 @@ daqda.data.frame <- function (x, ...) {
 #'
 #' @S3method daqda matrix
 
-daqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
+daqda.matrix <- function (x, grouping, weights = rep(1, nrow(x)), ..., subset, na.action = na.fail) {
     if (!missing(subset)) {
         x <- x[subset, , drop = FALSE]
         grouping <- grouping[subset]
+        weights <- weights[subset]
     }
     if (missing(na.action)) {
         if (!is.null(naa <- getOption("na.action")))    # if options(na.action = NULL) the default of na.action comes into play
@@ -169,11 +173,12 @@ daqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
             else
                 na.action <- naa
     } 
-    dfr <- na.action(structure(list(g = grouping, x = x), 
+    dfr <- na.action(structure(list(g = grouping, w = weights, x = x), 
             class = "data.frame", row.names = rownames(x)))
     grouping <- dfr$g
     x <- dfr$x
-    res <- daqda.default(x, grouping, ...)
+    weights <- dfr$w
+    res <- daqda.default(x, grouping, weights = weights, ...)
     cl <- match.call()
     cl[[1L]] <- as.name("daqda")
     res$call <- cl
@@ -189,7 +194,7 @@ daqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
 #' @S3method daqda default
 
 daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
-	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, ...) {
+	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights, ...) {
 	daqda.fit <- function(x, grouping, wf, itr, weights = rep(1, nrow(x)), ...) {
 		w <- list()
 		w[[1]] <- weights
@@ -198,11 +203,16 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 			post <- predict(res)$posterior
 			if (any(!is.finite(post)))
 				stop("inifinite, NA or NaN values in 'post', may indiciate numerical problems due to small observation weights, please check your settings of 'bw', 'k' and 'wf'")
-			spost <- apply(post, 1, sort, decreasing = TRUE)
-			w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
-			res <- wqda.default(x = x, grouping = grouping, weights = w[[i+1]], ...)
+			if (ncol(post) == 1) {
+				warning("training data from only one group, breaking out of iterative procedure")
+				break
+			} else {
+				spost <- apply(post, 1, sort, decreasing = TRUE)
+				w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
+				res <- wqda.default(x = x, grouping = grouping, weights = w[[i+1]], ...)
+			}
 		}
-		names(w) <- 0:itr
+		names(w) <- seq_along(w) - 1
 		res$weights <- w
 		return(res)
 	}
@@ -239,7 +249,7 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
     }
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$itr <- m$... <- NULL
+    	m$x <- m$grouping <- m$itr <- m$weights <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("generatewf")
     	wf <- eval.parent(m)
@@ -265,7 +275,7 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 #    	itr <- 0
 #    	warning("nonlocal solution")	
 #    }   
-	res <- daqda.fit(x = x, grouping = grouping, wf = wf, itr = itr, ...)
+	res <- daqda.fit(x = x, grouping = grouping, wf = wf, itr = itr, weights = weights, ...)
     res <- c(res, list(itr = itr, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
     cl <- match.call()
     cl[[1]] <- as.name("daqda")
@@ -315,7 +325,7 @@ print.daqda <- function (x, ...) {
 #' appropriate class, or directly by calling \code{predict.daqda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Discriminant-Adaptive Linear Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Discriminant-Adaptive Quadratic Discriminant Analysis
 #'
 #' @param object Object of class \code{"daqda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a
