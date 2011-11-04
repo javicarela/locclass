@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "svm.h"
+#include "sparse.h"
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
 
 /*
@@ -35,61 +36,6 @@ struct crossresults
     double  total1;
     double  total2;
 };
-
-struct svm_node ** sparsify (double *x, int r, int c)
-{
-    struct svm_node** sparse;
-    int         i, ii, count;
-    
-    sparse = (struct svm_node **) malloc (r * sizeof(struct svm_node *));
-    for (i = 0; i < r; i++) {
-	/* determine nr. of non-zero elements */
-	for (count = ii = 0; ii < c; ii++)
-	    if (x[i * c + ii] != 0) count++;
-
-	/* allocate memory for column elements */
-	sparse[i] = (struct svm_node *) malloc ((count + 1) * sizeof(struct svm_node));
-
-	/* set column elements */
-	for (count = ii = 0; ii < c; ii++)
-	    if (x[i * c + ii] != 0) {
-		sparse[i][count].index = ii + 1;
-		sparse[i][count].value = x[i * c + ii];
-		count++;
-	    }
-
-	/* set termination element */
-	sparse[i][count].index = -1;
-    }
-
-    return sparse;
-}
-
-struct svm_node ** transsparse (double *x, int r, int *rowindex, int *colindex)
-{
-    struct svm_node** sparse;
-    int i, ii, count = 0, nnz = 0;
-
-    sparse = (struct svm_node **) malloc (r * sizeof(struct svm_node*));
-    for (i = 0; i < r; i++) {
-	/* allocate memory for column elements */
-	nnz = rowindex[i+1] - rowindex[i];
-	sparse[i] = (struct svm_node *) malloc ((nnz + 1) * sizeof(struct svm_node));
-
-	/* set column elements */
-	for (ii = 0; ii < nnz; ii++) {
-	    sparse[i][ii].index = colindex[count];
-	    sparse[i][ii].value = x[count];
-	    count++;
-	}
-
-	/* set termination element */
-	sparse[i][ii].index = -1;
-    }    
-
-    return sparse;
-    
-}    
 
 
 /* Cross-Validation-routine from svm-train */

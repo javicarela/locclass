@@ -41,7 +41,7 @@ SEXP predloclda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw
 	int *g = INTEGER(s_grouping);			// pointer to class labels
 	const int k = INTEGER(s_k)[0];			// number of nearest neighbors
 	const int method = INTEGER(s_method)[0];	// method for scaling the covariance matrices
-	Rprintf("%u\n", method);
+	//Rprintf("%u\n", method);
 	
 	SEXP s_posterior;						// initialize posteriors
 	PROTECT(s_posterior = allocMatrix(REALSXP, N_test, K));
