@@ -18,7 +18,8 @@
 
 
 #'
-#' This is a modification  of the \code{\link[e1071]{svm}} function in package e1071 written by David Meyer.
+#' This is a modification  of the \code{\link[e1071]{svm}} function in package e1071 written by David Meyer 
+#' (based on C/C++-code by Chih-Chung Chang and Chih-Jen Lin).
 #' 
 #' An extension of LIBSVM that can deal with case weights written by
 #' Ming-Wei Chang, Hsuan-Tien Lin, Ming-Hen Tsai, Chia-Hua Ho and Hsiang-Fu Yu
@@ -29,26 +30,26 @@
 #'
 #' @note This modification is rather experimental and not well-tested.
 #'
-#' @seealso \code{\link{predict.svm}}
+#' @seealso \code{\link{predict.wsvm}}
 #'
 #' @useDynLib locClass
 #'
-#' @aliases svm svm.default svm.formula
+#' @aliases wsvm wsvm.default wsvm.formula
 #'
 #' @export
 
-svm <-
+wsvm <-
 function (x, ...)
-    UseMethod ("svm")
+    UseMethod ("wsvm")
 
 
 
-#' @rdname svm
-#' @method svm formula
+#' @rdname wsvm
+#' @method wsvm formula
 #'
-#' @S3method svm formula
+#' @S3method wsvm formula
 
-svm.formula <-
+wsvm.formula <-
 function (formula, data = NULL, case.weights = rep(1, nrow(data)), ..., subset, na.action = na.omit, scale = TRUE)
 {
     call <- match.call()
@@ -79,24 +80,24 @@ function (formula, data = NULL, case.weights = rep(1, nrow(data)), ..., subset, 
                          )
         scale <- !attr(x, "assign") %in% remove
     }
-    ret <- svm.default (x, y, scale = scale, case.weights = cw, ..., na.action = na.action)
+    ret <- wsvm.default (x, y, scale = scale, case.weights = cw, ..., na.action = na.action)
     ret$case.weights <- case.weights  # cw?
     ret$call <- call
-    ret$call[[1]] <- as.name("svm")
+    ret$call[[1]] <- as.name("wsvm")
     ret$terms <- Terms
     if (!is.null(attr(m, "na.action")))
         ret$na.action <- attr(m, "na.action")
-    class(ret) <- c("svm.formula", class(ret))
+    class(ret) <- c("wsvm.formula", class(ret))
     return (ret)
 }
 
 
-#' @rdname svm
-#' @method svm default
+#' @rdname wsvm
+#' @method wsvm default
 #'
-#' @S3method svm default
+#' @S3method wsvm default
 
-svm.default <-
+wsvm.default <-
 function (x,
           y           = NULL,
           scale       = TRUE,
@@ -118,7 +119,7 @@ function (x,
           fitted      = TRUE,
           seed        = 1L,
           ...,
-          subset,
+          subset      = NULL,
           na.action = na.omit)
 {
     if(inherits(x, "Matrix")) {
@@ -149,7 +150,7 @@ function (x,
 
     #xhold   <- if (fitted) x else NA
     x.scale <- y.scale <- NULL
-    formula <- inherits(x, "svm.formula")
+    formula <- inherits(x, "wsvm.formula")
     
     ## determine model type
     if (is.null(type)) type <-
@@ -189,7 +190,7 @@ function (x,
 
         ## subsetting and na-handling for matrices
         if (!formula) {
-            if (!missing(subset)) {
+            if (!is.null(subset)) {
             	x <- x[subset,]
             	cw <- cw[subset]  
             	if (!is.null(y)) y <- y[subset]
@@ -348,6 +349,7 @@ function (x,
 
     if (cret$error != empty_string)
         stop(paste(cret$error, "!", sep=""))
+    print(cret)
 
     ret <- list (
                  call     = match.call(),
@@ -402,7 +404,7 @@ function (x,
         }
         
 
-    class (ret) <- "svm"
+    class (ret) <- c("wsvm", "svm")
 
     if (fitted) {
         ret$fitted <- na.action(predict(ret, xhold,
@@ -419,14 +421,14 @@ function (x,
 
 
 
-#' @seealso \code{\link{predict.svm}}
+#' @seealso \code{\link{predict.wsvm}}
 #'
-#' @method predict svm
-#' @rdname predict.svm
+#' @method predict wsvm
+#' @rdname predict.wsvm
 #'
-#' @S3method predict svm
+#' @S3method predict wsvm
 
-predict.svm <-
+predict.wsvm <-
 function (object, newdata,
           decision.values = FALSE,
           probability = FALSE,
@@ -470,7 +472,7 @@ function (object, newdata,
     else
         1:nrow(newdata)
     if (!object$sparse) {
-        if (inherits(object, "svm.formula")) {
+        if (inherits(object, "wsvm.formula")) {
             if(is.null(colnames(newdata)))
                 colnames(newdata) <- colnames(object$SV)
             newdata <- na.action(newdata)
@@ -579,12 +581,12 @@ function (object, newdata,
 
 
 
-#' @method print svm
-#' @rdname print.svm
+#' @method print wsvm
+#' @rdname print.wsvm
 #'
-#' @S3method print svm
+#' @S3method print wsvm
 
-print.svm <-
+print.wsvm <-
 function (x, ...)
 {
     cat("\nCall:", deparse(x$call, 0.8 * getOption("width")), "\n", sep="\n")
@@ -619,19 +621,19 @@ function (x, ...)
 }
 
 
-#' @method summary svm
-#' @rdname summary.svm
+#' @method summary wsvm
+#' @rdname summary.wsvm
 #'
-#' @S3method summary svm
+#' @S3method summary wsvm
 
-summary.svm <-
+summary.wsvm <-
 function(object, ...)
-    structure(object, class="summary.svm")
+    structure(object, class="summary.wsvm")
 
-print.summary.svm <-
+print.summary.wsvm <-
 function (x, ...)
 {
-    print.svm(x)
+    print.wsvm(x)
     if (x$type<2) {
         cat(" (", x$nSV, ")\n\n")
         cat("\nNumber of Classes: ", x$nclasses, "\n\n")
@@ -668,12 +670,12 @@ function(x, center = TRUE, scale = TRUE)
     x
 }
 
-#' @method plot svm
-#' @rdname plot.svm
+#' @method plot wsvm
+#' @rdname plot.wsvm
 #'
-#' @S3method plot svm
+#' @S3method plot wsvm
 
-plot.svm <-
+plot.wsvm <-
 function(x, data, formula = NULL, fill = TRUE,
          grid = 50, slice = list(), symbolPalette = palette(),
          svSymbol = "x", dataSymbol = "o", ...)
@@ -750,8 +752,8 @@ function(x, data, formula = NULL, fill = TRUE,
 }
 
 
-write.svm <-
-function (object, svm.file="Rdata.svm", scale.file = "Rdata.scale",
+write.wsvm <-
+function (object, wsvm.file="Rdata.wsvm", scale.file = "Rdata.scale",
           yscale.file = "Rdata.yscale")
 {
 
@@ -779,7 +781,7 @@ function (object, svm.file="Rdata.svm", scale.file = "Rdata.scale",
                as.double  (object$coef0),
 
                ## filename
-               as.character(svm.file),
+               as.character(wsvm.file),
 
                PACKAGE = "e1071"
                )$ret
