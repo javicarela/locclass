@@ -1,5 +1,5 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) R Development Core Team
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) R Development Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,11 +19,12 @@
 #' @param bw The bandwidth parameter.
 #' @param k The number of nearest neighbors.
 #' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
+#' @param /dots Unused.
 #'
 #' @nord
 
 generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
-	"optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n) {
+	"optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n, ...) {
 	wf <- match.arg(wf)
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing

@@ -1,5 +1,5 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -205,12 +205,11 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
 	## checks on k and bw
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$method <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("checkwf")
     	check <- eval.parent(m)
     	cl <- match.call()
-    	cl[[1]] <- as.name("kda")
+    	cl[[1]] <- as.name("loclda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = check$wf, bw = check$bw, k = check$k, nn.only = check$nn.only, 
     		adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "loclda"))
     } else if (is.function(wf)) {
@@ -243,7 +242,7 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     	} else
     		variant <- NULL
     	cl <- match.call()
-    	cl[[1]] <- as.name("kda")
+    	cl[[1]] <- as.name("loclda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
     		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "loclda"))
     } else

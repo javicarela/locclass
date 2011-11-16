@@ -1,6 +1,6 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
-#  copyright (C) R Development Core Team
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
+#  Copyright (C) R Development Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -397,7 +397,6 @@ llr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
 	}
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$X <- m$Y <- m$thr <- m$itr <- m$intercept <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("generatewf")
     	wf <- eval.parent(m)

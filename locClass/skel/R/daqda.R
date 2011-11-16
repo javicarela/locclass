@@ -249,7 +249,6 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
     }
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$itr <- m$weights <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("generatewf")
     	wf <- eval.parent(m)

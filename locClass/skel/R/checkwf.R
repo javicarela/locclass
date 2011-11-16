@@ -21,11 +21,12 @@
 #' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the \code{k} nearest neighbors or 
 #'   all observations receive positive weights? 
 #' @param n The number of training observations.
+#' @param \dots Unused.
 #'
 #' @nord
 
 checkwf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", 
-	"gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n) {
+	"gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n, ...) {
     wf <- match.arg(wf)
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing

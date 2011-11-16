@@ -1,5 +1,5 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -253,7 +253,6 @@ kmc.default <- function(x, grouping, K = 2, wf = c("biweight", "cauchy", "cosine
     }
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$K <- m$nstart <- m$... <- NULL
     	m$n <- nproto
     	m[[1L]] <- as.name("generatewf")
     	wf <- eval.parent(m)

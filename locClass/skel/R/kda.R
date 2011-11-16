@@ -1,5 +1,5 @@
-#  copyright (C) 2011 J. Schiffner
-#  copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
+#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 1994-2004 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -198,7 +198,6 @@ kda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "ep
 	## checks on k and bw
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	m$x <- m$grouping <- m$... <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("checkwf")
     	check <- eval.parent(m)
