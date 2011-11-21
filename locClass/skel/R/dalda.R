@@ -39,6 +39,9 @@
 #' This allows the user to try own window functions.
 #' See help on \code{\link[=generatewf]{wfs}} for details.
 #'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #'
 #' @title Discriminant Adaptive Linear Discriminant Analysis
 #'
@@ -90,7 +93,7 @@
 #' @references Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @seealso \code{\link{predict.dalda}}, \code{\link{wlda}} for a weighted version of Linear Discriminant Analysis and \code{\link{llr}} for discriminant adaptive logistic regression.
+#' @seealso \code{\link{predict.dalda}}, \code{\link{wlda}} for a weighted version of Linear Discriminant Analysis and \code{\link{dalr}} for discriminant adaptive logistic regression.
 #'
 #' @examples
 #' fit <- dalda(Species ~ Sepal.Length + Sepal.Width, data = iris,
@@ -342,7 +345,7 @@ print.dalda <- function (x, ...) {
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @seealso \code{\link{dalda}}, \code{\link{wlda}}, \code{\link{llr}}.
+#' @seealso \code{\link{dalda}}, \code{\link{wlda}}, \code{\link{dalr}}.
 #'
 #' @examples
 #' ## comparison with lda:

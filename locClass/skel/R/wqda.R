@@ -31,6 +31,9 @@
 #' Weighted prior probabilities:
 #' \deqn{p_g = \frac{\sum_{n:y_n=g} w_n}{\sum_n w_n}}{p_g = \sum_{n:y_n=g} w_n/\sum_n w_n}
 #'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #' @title Weighted Quadratic Discriminant Analysis
 #'
 #' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + ...}, that is, the response

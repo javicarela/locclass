@@ -45,6 +45,9 @@
 #'
 #' It may be useful to \code{\link{scale}} the data first.
 #'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #' @title K-Means Classification
 #'
 #' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + ...}, that is, the response is the 

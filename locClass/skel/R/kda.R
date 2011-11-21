@@ -34,6 +34,9 @@
 #' This allows the user to try own window functions.
 #' See help on \code{\link[=generatewf]{wfs}} for details.
 #'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #' @title Kernel Classification Rules
 #'
 #' @param formula A formula of the form \code{groups ~ x1 + x2 + ...}, that is, the response

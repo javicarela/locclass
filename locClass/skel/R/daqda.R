@@ -65,6 +65,9 @@
 #' An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
 #' variable. (NOTE: If given, this argument must be named.)
 #'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #' @return
 #' An object of class \code{"daqda"} inheriting from \code{"wqda"}, a \code{list} containing the following components:
 #'  \item{prior}{Weighted class prior probabilities.}
@@ -90,7 +93,7 @@
 #' @references Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @seealso \code{\link{predict.daqda}}, \code{\link{wqda}} for a weighted version of Quadratic Discriminant Analysis and \code{\link{llr}} for discriminant adaptive logistic regression.
+#' @seealso \code{\link{predict.daqda}}, \code{\link{wqda}} for a weighted version of Quadratic Discriminant Analysis and \code{\link{dalr}} for discriminant adaptive logistic regression.
 #'
 #' @examples
 #' fit <- daqda(Species ~ Sepal.Length + Sepal.Width, data = iris,
@@ -342,7 +345,7 @@ print.daqda <- function (x, ...) {
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @seealso \code{\link{daqda}}, \code{\link{wqda}}, \code{\link{llr}}.
+#' @seealso \code{\link{daqda}}, \code{\link{wqda}}, \code{\link{dalr}}.
 #'
 #' @examples
 #' ## comparison with qda:
