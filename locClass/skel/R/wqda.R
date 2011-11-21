@@ -351,7 +351,7 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
     	- 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
     names(gr) <- rownames(x)
-    posterior <- exp(posterior)
+    posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
     posterior <- posterior/rowSums(posterior)
     if(any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")

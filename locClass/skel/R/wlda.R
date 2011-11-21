@@ -359,7 +359,7 @@ predict.wlda <- function(object, newdata, prior = object$prior, ...) {
     posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov))
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
     names(gr) <- rownames(x)
-    posterior <- exp(posterior)
+    posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
     posterior <- posterior/rowSums(posterior)
     if(any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")

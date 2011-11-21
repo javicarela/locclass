@@ -368,7 +368,7 @@ predict.oslda <- function(object, newdata, ...) {
     	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
 	lev1 <- levels(object$grouping)	# class labels that are in training data
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
-    posterior <- exp(posterior)
+    posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
     posterior <- posterior/rowSums(posterior)
     return(list(class = gr, posterior = posterior))
 }
