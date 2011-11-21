@@ -33,13 +33,13 @@
 #' By default, the number of iterations is limited to 3.
 #'
 #' The name of the window function (\code{wf}) can be specified as a character string.
-#' In this case the window function is generated internally in \code{llr}. Currently
+#' In this case the window function is generated internally in \code{dalr}. Currently
 #' supported are \code{"biweight"}, \code{"cauchy"}, \code{"cosine"}, \code{"epanechnikov"}, 
 #' \code{"exponential"}, \code{"gaussian"}, \code{"optcosine"}, \code{"rectangular"} and 
 #' \code{"triangular"}.
 #'
 #' Moreover, it is possible to generate the window functions mentioned above in advance 
-#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{llr}. 
+#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{dalr}. 
 #'
 #' Any other function implementing a window function can also be used as \code{wf} argument.
 #' This allows the user to try own window functions.
@@ -48,6 +48,9 @@
 #' Internally, \code{\link{glm.fit}} with \code{family = binomial()} is used and the weights produced using 
 #' \code{wf} are passed to \code{\link{glm.fit}} via its \code{weights} argument.
 #' 
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
+#'
 #' Warnings about non-integer #successes in a binomial glm are expected.
 #' 
 #' @title Local Logistic Regression
@@ -75,7 +78,7 @@
 #' @param na.action The default is first, any \code{na.action} attribute of data, second a \code{na.action} setting of options, and third \code{na.fail} if that is unset
 #'   The default is first, a \code{na.action} setting of options, and second \code{na.fail} if that is unset.
 #'
-#' @return An object of class \code{"llr"} inheriting from class \code{"glm"}, a list containing at least the following components:
+#' @return An object of class \code{"dalr"} inheriting from class \code{"glm"}, a list containing at least the following components:
 #' 
 #' Values of \code{glm}:
 #' \item{coefficients}{A named vector of coefficients.}
@@ -113,7 +116,7 @@
 #' \item{contrasts}{(Where relevant) the contrasts used.}
 #' \item{xlevels}{(Where relevant) a record of the levels of the factors used in fitting.}
 #' \item{na.action}{(Where relevant) information returned by \code{\link{model.frame}} on the special handling of NAs.}
-#' Additionally, \code{llr} returns
+#' Additionally, \code{dalr} returns
 #' \item{lev}{The class labels (the levels of \code{grouping}).}
 #' \item{thr}{The threshold used.}
 #' \item{itr}{The number of iterations used.}
@@ -131,7 +134,7 @@
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #' 
-#' @seealso \code{\link{predict.llr}}, \code{\link{glm}}, \code{\link{predict.glm}}.
+#' @seealso \code{\link{predict.dalr}}, \code{\link{glm}}, \code{\link{predict.glm}}.
 #'
 #' @examples
 #' # generate toy data set of Hand und Vinciotti (2003):
@@ -155,21 +158,21 @@
 #'     levels = 0.3, add = TRUE)
 #' 
 #' # 0.3-contour line fit of local logistic regression:
-#' loc.fit <- llr(y ~ ., data = train, thr = 0.3, wf = "gaussian", bw = 0.2)
+#' loc.fit <- dalr(y ~ ., data = train, thr = 0.3, wf = "gaussian", bw = 0.2)
 #' plot(train$x1, train$x2, col = y, pch = 19, main = "local fit")
 #' contour(x1, x2, matrix(loc.fit$fitted.values, length(x1)), 
 #'     levels = 0.3, add = TRUE)
 #' 
 #' 
 #' # specify wf as a character string:
-#' llr(y ~ ., data = train , thr = 0.3, wf = "rectangular", k = 50)
+#' dalr(y ~ ., data = train , thr = 0.3, wf = "rectangular", k = 50)
 #' 
 #' # use window function generating function:
 #' rect <- rectangular(100)
-#' llr(y ~ ., data = train, thr = 0.3, wf = rect)
+#' dalr(y ~ ., data = train, thr = 0.3, wf = rect)
 #' 
 #' # specify own window function:
-#' llr(y ~ ., data = train, thr = 0.3, wf = function(x) exp(-10*x^2)) 
+#' dalr(y ~ ., data = train, thr = 0.3, wf = function(x) exp(-10*x^2)) 
 #' 
 #' 
 #' # generate test data set:
@@ -187,21 +190,21 @@
 #'
 #' @keywords classif model multivariate
 #'
-#' @aliases llr llr.data.frame llr.default llr.formula llr.matrix
+#' @aliases dalr dalr.data.frame dalr.default dalr.formula dalr.matrix
 #'
 #' @export
 
-llr <- function(X, ...)
-    UseMethod("llr")
+dalr <- function(X, ...)
+    UseMethod("dalr")
     
     
 
-#' @rdname llr
-#' @method llr formula
+#' @rdname dalr
+#' @method dalr formula
 #'
-#' @S3method llr formula
+#' @S3method dalr formula
 
-llr.formula <- function(formula, data, ..., subset, na.action) {
+dalr.formula <- function(formula, data, ..., subset, na.action) {
     if (missing(data))
         data <- environment(formula)
     mf <- cl <- match.call()
@@ -223,11 +226,11 @@ llr.formula <- function(formula, data, ..., subset, na.action) {
     X <- if (!is.empty.model(mt))
         model.matrix(mt, mf, contrasts)
     else matrix(, NROW(Y), 0L)
-    res <- llr.default(X, Y, ...)
+    res <- dalr.default(X, Y, ...)
     if ("model" %in% names(res))
         res$model <- mf
     res$na.action <- attr(mf, "na.action")
-    cl[[1L]] <- as.name("llr")
+    cl[[1L]] <- as.name("dalr")
     res$call <- cl
     res$formula <- formula
     res$terms <- mt
@@ -238,27 +241,27 @@ llr.formula <- function(formula, data, ..., subset, na.action) {
 
 
 
-#' @rdname llr
-#' @method llr data.frame
+#' @rdname dalr
+#' @method dalr data.frame
 #'
-#' @S3method llr data.frame
+#' @S3method dalr data.frame
 
-llr.data.frame <- function (X, ...) {
-    res <- llr(structure(data.matrix(X, rownames.force = TRUE), class = "matrix"), ...)
+dalr.data.frame <- function (X, ...) {
+    res <- dalr(structure(data.matrix(X, rownames.force = TRUE), class = "matrix"), ...)
     cl <- match.call()
-    cl[[1L]] <- as.name("llr")
+    cl[[1L]] <- as.name("dalr")
     res$call <- cl
     res
 }
     
     
 
-#' @rdname llr
-#' @method llr matrix
+#' @rdname dalr
+#' @method dalr matrix
 #'
-#' @S3method llr matrix
+#' @S3method dalr matrix
 
-llr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
+dalr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
     data <- data.frame(X, y = Y)
     if (!missing(subset)) {
         X <- X[subset, , drop = FALSE]
@@ -282,12 +285,12 @@ llr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
         X <- cbind(1, X)
         colnames(X)[1] <- "(Intercept)"
     }
-    res <- llr.default(X, Y, intercept = intercept, ...)
+    res <- dalr.default(X, Y, intercept = intercept, ...)
     if ("model" %in% names(res))
         res$model <- data[,c("y", names(data)[names(data) != "y"])]
     if (any(is.na(data))) res$na.action <- na.action else res$na.action <- NULL
     cl <- match.call()
-    cl[[1L]] <- as.name("llr")
+    cl[[1L]] <- as.name("dalr")
     res$call <- cl
     res$data <- data
     res
@@ -300,18 +303,18 @@ llr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
 
 
 
-#' @rdname llr
-#' @method llr default
+#' @rdname dalr
+#' @method dalr default
 #'
-#' @S3method llr default
+#' @S3method dalr default
 
 ## todo: use method argument for different fit methods, e.g. glm.fit, ridge.fit
 
-llr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine", 
+dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine", 
 	"epanechnikov", "exponential", "gaussian", "optcosine", "rectangular", "triangular"), 
     bw, k, nn.only = TRUE, itr = 3, intercept = TRUE, ...) {
     
-    llr.fit <- function(X, Y, thr, wf, itr, intercept = TRUE, weights = rep(1, nrow(X)),
+    dalr.fit <- function(X, Y, thr, wf, itr, intercept = TRUE, weights = rep(1, nrow(X)),
         offset = NULL, control = list(), model = TRUE, x = FALSE, 
         y = TRUE, contrasts = NULL, ...) {
         pw <- ww <- list()
@@ -422,27 +425,27 @@ llr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
 #    	itr <- 0
 #    	warning("nonlocal solution")	
 #    }   
-	fit <- llr.fit(X = X, Y = g, thr = thr, wf = wf, itr = itr, intercept = intercept, ...)
+	fit <- dalr.fit(X = X, Y = g, thr = thr, wf = wf, itr = itr, intercept = intercept, ...)
     fit.class <- class(fit)
     fit <- c(fit, list(counts = counts, N = n, lev = lev, thr = thr, itr = itr, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
     cl <- match.call()
-    cl[[1]] <- as.name("llr")
+    cl[[1]] <- as.name("dalr")
     fit$call <- cl
-    class(fit) <- c("llr", fit.class)
+    class(fit) <- c("dalr", fit.class)
     return(fit)
 }
 
 
 
-#' @param x A \code{llr} object.
+#' @param x A \code{dalr} object.
 #' @param ... Further arguments to \code{\link{print}}.
 #'
-#' @method print llr
+#' @method print dalr
 #' @nord
 #'
-#' @S3method print llr
+#' @S3method print dalr
 
-print.llr <- function(x, ...) {
+print.dalr <- function(x, ...) {
     NextMethod(x, ...)
     if(!is.null(attr(x$wf, "name"))) {
         cat("\nWindow function: ")
@@ -471,7 +474,7 @@ print.llr <- function(x, ...) {
 #'
 #' @title Classify Multivariate Observations Based on Local Logistic Regression
 #'
-#' @param object An object of class \code{"llr"} inheriting from \code{"glm"}.
+#' @param object An object of class \code{"dalr"} inheriting from \code{"glm"}.
 #' @param newdata Optionally, a \code{data.frame} in which to look for variables with which to predict. 
 #' If omitted, the fitted linear predictors are used.
 #' @param ... Further arguments to be passed from or to other methods, especially to \code{\link{predict.glm}}???.
@@ -485,9 +488,7 @@ print.llr <- function(x, ...) {
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #' 
-#' @author Julia Schiffner \email{schiffner@@statistik.tu-dortmund.de} and Stefanie Hillebrand.
-#'
-#' @seealso \code{\link{llr}}, \code{\link{predict.glm}}, \code{\link{glm}}.
+#' @seealso \code{\link{dalr}}, \code{\link{predict.glm}}, \code{\link{glm}}.
 #'
 #' @examples
 #' # generate data set:
@@ -499,21 +500,21 @@ print.llr <- function(x, ...) {
 #'     prob = c(1-x,x))))
 #' x <- data.frame(x, y = y)
 #' 
-#' # fit llr on training set and predict on test set:
+#' # fit dalr on training set and predict on test set:
 #' train <- sample(500, 300)
-#' fit <- llr(y ~ ., data = x, thr = 0.3, wf = "rectangular", bw = 100, 
+#' fit <- dalr(y ~ ., data = x, thr = 0.3, wf = "rectangular", bw = 100, 
 #'     subset = train)
 #' pred <- predict(fit, newdata = x[-train,])
 #' mean(y[-train] != pred$class)
 #'
 #' @keywords classif model multivariate
 #'
-#' @method predict llr
-#' @rdname predict.llr
+#' @method predict dalr
+#' @rdname predict.dalr
 #'
-#' @S3method predict llr
+#' @S3method predict dalr
 
-predict.llr <- function(object, newdata = NULL, ...) {
+predict.dalr <- function(object, newdata = NULL, ...) {
     post <- NextMethod(type = "response", ...)
     if (is.list(post)) {
         lev1 <- names(object$counts)
