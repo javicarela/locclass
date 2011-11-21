@@ -18,17 +18,20 @@
 #' A localized version of Quadratic Discriminant Analysis.
 #'
 #' The name of the window function (\code{wf}) can be specified as a character string.
-#' In this case the window function is generated internally in \code{predict.locqda}. Currently
+#' In this case the window function is generated internally in \code{predict.osqda}. Currently
 #' supported are \code{"biweight"}, \code{"cauchy"}, \code{"cosine"}, \code{"epanechnikov"}, 
 #' \code{"exponential"}, \code{"gaussian"}, \code{"optcosine"}, \code{"rectangular"} and 
 #' \code{"triangular"}.
 #'
 #' Moreover, it is possible to generate the window functions mentioned above in advance 
-#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{locqda}. 
+#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{osqda}. 
 #'
 #' Any other function implementing a window function can also be used as \code{wf} argument.
 #' This allows the user to try own window functions.
 #' See help on \code{\link[=generatewf]{wfs}} for details.
+#'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
 #'
 #' @title Local Quadratic Discriminant Analysis
 #'
@@ -54,7 +57,7 @@
 #' An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
 #' variable. (NOTE: If given, this argument must be named.)
 #'
-#' @return An object of class \code{"locqda"}, a \code{list} containing the following components:
+#' @return An object of class \code{"osqda"}, a \code{list} containing the following components:
 #'   \item{x}{A \code{matrix} containing the explanatory variables.}
 #'   \item{grouping}{A \code{factor} specifying the class membership for each observation.}
 #'   \item{counts}{The number of observations per class.}
@@ -79,26 +82,26 @@
 #' In Decker, R. and Lenz, H.-J., editors, Advances in Data Analysis, volume 33 of Studies in Classification,
 #' Data Analysis, and Knowledge Organization, pages 133--140, Springer, Berlin Heidelberg.
 #'
-#' @seealso \code{\link{predict.locqda}}.
+#' @seealso \code{\link{predict.osqda}}.
 #'
 #'
 #' @keywords classif multivariate
 #'
-#' @aliases locqda locqda.data.frame locqda.default locqda.formula locqda.matrix
+#' @aliases osqda osqda.data.frame osqda.default osqda.formula osqda.matrix
 #'
 #' @export
 
-locqda <- function(x, ...)
-	UseMethod("locqda")
+osqda <- function(x, ...)
+	UseMethod("osqda")
 	
 	
 	
-#' @rdname locqda
-#' @method locqda formula
+#' @rdname osqda
+#' @method osqda formula
 #'
-#' @S3method locqda formula
+#' @S3method osqda formula
 
-locqda.formula <- function(formula, data, ..., subset, na.action) {
+osqda.formula <- function(formula, data, ..., subset, na.action) {
     m <- match.call(expand.dots = FALSE)
     m$... <- NULL
     m[[1L]] <- as.name("model.frame")
@@ -109,10 +112,10 @@ locqda.formula <- function(formula, data, ..., subset, na.action) {
     xint <- match("(Intercept)", colnames(x), nomatch = 0L)
     if (xint > 0) 
 		x <- x[, -xint, drop = FALSE]
-    res <- locqda.default(x, grouping, ...)
+    res <- osqda.default(x, grouping, ...)
     res$terms <- Terms
     cl <- match.call()
-    cl[[1L]] <- as.name("locqda")
+    cl[[1L]] <- as.name("osqda")
     res$call <- cl
     res$contrasts <- attr(x, "contrasts")
     res$xlevels <- .getXlevels(Terms, m)
@@ -122,27 +125,27 @@ locqda.formula <- function(formula, data, ..., subset, na.action) {
 
 
 
-#' @rdname locqda
-#' @method locqda data.frame
+#' @rdname osqda
+#' @method osqda data.frame
 #'
-#' @S3method locqda data.frame
+#' @S3method osqda data.frame
 
-locqda.data.frame <- function (x, ...) {
-	res <- locqda(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
+osqda.data.frame <- function (x, ...) {
+	res <- osqda(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
 	cl <- match.call()
-	cl[[1L]] <- as.name("locqda")
+	cl[[1L]] <- as.name("osqda")
 	res$call <- cl
 	res
 }
 
 
 
-#' @rdname locqda
-#' @method locqda matrix
+#' @rdname osqda
+#' @method osqda matrix
 #'
-#' @S3method locqda matrix
+#' @S3method osqda matrix
 
-locqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
+osqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
     if (!missing(subset)) {
         x <- x[subset, , drop = FALSE]
         grouping <- grouping[subset]
@@ -157,9 +160,9 @@ locqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
     dfr <- na.action(structure(list(g = grouping, x = x), class = "data.frame", row.names = rownames(x)))
     grouping <- dfr$g
     x <- dfr$x
-    res <- locqda.default(x, grouping, ...)
+    res <- osqda.default(x, grouping, ...)
     cl <- match.call()
-    cl[[1L]] <- as.name("locqda")
+    cl[[1L]] <- as.name("osqda")
     res$call <- cl
 	res$na.action <- na.action
     res
@@ -167,12 +170,12 @@ locqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
 
 
 
-#' @rdname locqda
-#' @method locqda default
+#' @rdname osqda
+#' @method osqda default
 #'
-#' @S3method locqda default
+#' @S3method osqda default
 
-locqda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "cosine", "epanechnikov", 
+osqda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, 
 	method = c("unbiased", "ML"), ...) {
 	if (is.null(dim(x))) 
@@ -206,9 +209,9 @@ locqda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     	m[[1L]] <- as.name("checkwf")
     	check <- eval.parent(m)
     	cl <- match.call()
-    	cl[[1]] <- as.name("locqda")
+    	cl[[1]] <- as.name("osqda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = check$wf, bw = check$bw, k = check$k, 
-    		nn.only = check$nn.only, adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "locqda"))
+    		nn.only = check$nn.only, adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "osqda"))
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
@@ -239,24 +242,24 @@ locqda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     	} else
     		variant <- NULL
     	cl <- match.call()
-    	cl[[1]] <- as.name("locqda")
+    	cl[[1]] <- as.name("osqda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
-    		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "locqda"))
+    		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "osqda"))
     } else
 		stop("argument 'wf' has to be either a character or a function")
 }	
 	
 
 
-#' @param x A \code{locqda} object.
+#' @param x A \code{osqda} object.
 #' @param ... Further arguments to \code{\link{print}}.
 #'
-#' @method print locqda
+#' @method print osqda
 #' @nord
 #'
-#' @S3method print locqda
+#' @S3method print osqda
 
-print.locqda <- function(x, ...) {
+print.osqda <- function(x, ...) {
     if (!is.null(cl <- x$call)) {
         names(cl)[2L] <- ""
         cat("Call:\n")
@@ -282,44 +285,44 @@ print.locqda <- function(x, ...) {
 
 
 
-#' Classify multivariate observations in conjunction with \code{\link{locqda}}.
+#' Classify multivariate observations in conjunction with \code{\link{osqda}}.
 #'
 #' This function is a method for the generic function \code{predict()} for class 
-#' \code{"locqda"}. 
+#' \code{"osqda"}. 
 #' It can be invoked by calling \code{predict(x)} for an object \code{x} of the 
-#' appropriate class, or directly by calling \code{predict.locqda(x)} regardless of 
+#' appropriate class, or directly by calling \code{predict.osqda(x)} regardless of 
 #' the class of the object. 
 #'
 #' @title Classify Multivariate Observations Based on Local Quadratic Discriminant Analysis
 #'
-#' @param object Object of class \code{"locqda"}.
+#' @param object Object of class \code{"osqda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a
 #' \code{formula}, a \code{data.frame} with columns of the same names as the
 #' variables used. A vector will be interpreted as a row
 #' vector. If \code{newdata} is missing, an attempt will be made to
-#' retrieve the data used to fit the \code{locqda} object.
+#' retrieve the data used to fit the \code{osqda} object.
 #' @param \dots Further arguments.
 #'
 #' @return A \code{list} with components:
 #' \item{class}{The predicted class labels (a \code{factor}).}
 #' \item{posteriors}{Matrix of class posterior probabilities.}
 #'
-#' @seealso \code{\link{locqda}}.
+#' @seealso \code{\link{osqda}}.
 #'
 #' 
 #' @keywords classif
 #' 
-#' @method predict locqda
-#' @rdname predict.locqda
+#' @method predict osqda
+#' @rdname predict.osqda
 #'
-#' @S3method predict locqda
+#' @S3method predict osqda
 #'
 #' @useDynLib locClass
 
 
-predict.locqda <- function(object, newdata, ...) {	
-    if (!inherits(object, "locqda")) 
-        stop("object not of class", " 'locqda'")
+predict.osqda <- function(object, newdata, ...) {	
+    if (!inherits(object, "osqda")) 
+        stop("object not of class", " 'osqda'")
     if (!is.null(Terms <- object$terms)) {
         if (missing(newdata)) 
             newdata <- model.frame(object)
@@ -358,7 +361,7 @@ predict.locqda <- function(object, newdata, ...) {
 		object$wf <- paste(object$wf, object$variant, sep = "")
 		object$wf <- match(object$wf, wfs)
 	}
-    posterior <- .Call("predlocqda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
+    posterior <- .Call("predosqda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
     	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
 	lev1 <- levels(object$grouping)	# class labels that are in training data
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)

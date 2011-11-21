@@ -17,7 +17,7 @@
 
 # include "wf.h"
 
-/* predlocqda:
+/* predosqda:
  *
  *  s_test:		test data, N_test * p matrix
  *  s_learn:	training data, N_learn * p matrix
@@ -30,7 +30,7 @@
  *
  */
 
-SEXP predlocqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, SEXP s_k, SEXP s_method, SEXP s_env)
+SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, SEXP s_k, SEXP s_method, SEXP s_env)
 {
 	const R_len_t p = ncols(s_test);			// dimensionality
 	const R_len_t N_learn = nrows(s_learn);		// # training observations
