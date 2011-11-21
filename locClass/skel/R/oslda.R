@@ -18,20 +18,23 @@
 #' A localized version of Linear Discriminant Analysis.
 #'
 #' This is an alternative implementation of Local Linear Discriminant Analysis proposed by Czogiel et al. (2007) and 
-#' implemented in \code{\link[klaR]{loclda}} in package \code{klaR}.
+#' implemented in \code{\link[klaR]{oslda}} in package \code{klaR}.
 #'
 #' The name of the window function (\code{wf}) can be specified as a character string.
-#' In this case the window function is generated internally in \code{predict.loclda}. Currently
+#' In this case the window function is generated internally in \code{predict.oslda}. Currently
 #' supported are \code{"biweight"}, \code{"cauchy"}, \code{"cosine"}, \code{"epanechnikov"}, 
 #' \code{"exponential"}, \code{"gaussian"}, \code{"optcosine"}, \code{"rectangular"} and 
 #' \code{"triangular"}.
 #'
 #' Moreover, it is possible to generate the window functions mentioned above in advance 
-#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{loclda}. 
+#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{oslda}. 
 #'
 #' Any other function implementing a window function can also be used as \code{wf} argument.
 #' This allows the user to try own window functions.
 #' See help on \code{\link[=generatewf]{wfs}} for details.
+#'
+#' If the predictor variables include factors, the formula interface must be used in order 
+#' to get a correct model matrix.
 #'
 #' @title Local Linear Discriminant Analysis
 #'
@@ -57,7 +60,7 @@
 #' An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
 #' variable. (NOTE: If given, this argument must be named.)
 #'
-#' @return An object of class \code{"loclda"}, a \code{list} containing the following components:
+#' @return An object of class \code{"oslda"}, a \code{list} containing the following components:
 #'   \item{x}{A \code{matrix} containing the explanatory variables.}
 #'   \item{grouping}{A \code{factor} specifying the class membership for each observation.}
 #'   \item{counts}{The number of observations per class.}
@@ -82,26 +85,26 @@
 #' In Decker, R. and Lenz, H.-J., editors, Advances in Data Analysis, volume 33 of Studies in Classification,
 #' Data Analysis, and Knowledge Organization, pages 133--140, Springer, Berlin Heidelberg.
 #'
-#' @seealso \code{\link{predict.loclda}}.
+#' @seealso \code{\link{predict.oslda}}.
 #'
 #'
 #' @keywords classif multivariate
 #'
-#' @aliases loclda loclda.data.frame loclda.default loclda.formula loclda.matrix
+#' @aliases oslda oslda.data.frame oslda.default oslda.formula oslda.matrix
 #'
 #' @export
 
-loclda <- function(x, ...)
-	UseMethod("loclda")
+oslda <- function(x, ...)
+	UseMethod("oslda")
 	
 	
 	
-#' @rdname loclda
-#' @method loclda formula
+#' @rdname oslda
+#' @method oslda formula
 #'
-#' @S3method loclda formula
+#' @S3method oslda formula
 
-loclda.formula <- function(formula, data, ..., subset, na.action) {
+oslda.formula <- function(formula, data, ..., subset, na.action) {
     m <- match.call(expand.dots = FALSE)
     m$... <- NULL
     m[[1L]] <- as.name("model.frame")
@@ -112,10 +115,10 @@ loclda.formula <- function(formula, data, ..., subset, na.action) {
     xint <- match("(Intercept)", colnames(x), nomatch = 0L)
     if (xint > 0) 
 		x <- x[, -xint, drop = FALSE]
-    res <- loclda.default(x, grouping, ...)
+    res <- oslda.default(x, grouping, ...)
     res$terms <- Terms
     cl <- match.call()
-    cl[[1L]] <- as.name("loclda")
+    cl[[1L]] <- as.name("oslda")
     res$call <- cl
     res$contrasts <- attr(x, "contrasts")
     res$xlevels <- .getXlevels(Terms, m)
@@ -125,27 +128,27 @@ loclda.formula <- function(formula, data, ..., subset, na.action) {
 
 
 
-#' @rdname loclda
-#' @method loclda data.frame
+#' @rdname oslda
+#' @method oslda data.frame
 #'
-#' @S3method loclda data.frame
+#' @S3method oslda data.frame
 
-loclda.data.frame <- function (x, ...) {
-	res <- loclda(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
+oslda.data.frame <- function (x, ...) {
+	res <- oslda(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
 	cl <- match.call()
-	cl[[1L]] <- as.name("loclda")
+	cl[[1L]] <- as.name("oslda")
 	res$call <- cl
 	res
 }
 
 
 
-#' @rdname loclda
-#' @method loclda matrix
+#' @rdname oslda
+#' @method oslda matrix
 #'
-#' @S3method loclda matrix
+#' @S3method oslda matrix
 
-loclda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
+oslda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
     if (!missing(subset)) {
         x <- x[subset, , drop = FALSE]
         grouping <- grouping[subset]
@@ -160,9 +163,9 @@ loclda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
     dfr <- na.action(structure(list(g = grouping, x = x), class = "data.frame", row.names = rownames(x)))
     grouping <- dfr$g
     x <- dfr$x
-    res <- loclda.default(x, grouping, ...)
+    res <- oslda.default(x, grouping, ...)
     cl <- match.call()
-    cl[[1L]] <- as.name("loclda")
+    cl[[1L]] <- as.name("oslda")
     res$call <- cl
 	res$na.action <- na.action
     res
@@ -170,12 +173,12 @@ loclda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
 
 
 
-#' @rdname loclda
-#' @method loclda default
+#' @rdname oslda
+#' @method oslda default
 #'
-#' @S3method loclda default
+#' @S3method oslda default
 
-loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "cosine", "epanechnikov", 
+oslda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, 
 	method = c("unbiased", "ML"), ...) {
 	if (is.null(dim(x))) 
@@ -209,9 +212,9 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     	m[[1L]] <- as.name("checkwf")
     	check <- eval.parent(m)
     	cl <- match.call()
-    	cl[[1]] <- as.name("loclda")
+    	cl[[1]] <- as.name("oslda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = check$wf, bw = check$bw, k = check$k, nn.only = check$nn.only, 
-    		adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "loclda"))
+    		adaptive = check$adaptive, method = method, variant = check$variant, call = cl), class = "oslda"))
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
@@ -242,24 +245,24 @@ loclda.default <- function (x, grouping, wf = c("none", "biweight", "cauchy", "c
     	} else
     		variant <- NULL
     	cl <- match.call()
-    	cl[[1]] <- as.name("loclda")
+    	cl[[1]] <- as.name("oslda")
     	return(structure(list(x = x, grouping = g, counts = counts, lev = lev, N = n, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
-    		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "loclda"))
+    		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method, variant = variant, call = cl), class = "oslda"))
     } else
 		stop("argument 'wf' has to be either a character or a function")
 }	
 	
 
 
-#' @param x A \code{loclda} object.
+#' @param x A \code{oslda} object.
 #' @param ... Further arguments to \code{\link{print}}.
 #'
-#' @method print loclda
+#' @method print oslda
 #' @nord
 #'
-#' @S3method print loclda
+#' @S3method print oslda
 
-print.loclda <- function(x, ...) {
+print.oslda <- function(x, ...) {
     if (!is.null(cl <- x$call)) {
         names(cl)[2L] <- ""
         cat("Call:\n")
@@ -285,44 +288,44 @@ print.loclda <- function(x, ...) {
 
 
 
-#' Classify multivariate observations in conjunction with \code{\link{loclda}}.
+#' Classify multivariate observations in conjunction with \code{\link{oslda}}.
 #'
 #' This function is a method for the generic function \code{predict()} for class 
-#' \code{"loclda"}. 
+#' \code{"oslda"}. 
 #' It can be invoked by calling \code{predict(x)} for an object \code{x} of the 
-#' appropriate class, or directly by calling \code{predict.loclda(x)} regardless of 
+#' appropriate class, or directly by calling \code{predict.oslda(x)} regardless of 
 #' the class of the object. 
 #'
 #' @title Classify Multivariate Observations Based on Local Linear Discriminant Analysis
 #'
-#' @param object Object of class \code{"loclda"}.
+#' @param object Object of class \code{"oslda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a
 #' \code{formula}, a \code{data.frame} with columns of the same names as the
 #' variables used. A vector will be interpreted as a row
 #' vector. If \code{newdata} is missing, an attempt will be made to
-#' retrieve the data used to fit the \code{loclda} object.
+#' retrieve the data used to fit the \code{oslda} object.
 #' @param \dots Further arguments.
 #'
 #' @return A \code{list} with components:
 #' \item{class}{The predicted class labels (a \code{factor}).}
 #' \item{posteriors}{Matrix of class posterior probabilities.}
 #'
-#' @seealso \code{\link{loclda}}.
+#' @seealso \code{\link{oslda}}.
 #'
 #' 
 #' @keywords classif
 #' 
-#' @method predict loclda
-#' @rdname predict.loclda
+#' @method predict oslda
+#' @rdname predict.oslda
 #'
-#' @S3method predict loclda
+#' @S3method predict oslda
 #'
 #' @useDynLib locClass
 
 
-predict.loclda <- function(object, newdata, ...) {	
-    if (!inherits(object, "loclda")) 
-        stop("object not of class", " 'loclda'")
+predict.oslda <- function(object, newdata, ...) {	
+    if (!inherits(object, "oslda")) 
+        stop("object not of class", " 'oslda'")
     if (!is.null(Terms <- object$terms)) {
         if (missing(newdata)) 
             newdata <- model.frame(object)
@@ -361,7 +364,7 @@ predict.loclda <- function(object, newdata, ...) {
 		object$wf <- paste(object$wf, object$variant, sep = "")
 		object$wf <- match(object$wf, wfs)
 	}
-    posterior <- .Call("predloclda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
+    posterior <- .Call("predoslda", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
     	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
 	lev1 <- levels(object$grouping)	# class labels that are in training data
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
