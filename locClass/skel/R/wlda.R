@@ -37,7 +37,7 @@
 #'
 #' @title Weighted Linear Discriminant Analysis
 #'
-#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + ...}, that is, the response
+#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + \dots}, that is, the response
 #' is the grouping \code{factor} and the right hand side specifies the (non-\code{factor})
 #' discriminators.  
 #' @param data A \code{data.frame} from which variables specified in \code{formula} are to be taken.
@@ -63,7 +63,7 @@
 #'   \item{weights}{The observation weights used in the fitting process.}  
 #'   \item{call}{The (matched) function call.}
 #'
-#' @seealso \code{\link{predict.wlda}} and \code{\link{dalda}} as well as \code{\link{tlda}} which are based on \code{\link{wlda}}.
+#' @seealso \code{\link{predict.wlda}} and \code{\link{dalda}} which is based on \code{\link{wlda}}.
 #'
 #' @examples
 #' library(mlbench)

@@ -28,7 +28,7 @@
 #' But it is also possible to use more than 1 prototype and to weigh the influence of the prototypes on 
 #' the classification according to their distances from the observation to be classified.
 #' This is controlled by the arguments \code{wf}, \code{k}, \code{bw} and \code{nn.only}
-#' (see \code{\link[=generatewf]{wfs}}).
+#' (see \code{\link[=biweight]{wfs}}).
 #'
 #' The name of the window function (\code{wf}) can be specified as a character string.
 #' In this case the window function is generated internally in \code{kmc}. Currently
@@ -37,11 +37,11 @@
 #' \code{"triangular"}.
 #'
 #' Moreover, it is possible to generate the window functions mentioned above in advance 
-#' (see \code{\link[=generatewf]{wfs}}) and pass them to \code{dalda}. 
+#' (see \code{\link[=biweight]{wfs}}) and pass them to \code{dalda}. 
 #'
 #' Any other function implementing a window function can also be used as \code{wf} argument.
 #' This allows the user to try own window functions.
-#' See help on \code{\link[=generatewf]{wfs}} for details.
+#' See help on \code{\link[=biweight]{wfs}} for details.
 #'
 #' It may be useful to \code{\link{scale}} the data first.
 #'
@@ -50,7 +50,7 @@
 #'
 #' @title K-Means Classification
 #'
-#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + ...}, that is, the response is the 
+#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + \dots}, that is, the response is the 
 #' grouping \code{factor} and the right hand side specifies the (usually non-\code{factor}) discriminators.  
 #' @param data A \code{data.frame} from which variables specified in \code{formula} are to be taken.
 #' @param x (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} or \code{Matrix} containing the explanatory variables.
@@ -59,11 +59,11 @@
 #' The numbers of centers have to be in the same order as the levels of grouping. Default is \code{K = 2}.
 #' @param wf A window function which is used to calculate weights that are introduced into 
 #' the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
-#' For details see the documentation for \code{\link[=generatewf]{wfs}}.
-#' @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=generatewf]{wfs}}.)
-#' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=generatewf]{wfs}}.)
+#' For details see the documentation for \code{\link[=biweight]{wfs}}.
+#' @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=biweight]{wfs}}.)
+#' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=biweight]{wfs}}.)
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
-#' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=generatewf]{wfs}}.)
+#' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param nstart The number of random starts of the K-means algorithm. See \code{\link{kmeans}}.
 #' @param \dots Further arguments to be passed to \code{\link{kmeans}}.
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
@@ -348,11 +348,11 @@ print.kmc <- function(x, ...) {
 #' @param object An object of class \code{"kmc"}.
 #' @param wf A window function which is used to calculate weights that are introduced into 
 #' the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
-#' For details see the documentation for \code{\link[=generatewf]{wfs}}.
-#' @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=generatewf]{wfs}}.)
-#' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=generatewf]{wfs}}.)
+#' For details see the documentation for \code{\link[=biweight]{wfs}}.
+#' @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=biweight]{wfs}}.)
+#' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=biweight]{wfs}}.)
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
-#' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=generatewf]{wfs}}.)
+#' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 
 kmc.kmc <- function(object, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), 

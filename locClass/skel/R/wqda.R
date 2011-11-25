@@ -36,7 +36,7 @@
 #'
 #' @title Weighted Quadratic Discriminant Analysis
 #'
-#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + ...}, that is, the response
+#' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + \dots}, that is, the response
 #' is the grouping \code{factor} and the right hand side specifies the (non-\code{factor})
 #' discriminators.  
 #' @param data A \code{data.frame} from which variables specified in \code{formula} are to be taken.

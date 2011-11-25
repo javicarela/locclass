@@ -252,10 +252,10 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 	return(wfunc)
 }
 
-#' The window function generating functions that can be used e.g. in \code{\link{dalr}} or \code{\link{tlda}}.
+#' The window function generating functions that can are used in various local classification methods.
 #'
 #' The window function generating functions are used to initialize a window function. These functions can be passed as
-#' \code{wf} argument to \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{predict.kmc}} or \code{\link{tlda}}.
+#' \code{wf} argument to \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{kmc}} or \code{\link{oslda}}.
 #'
 #' If only \code{bw} is given a window function with fixed bandwidth is returned.
 #'
@@ -289,7 +289,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #'	}
 #'
 #'
-#' @seealso \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{kmc}}, \code{\link{tlda}}, \link[stats]{density}.
+#' @seealso \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{kmc}}, \code{\link{oslda}}, \link[stats]{density}.
 #'
 #' @examples
 #' ## fixed bandwidth
