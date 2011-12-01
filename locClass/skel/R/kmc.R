@@ -341,22 +341,24 @@ print.kmc <- function(x, ...) {
 
 
 #' @rdname kmc
-#' @method kmc kmc
+#' @method update kmc
 #'
-#' @S3method kmc kmc
+#' @S3method update kmc
 #'
 #' @param object An object of class \code{"kmc"}.
-#' @param wf A window function which is used to calculate weights that are introduced into 
-#' the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
-#' For details see the documentation for \code{\link[=biweight]{wfs}}.
-#' @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=biweight]{wfs}}.)
-#' @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=biweight]{wfs}}.)
-#' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
-#' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
+# @param wf A window function which is used to calculate weights that are introduced into 
+# the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
+# For details see the documentation for \code{\link[=biweight]{wfs}}.
+# @param bw (Required only if \code{wf} is a string.) The bandwidth parameter of the window function. (See \code{\link[=biweight]{wfs}}.)
+# @param k (Required only if \code{wf} is a string.) The number of nearest neighbors of the decision boundary to be used in the fitting process. (See \code{\link[=biweight]{wfs}}.)
+# @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
+# only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 
-kmc.kmc <- function(object, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
+update.kmc <- function(object, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), 
-	bw, k, nn.only) {
+	bw, k, nn.only, ...) {
+	if (!inherits(object, "kmc"))
+		stop("object not of class \"kmc\"")
     if (is.character(wf)) {
 		#if (!missing(k))
     	#	if (k > nrow(object$x))
