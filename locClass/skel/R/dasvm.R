@@ -82,12 +82,6 @@
 #' Data are scaled internally, usually yielding better results. 
 #' Parameters of SVM-models usually \emph{must} be tuned to yield sensible results!
 #'
-#' Sice \code{dasvm} is only appropriate for classification note that not all types
-???\code{wsvm} is used to train a support vector machine with case weights. 
-#' It can be used to carry
-#' out general regression and classification (of nu and epsilon-type), as
-#' well as density-estimation. A formula interface is provided.
-#' WELCHE TYPES SIND HIER SINNVOLL???
 #'
 #' @title Discriminant Adaptive Support Vector Machine
 #'
@@ -315,7 +309,7 @@ function (x,
     if (is.null(type)) 
     	type <- "C-classification"
         
-    if (!type %in% c("C-classification", "nu-classification")
+    if (!type %in% c("C-classification", "nu-classification"))
     	stop ("only classification is supported by dasvm")
 
     if (!missing(itr)) {
