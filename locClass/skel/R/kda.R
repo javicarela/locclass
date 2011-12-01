@@ -289,7 +289,7 @@ print.kda <- function(x, ...) {
 #' appropriate class, or directly by calling \code{predict.kda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Kernel Density Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Kernel Rules
 #'
 #' @param object Object of class \code{"kda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a

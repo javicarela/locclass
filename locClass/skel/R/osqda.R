@@ -33,7 +33,7 @@
 #' If the predictor variables include factors, the formula interface must be used in order 
 #' to get a correct model matrix.
 #'
-#' @title Local Quadratic Discriminant Analysis
+#' @title Observation Specific Quadratic Discriminant Analysis
 #'
 #' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + \dots}, that is, the response
 #' is the grouping \code{factor} and the right hand side specifies the (non-\code{factor})
@@ -293,7 +293,7 @@ print.osqda <- function(x, ...) {
 #' appropriate class, or directly by calling \code{predict.osqda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Local Quadratic Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Observation Specific Quadratic Discriminant Analysis
 #'
 #' @param object Object of class \code{"osqda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a

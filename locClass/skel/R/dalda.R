@@ -327,7 +327,7 @@ print.dalda <- function (x, ...) {
 #' appropriate class, or directly by calling \code{predict.dalda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Discriminant-Adaptive Linear Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Discriminant Adaptive Linear Discriminant Analysis
 #'
 #' @param object Object of class \code{"dalda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a

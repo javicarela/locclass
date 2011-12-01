@@ -327,7 +327,7 @@ print.daqda <- function (x, ...) {
 #' appropriate class, or directly by calling \code{predict.daqda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Discriminant-Adaptive Quadratic Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Discriminant Adaptive Quadratic Discriminant Analysis
 #'
 #' @param object Object of class \code{"daqda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a

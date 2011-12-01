@@ -36,7 +36,7 @@
 #' If the predictor variables include factors, the formula interface must be used in order 
 #' to get a correct model matrix.
 #'
-#' @title Local Linear Discriminant Analysis
+#' @title Observation Specific Linear Discriminant Analysis
 #'
 #' @param formula A \code{formula} of the form \code{groups ~ x1 + x2 + \dots}, that is, the response
 #' is the grouping \code{factor} and the right hand side specifies the (non-\code{factor})
@@ -254,8 +254,8 @@ oslda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "
 	
 
 
-#' @param x A \code{oslda} object.
-#' @param ... Further arguments to \code{\link{print}}.
+#' @param x An \code{oslda} object.
+#' @param \dots Further arguments to \code{\link{print}}.
 #'
 #' @method print oslda
 #' @nord
@@ -296,7 +296,7 @@ print.oslda <- function(x, ...) {
 #' appropriate class, or directly by calling \code{predict.oslda(x)} regardless of 
 #' the class of the object. 
 #'
-#' @title Classify Multivariate Observations Based on Local Linear Discriminant Analysis
+#' @title Classify Multivariate Observations Based on Observation Specific Linear Discriminant Analysis
 #'
 #' @param object Object of class \code{"oslda"}.
 #' @param newdata A \code{data.frame} of cases to be classified or, if \code{object} has a
