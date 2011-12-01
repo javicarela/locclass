@@ -4,8 +4,9 @@ Date: 2010-06-07
 Title: Collection of Local Classification Methods
 Author: Julia Schiffner and Stefanie Hillebrand
 Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
-Depends: R (>= 2.10.0) 
-Suggests: mlbench, klaR, MASS
+Depends: R (>= 2.10.0)
+Imports: nnet, e1071
+Suggests: mlbench, klaR, MASS, Matrix, SparseM
 Description: Collection of diverse local classification methods such as local versions of linear discriminant analysis, Fisher discriminant analysis and logistic regression.
 License: GPL-2
 URL: http://www.statistik.tu-dortmund.de
