@@ -93,7 +93,7 @@ SEXP predkda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, S
 		if (isInteger(s_wf)) {
 			// case 1: wf is integer
 			// calculate weights by reading number and calling corresponding C function
-			wf(weights, dist, N_learn, *bw, k);
+			wf(weights, dist, N_learn, bw, k);
 		} else if (isFunction(s_wf)) {
 			// case 2: wf is R function
 			// calculate weights by calling R function
