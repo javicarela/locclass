@@ -317,6 +317,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
     dalr.fit <- function(X, Y, thr, wf, itr, intercept = TRUE, weights = rep(1, nrow(X)),
         offset = NULL, control = list(), model = TRUE, x = FALSE, 
         y = TRUE, contrasts = NULL, ...) {
+        n <- nrow(X)
         pw <- ww <- list()
         control <- do.call("glm.control", control)
         if (!is.null(weights) && !is.numeric(weights))
@@ -328,12 +329,14 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
                 stop(gettextf("number of offsets is %d should equal %d (number of observations)",
                     length(offset), NROW(Y)), domain = NA)
         }
+        weights <- weights/sum(weights) * n     # rescale weights such that they sum up to n
         fit <- glm.fit(x = X, y = Y, weights = weights, family = binomial(), 
             offset = offset, control = control, intercept = intercept, ...)
         pw[[1]] <- fit$prior.weights
         ww[[1]] <- fit$weights
 	    for (i in seq_len(itr)) {
             pw[[i+1]] <- wf(fit$fitted.values - thr) 
+			pw[[i+1]] <- pw[[i+1]]/sum(pw[[i+1]]) * n     # rescale weights such that they sum up to n        
             if (all(pw[[i+1]] == 0))
             	stop("all 'weights' are zero")
         	fit <- glm.fit(x = X, y = Y, weights = pw[[i+1]], family = binomial(), 
@@ -472,7 +475,7 @@ print.dalr <- function(x, ...) {
 #' Obtains predicted class labels and posterior probabilities from a locally fitted logistic regression model.
 #'
 #'
-#' @title Classify Multivariate Observations Based on Local Logistic Regression
+#' @title Classify Multivariate Observations Based on Discriminant Adaptive Logistic Regression
 #'
 #' @param object An object of class \code{"dalr"} inheriting from \code{"glm"}.
 #' @param newdata Optionally, a \code{data.frame} in which to look for variables with which to predict. 
