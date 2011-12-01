@@ -38,4 +38,5 @@ package: pkg
 pkg: clean
 	echo "Roxygenizing package ..."
 	${RSCRIPT} ./tools/roxygenize > roxygen.log 2>&1
+	${DELETE} ../pkg/locClass/inst
 	${RSCRIPT} ./tools/set-version > version.log 2>&1
