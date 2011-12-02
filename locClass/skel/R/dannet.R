@@ -380,6 +380,10 @@ print.dannet <- function (x, ...) {
 #' @seealso \code{\link{dannet}}, \code{\link[nnet]{nnet}}.
 #'
 # @examples
+#' fit <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, size = 2, rang = 0.1, decay = 5e-4, maxit = 200)
+#' pred <- predict(fit)
+#' mean(pred$class != iris$Species)
+
 # ## comparison with nnet:
 # library(MASS)
 # fit1 <- nnet(Species ~ Sepal.Length + Sepal.Width, data = iris)

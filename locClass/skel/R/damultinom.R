@@ -80,7 +80,7 @@
 #	counts.???
 #' @param model Logical. If true, the model frame is saved as component \code{model}
 #'  of the returned object.
-#' @param \dots Additional arguments for \code{dannet}, including the window function and bandwidth
+#' @param \dots Additional arguments for \code{\link{dannet}}, including the window function and bandwidth
 #'  parameters used to generate observation weights:
 #' \describe{
 #' 	\item{\code{wf}}{A window function which is used to calculate weights that are introduced into 
@@ -110,6 +110,15 @@
 #'
 #' @seealso \code{\link[nnet]{multinom}}, \code{\link{dannet}}, \code{\link[nnet]{nnet}}, \code{\link{predict.damultinom}}.
 #'
+#' @examples
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5) #, Hess=TRUE)
+#' pred <- predict(fit)
+#' mean(pred$class != iris$Species)
+#'
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, weights=1:nrow(iris), trace=F)
+#' pred <- predict(fit)
+#' mean(pred$class != iris$Species)
+#' 
 #' @concept multiple logistic
 #' @keywords classif neural models
 #'

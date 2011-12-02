@@ -162,7 +162,9 @@
 #'
 #' @import e1071
 #  @examples
-#
+#' fit <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 0.5)
+#' pred <- predict(fit)
+#' mean(pred != iris$Species)
 
 # todo: allow for initial weights?
 # todo: cross: even if cross = TRUE set to FALSE during iterations to avoid unnecessary cross-validation?

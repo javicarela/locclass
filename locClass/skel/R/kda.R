@@ -86,6 +86,8 @@
 #'
 #' @seealso \code{\link{predict.kda}}.
 #'
+#' @examples
+#' 
 #' @keywords classif multivariate
 #'
 #' @export
