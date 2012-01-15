@@ -325,33 +325,49 @@ print.oslda <- function(x, ...) {
 
 predict.oslda <- function(object, newdata, ...) {	
     if (!inherits(object, "oslda")) 
-        stop("object not of class", " 'oslda'")
-    if (!is.null(Terms <- object$terms)) {
-        if (missing(newdata)) 
-            newdata <- model.frame(object)
-        else {
-            newdata <- model.frame(as.formula(delete.response(Terms)), 
-                newdata, na.action = function(x) x, xlev = object$xlevels)
-        }
-        x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-        xint <- match("(Intercept)", colnames(x), nomatch = 0)
-        if (xint > 0) 
-            x <- x[, -xint, drop = FALSE]
+        stop("object not of class \"oslda\"")
+    if (is.missing(newdata)) {
+    	x <- object$x
+    } else {
+	    if (!is.null(Terms <- object$terms)) {
+	        newdata <- model.frame(as.formula(delete.response(Terms)), 
+    	        newdata, na.action = function(x) x, xlev = object$xlevels)
+       	 	x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+        	xint <- match("(Intercept)", colnames(x), nomatch = 0)
+        	if (xint > 0) 
+            	x <- x[, -xint, drop = FALSE]
+    	} else {
+	        if (is.null(dim(newdata))) 
+    	        dim(newdata) <- c(1, length(newdata))
+        	x <- as.matrix(newdata)
+    	}	
     }
-    else {
-        if (missing(newdata)) {
-            if (!is.null(sub <- object$call$subset)) 
-                newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
-                  backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
-                  ",]")))
-            else newdata <- eval.parent(object$call$x)
-            if (!is.null(nas <- object$call$na.action)) 
-                newdata <- eval(call(nas, newdata))
-        }
-        if (is.null(dim(newdata))) 
-            dim(newdata) <- c(1, length(newdata))
-        x <- as.matrix(newdata)
-    }
+    # if (!is.null(Terms <- object$terms)) {
+        # if (missing(newdata)) 
+            # newdata <- model.frame(object)
+        # else {
+            # newdata <- model.frame(as.formula(delete.response(Terms)), 
+                # newdata, na.action = function(x) x, xlev = object$xlevels)
+        # }
+        # x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+        # xint <- match("(Intercept)", colnames(x), nomatch = 0)
+        # if (xint > 0) 
+            # x <- x[, -xint, drop = FALSE]
+    # }
+    # else {
+        # if (missing(newdata)) {
+            # if (!is.null(sub <- object$call$subset)) 
+                # newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
+                  # backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
+                  # ",]")))
+            # else newdata <- eval.parent(object$call$x)
+            # if (!is.null(nas <- object$call$na.action)) 
+                # newdata <- eval(call(nas, newdata))
+        # }
+        # if (is.null(dim(newdata))) 
+            # dim(newdata) <- c(1, length(newdata))
+        # x <- as.matrix(newdata)
+    # }
     methods <- c("unbiased", "ML")
     object$method <- match(object$method, methods)
 	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
