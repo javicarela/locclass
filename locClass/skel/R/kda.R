@@ -86,7 +86,7 @@
 #'
 #' @seealso \code{\link{predict.kda}}.
 #'
-#' @examples
+# @examples
 #' 
 #' @keywords classif multivariate
 #'
@@ -366,4 +366,24 @@ predict.kda <- function(object, newdata, ...) {
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
     posterior <- posterior/rowSums(posterior)
     return(list(class = gr, posterior = posterior))   
+}
+
+
+#' @method model.frame kda
+#' @nord
+#'
+#' @S3method model.frame kda
+
+model.frame.kda <- function (formula, ...) {
+    oc <- formula$call
+    oc$wf <- oc$bw <- oc$k <- oc$nn.only <- NULL
+    oc[[1L]] <- as.name("model.frame")
+    if (length(dots <- list(...))) {
+        nargs <- dots[match(c("data", "na.action", "subset"), 
+            names(dots), 0)]
+        oc[names(nargs)] <- nargs
+    }
+    if (is.null(env <- environment(formula$terms))) 
+        env <- parent.frame()
+    eval(oc, env)
 }
