@@ -104,7 +104,7 @@ wlda.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subse
     m$weights <- weights
     m <- eval.parent(m)
     Terms <- attr(m, "terms")
-    weights <- m[,"(weights)"]
+    weights <- model.weights(m)
     grouping <- model.response(m)
     x <- model.matrix(Terms, m)
     xint <- match("(Intercept)", colnames(x), nomatch = 0L)
@@ -364,4 +364,38 @@ predict.wlda <- function(object, newdata, prior = object$prior, ...) {
     if(any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")
     return(list(class = gr, posterior = posterior))
+}
+
+
+
+#' @method weights wlda
+#' @nord
+#'
+#' @S3method weights wlda
+
+weights.wlda <- function (object, ...) {
+    if (is.null(object$weights)) 
+        rep(1, object$N)
+    else object$weights
+}
+
+
+
+#' @method model.frame wlda
+#' @nord
+#'
+#' @S3method model.frame wlda
+
+model.frame.wlda <- function (formula, ...) {
+    oc <- formula$call
+    oc$wf <- oc$bw <- oc$k <- oc$nn.only <- oc$itr <- oc$weights <- NULL
+    oc[[1L]] <- as.name("model.frame")
+    if (length(dots <- list(...))) {
+        nargs <- dots[match(c("data", "na.action", "subset"), 
+            names(dots), 0)]
+        oc[names(nargs)] <- nargs
+    }
+    if (is.null(env <- environment(formula$terms))) 
+        env <- parent.frame()
+    eval(oc, env)
 }
