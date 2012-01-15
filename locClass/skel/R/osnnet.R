@@ -446,24 +446,26 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
 	if (!inherits(object, "osnnet")) 
         stop("object not of class \"osnnet\"")
     type <- match.arg(type)
-    if (missing(newdata)) { ## testen, evtl. abfragen tauschen und kürzen
-   		if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "osnnet.formula")?
-   			newdata <- model.frame(object)
-        	x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-       		xint <- match("(Intercept)", colnames(x), nomatch = 0L)
-        	if (xint > 0L) 
-            	x <- x[, -xint, drop = FALSE]
-			rn <- rownames(x)
-   		} else {
-            newdata <- eval.parent(object$call$x)
-        	if (is.null(dim(newdata))) 
-            	dim(newdata) <- c(1L, length(newdata))
-        	x <- as.matrix(newdata)
-            if (any(is.na(x))) 
-                stop("missing values in 'x'")
-            rn <- rownames(x)
-   		}
-    } else {
+    if (missing(newdata)) {
+    	x <- object$x
+    	rn <- rownames(x)
+   		# if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "osnnet.formula")?
+   			# newdata <- model.frame(object)
+        	# x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+       		# xint <- match("(Intercept)", colnames(x), nomatch = 0L)
+        	# if (xint > 0L) 
+            	# x <- x[, -xint, drop = FALSE]
+			# rn <- rownames(x)
+   		# } else {
+            # newdata <- eval.parent(object$call$x)
+        	# if (is.null(dim(newdata))) 
+            	# dim(newdata) <- c(1L, length(newdata))
+        	# x <- as.matrix(newdata)
+            # if (any(is.na(x))) 
+                # stop("missing values in 'x'")
+            # rn <- rownames(x)
+   		# }
+    } else { ## keep
         if (inherits(object, "osnnet.formula")) {
             newdata <- as.data.frame(newdata)
             rn <- row.names(newdata)
