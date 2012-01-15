@@ -501,3 +501,24 @@ predict.kmc <- function(object, newdata = NULL, ...) {
     res <- list(class = gr, posterior = posterior)
     return(res)
 }
+
+
+
+#' @method model.frame kmc
+#' @nord
+#'
+#' @S3method model.frame kmc
+
+model.frame.kmc <- function (formula, ...) {
+    oc <- formula$call
+    oc $K <- oc$wf <- oc$bw <- oc$k <- oc$nn.only <- oc$nstart <- NULL
+    oc[[1L]] <- as.name("model.frame")
+    if (length(dots <- list(...))) {
+        nargs <- dots[match(c("data", "na.action", "subset"), 
+            names(dots), 0)]
+        oc[names(nargs)] <- nargs
+    }
+    if (is.null(env <- environment(formula$terms))) 
+        env <- parent.frame()
+    eval(oc, env)
+}
