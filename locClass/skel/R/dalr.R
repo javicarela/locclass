@@ -550,3 +550,15 @@ predict.dalr <- function(object, newdata = NULL, ...) {
     }   
     return(post) 
 }
+
+
+
+#' @method weights dalr
+#' @nord
+#'
+#' @S3method weights dalr
+
+weights.dalr <- function (object, ...) {
+	object$prior.weights
+}
+
