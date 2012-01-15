@@ -385,3 +385,18 @@ predict.daqda <- function(object, newdata, ...) {
         stop("object not of class \"daqda\"")
     NextMethod(object, newdata, ...)
 }
+
+
+
+#' @method weights daqda
+#' @nord
+#'
+#' @S3method weights daqda
+
+weights.daqda <- function (object, ...) {
+	if (!inherits(object, "daqda"))
+		stop("object not of class \"daqda\"")
+	NextMethod(object, ...)
+}
+
+
