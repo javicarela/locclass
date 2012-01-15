@@ -108,7 +108,8 @@
 #'   only the \code{k} nearest neighbors or all observations receive positive weights? 
 #'   (See \code{\link[=biweight]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
-#' @param method The method for adaptation to the decision boundar, either \code{"prob"} or \code{"decision"}.
+#' @param method The method for adaptation to the decision boundary, either \code{"prob"} or \code{"decision"}. 
+#'   Defaults to "prob".
 #' @param scale A logical vector indicating the variables to be scaled. If \code{scale} is of length 1, the 
 #'   value is recycled as many times as needed. Per default, data are scaled internally (both \code{x} and \code{y} 
 #'   variables) to zero mean and unit variance. The center and scale values are returned and used for later 
@@ -161,7 +162,7 @@
 #' @export
 #'
 #' @import e1071
-#  @examples
+#' @examples
 #' fit <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 0.5)
 #' pred <- predict(fit)
 #' mean(pred != iris$Species)
@@ -563,4 +564,17 @@ predict.dasvm <- function(object, newdata, ...) {
     if (!inherits(object, "dasvm")) 
         stop("object not of class \"dasvm\"")
     NextMethod(object, newdata, ...)
+}
+
+
+
+#' @method weights dasvm
+#' @nord
+#'
+#' @S3method weights dasvm
+
+weights.dasvm <- function (object, ...) {
+    if (!inherits(object, "dasvm")) 
+        stop("object not of class \"dasvm\"")
+	NextMethod(object, ...)
 }
