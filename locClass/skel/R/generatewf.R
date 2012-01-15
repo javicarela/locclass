@@ -313,7 +313,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #'
 #' @rdname wfs
 #'
-#' @aliases biweight cauchy cosine epanechnikov exponential gaussian optcosine rectangular triangular
+#' @aliases wfs biweight cauchy cosine epanechnikov exponential gaussian optcosine rectangular triangular
 #'
 #' @export biweight cauchy cosine epanechnikov exponential gaussian optcosine rectangular triangular
 #'
