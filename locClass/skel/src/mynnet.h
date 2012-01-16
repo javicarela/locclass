@@ -34,6 +34,16 @@ static double **matrix(int, int);
 static void free_matrix(double**, int, int);
 static void fpass(Sdata*, Sdata*, Sdata, int);
 static void Build_Net(int, int, int);
+#define EPS 1.0E-80
+#define REPORT		10
+#define max9(a,b) a>b?a:b
+#define min9(a,b) a<b?a:b
+
+
+
+
+
+/*
 
 void
 VR_set_net(Sint*, Sint*, Sint*,
@@ -46,10 +56,10 @@ VR_unset_net();
 void
 VR_nntest(Sint *, Sdata *, Sdata *, double *, int);
 
+
 static double
 sigmoid(double);
 
-#define EPS 1.0E-80
 
 static double
 E(double, double);
@@ -91,7 +101,6 @@ Lmatrix(int);
 static void 
 free_Lmatrix(double **, int);
 
-#define REPORT		10
 
 void
 VR_dovm(Sint *, Sdata *, Sdata *,
@@ -102,9 +111,6 @@ VR_dovm(Sint *, Sdata *, Sdata *,
 static void
 pHessian(Sdata *, Sdata *, Sdata, int);
 
-#define max9(a,b) a>b?a:b
-#define min9(a,b) a<b?a:b
-
 void
 VR_nnHessian(Sint *, Sdata *, Sdata *,
 			 double *, Sdata *);
@@ -113,9 +119,9 @@ static int
 Zcompar(const Sdata *, const Sdata *);
 
 void
-VR_summ2(Sint *, Sint *, Sint *, Sdata *, Sint *);
+VR_summ2(Sint *, Sint *, Sint *, Sdata *, Sint *);*/
 
-#include "R_ext/Rdynload.h"
+//#include "R_ext/Rdynload.h"
 
 /*static const R_CMethodDef CEntries[] = {
     {"VR_dfunc", (DL_FUNC) &VR_dfunc, 3},
