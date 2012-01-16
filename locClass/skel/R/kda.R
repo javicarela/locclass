@@ -324,32 +324,48 @@ print.kda <- function(x, ...) {
 predict.kda <- function(object, newdata, ...) {	
     if (!inherits(object, "kda")) 
         stop("object not of class", " 'kda'")
-    if (!is.null(Terms <- object$terms)) {
-        if (missing(newdata)) 
-            newdata <- model.frame(object)
-        else {
+    if (missing(newdata)) {
+    	x <- object$x
+    } else {
+	    if (!is.null(Terms <- object$terms)) {
             newdata <- model.frame(as.formula(delete.response(Terms)), 
                 newdata, na.action = function(x) x, xlev = object$xlevels)
-        }
-        x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-        xint <- match("(Intercept)", colnames(x), nomatch = 0)
-        if (xint > 0) 
-            x <- x[, -xint, drop = FALSE]
-    }
-    else {
-        if (missing(newdata)) {
-            if (!is.null(sub <- object$call$subset)) 
-                newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
-                  backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
-                  ",]")))
-            else newdata <- eval.parent(object$call$x)
-            if (!is.null(nas <- object$call$na.action)) 
-                newdata <- eval(call(nas, newdata))
-        }
-        if (is.null(dim(newdata))) 
-            dim(newdata) <- c(1, length(newdata))
-        x <- as.matrix(newdata)
-    }
+        	x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+        	xint <- match("(Intercept)", colnames(x), nomatch = 0)
+        	if (xint > 0) 
+            	x <- x[, -xint, drop = FALSE]
+		} else {
+        	if (is.null(dim(newdata))) 
+            	dim(newdata) <- c(1, length(newdata))
+        	x <- as.matrix(newdata)
+		}
+    }   
+    # if (!is.null(Terms <- object$terms)) {
+        # if (missing(newdata)) 
+            # newdata <- model.frame(object)
+        # else {
+            # newdata <- model.frame(as.formula(delete.response(Terms)), 
+                # newdata, na.action = function(x) x, xlev = object$xlevels)
+        # }
+        # x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+        # xint <- match("(Intercept)", colnames(x), nomatch = 0)
+        # if (xint > 0) 
+            # x <- x[, -xint, drop = FALSE]
+    # }
+    # else {
+        # if (missing(newdata)) {
+            # if (!is.null(sub <- object$call$subset)) 
+                # newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
+                  # backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
+                  # ",]")))
+            # else newdata <- eval.parent(object$call$x)
+            # if (!is.null(nas <- object$call$na.action)) 
+                # newdata <- eval(call(nas, newdata))
+        # }
+        # if (is.null(dim(newdata))) 
+            # dim(newdata) <- c(1, length(newdata))
+        # x <- as.matrix(newdata)
+    # }
 	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
 		"optcosine", "rectangular", "triangular")
 	if (is.function(object$wf) && !is.null(attr(object$wf,"name")) && attr(object$wf, "name") %in% wfs)
@@ -366,24 +382,4 @@ predict.kda <- function(object, newdata, ...) {
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
     posterior <- posterior/rowSums(posterior)
     return(list(class = gr, posterior = posterior))   
-}
-
-
-#' @method model.frame kda
-#' @nord
-#'
-#' @S3method model.frame kda
-
-model.frame.kda <- function (formula, ...) {
-    oc <- formula$call
-    oc$wf <- oc$bw <- oc$k <- oc$nn.only <- NULL
-    oc[[1L]] <- as.name("model.frame")
-    if (length(dots <- list(...))) {
-        nargs <- dots[match(c("data", "na.action", "subset"), 
-            names(dots), 0)]
-        oc[names(nargs)] <- nargs
-    }
-    if (is.null(env <- environment(formula$terms))) 
-        env <- parent.frame()
-    eval(oc, env)
 }
