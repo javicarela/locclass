@@ -429,3 +429,87 @@ predict.dannet <- function(object, newdata, ...) {
 	gr <- factor(object$lev1[max.col(posterior)], levels = object$lev)
 	return(list(class = gr, posterior = posterior))
 }
+
+
+
+#' @method weights dannet
+#' @nord
+#'
+#' @S3method weights dannet
+
+weights.dannet <- function (object, ...) {
+	if (!inherits(object, "dannet"))
+        stop("object not of class \"dannet\"")
+	object$weights
+}
+
+
+
+#' @nord
+#'
+#' @export
+
+nnetGradient <- function(net) { #, x, y, weights, ...) {
+	#x <-
+	#y <-	
+#    if(dim(x)[1L] != dim(y)[1L]) stop("dims of 'x' and 'y' must match")
+    nw <- length(net$wts)
+    decay <- net$decay
+    if(!inherits(object, "nnet")) 
+    	stop("object not of class \"nnet\"")
+    if(length(decay) == 1) decay <- rep(decay, nw)
+    .C("VR_set_net",
+		as.integer(net$n), 
+		as.integer(net$nconn),
+       	as.integer(net$conn), 
+       	as.double(decay),
+       	as.integer(object$nsunits), 
+       	as.integer(net$entropy),
+       	as.integer(net$softmax), 
+       	as.integer(object$censored)
+       	)
+	z <- .C("VR_dfunc", as.double(object$wts), df = double(length(object$wts)), 
+    	fp = as.double(1))
+    fp <- z$fp
+    attr(fp, "gradient") <- z$df
+    .C("VR_unset_net")
+    fp
+}
+
+
+
+# @nord
+#
+# @export
+
+# nnetHess <- function(net, x, y, weights)
+# {
+    # x <- as.matrix(x)
+    # y <- as.matrix(y)
+    # if(dim(x)[1L] != dim(y)[1L]) stop("dims of 'x' and 'y' must match")
+    # nw <- length(net$wts)
+    # decay <- net$decay
+    # if(length(decay) == 1) decay <- rep(decay, nw)
+    # .C(VR_set_net,
+       # as.integer(net$n),
+       # as.integer(net$nconn),
+       # as.integer(net$conn),
+       # as.double(decay),
+       # as.integer(net$nsunits),
+       # as.integer(net$entropy),
+       # as.integer(net$softmax),
+       # as.integer(net$censored)
+       # )
+    # ntr <- dim(x)[1L]
+    # if (missing(weights)) 
+    	# weights <- rep(1, ntr)
+    # if (length(weights) != ntr || any(weights < 0))
+        # stop("invalid weights vector")
+    # Z <- as.double(cbind(x,y))
+    # storage.mode(weights) <- "double"
+    # z <- matrix(.C(VR_nnHessian, as.integer(ntr), Z, weights,
+                   # as.double(net$wts), H = double(nw*nw))$H,
+                # nw, nw)
+    # .C(VR_unset_net)
+    # z
+# }
