@@ -445,27 +445,31 @@ weights.dannet <- function (object, ...) {
 
 
 
-#' @nord
+#' Calculate value of objective function and gradient for a fitted neural network.
+#'
+#' @param object Object inheriting from \code{"nnet"}.
+#'
+#' @value Value of objective function of a fitted neural network. The attribute "gradient" contains the gradient vector.
 #'
 #' @export
 
-nnetGradient <- function(net) { #, x, y, weights, ...) {
+nnetGradient <- function(object) { #, x, y, weights, ...) {
 	#x <-
 	#y <-	
 #    if(dim(x)[1L] != dim(y)[1L]) stop("dims of 'x' and 'y' must match")
-    nw <- length(net$wts)
-    decay <- net$decay
+    nw <- length(object$wts)
+    decay <- object$decay
     if(!inherits(object, "nnet")) 
     	stop("object not of class \"nnet\"")
     if(length(decay) == 1) decay <- rep(decay, nw)
     .C("VR_set_net",
-		as.integer(net$n), 
-		as.integer(net$nconn),
-       	as.integer(net$conn), 
+		as.integer(object$n), 
+		as.integer(object$nconn),
+       	as.integer(object$conn), 
        	as.double(decay),
        	as.integer(object$nsunits), 
-       	as.integer(net$entropy),
-       	as.integer(net$softmax), 
+       	as.integer(object$entropy),
+       	as.integer(object$softmax), 
        	as.integer(object$censored)
        	)
 	z <- .C("VR_dfunc", as.double(object$wts), df = double(length(object$wts)), 
