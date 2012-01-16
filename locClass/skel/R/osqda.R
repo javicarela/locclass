@@ -323,7 +323,7 @@ print.osqda <- function(x, ...) {
 predict.osqda <- function(object, newdata, ...) {	
     if (!inherits(object, "osqda")) 
         stop("object not of class \"osqda\"")
-    if (is.missing(newdata)) {
+    if (missing(newdata)) {
     	x <- object$x
     } else {
 	    if (!is.null(Terms <- object$terms)) {

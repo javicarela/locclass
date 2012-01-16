@@ -326,7 +326,7 @@ print.oslda <- function(x, ...) {
 predict.oslda <- function(object, newdata, ...) {	
     if (!inherits(object, "oslda")) 
         stop("object not of class \"oslda\"")
-    if (is.missing(newdata)) {
+    if (missing(newdata)) {
     	x <- object$x
     } else {
 	    if (!is.null(Terms <- object$terms)) {
