@@ -44,20 +44,25 @@
 #' the formula should be roughly scaled to [0,1] or the fit will be slow
 #' or may not converge at all.
 #'
-#' Note that in contrast to \code{\link[nnet]{multinom}} only factors are allowed as response in \code{formula}. 
-# ??? Matrix if censored??? complicated
+#' Observations weights that reflect the importance of training observations for the fit
+#' at a particular test observation are calculated internally in \code{damultinom}.
+#' For this reason not all types of response in \code{formula} are allowed and \code{damultinom} does not take all arguments 
+#' that can be passed to \code{\link[nnet]{multinom}}.
+#' As response in \code{formula} factors and matrices are allowed. If \code{censored = FALSE} only zero-one class indicator matrices are 
+#' allowed.
+#' Argument \code{summ} that specifies a method to summarize rows of the model matrix is missing since this requires adjustment of the case weights.
+#'
 #'
 #' @title Discriminant Adaptive Multinomial Log-linear Models
 #'
 #' @param formula A formula expression as for regression models, of the form
-#' \code{response ~ predictors}. The response should be a factor. 
-#  or a
-#  matrix with K columns, which will be interpreted as counts for each of
-#  K classes.
+#' \code{response ~ predictors}. The response should be a factor or a
+#'  matrix with K columns. If \code{censored = FALSE} this is required to be a 
+#' zero-one indicator matrix.
+# , which will be interpreted as counts for each of K classes.
 #' A log-linear model is fitted, with coefficients zero for the first
 #' class. An offset can be included: it should be a numeric matrix with K columns
-#' if the response is 
-# either a matrix with K columns or 
+#' if the response is either a matrix with K columns or 
 #' a factor with K > 2
 #' classes, or a numeric vector for a response factor with 2 levels.
 #' See the documentation of \code{\link{formula}()} for other details.
@@ -75,10 +80,9 @@
 # Methods 1 and 2 differ in speed (2 uses \code{C}); method 3 also combines rows
 # with the same X and different Y, which changes the baseline for the
 # deviance.????
-# @param censored If Y is a matrix with \code{K > 2} columns, interpret the entries as one
-#  for possible classes, zero for impossible classes, rather than as
-#	counts.???
-#' @param model Logical. If true, the model frame is saved as component \code{model}
+#' @param censored Logical. If the response is a matrix with \eqn{K > 2} classes, interpret the entries as one for possible classes, zero 
+#'   for impossible classes. Defaults to \code{FALSE}.
+#' @param model Logical. If \code{TRUE}, the model frame is saved as component \code{model}
 #'  of the returned object.
 #' @param \dots Additional arguments for \code{\link{dannet}}, including the window function and bandwidth
 #'  parameters used to generate observation weights:
@@ -111,11 +115,11 @@
 #' @seealso \code{\link[nnet]{multinom}}, \code{\link{dannet}}, \code{\link[nnet]{nnet}}, \code{\link{predict.damultinom}}.
 #'
 #' @examples
-#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5) #, Hess=TRUE)
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, Hess=TRUE)
 #' pred <- predict(fit)
 #' mean(pred$class != iris$Species)
 #'
-#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, weights=1:nrow(iris), trace=F)
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, weights=1:nrow(iris), trace=FALSE)
 #' pred <- predict(fit)
 #' mean(pred$class != iris$Species)
 #' 
@@ -130,12 +134,8 @@
 
 
 damultinom <- function(formula, data, weights, 
-	subset, na.action, contrasts = NULL, Hess = FALSE, model = FALSE, ...)
-#damultinom <- function(formula, data, weights, 
-#	subset, na.action, contrasts = NULL, Hess = FALSE, summ = 0, censored = FALSE, model = FALSE, ...)
-{
-    class.ind <- function(cl)
-    {
+	subset, na.action, contrasts = NULL, Hess = FALSE, censored = FALSE, model = FALSE, ...) {
+    class.ind <- function(cl) {
         n <- length(cl)
         x <- matrix(0, n, length(levels(cl)))
         x[(1L:n) + n * (as.vector(unclass(cl)) - 1L)] <- 1
@@ -160,10 +160,9 @@ damultinom <- function(formula, data, weights,
 #        Za <- t(z$Z[, 1L:z$na, drop = FALSE])
 #        list(X = Za[, 1L:p, drop = FALSE], Y = Za[, p + 1L:q])
 #    }
-
     call <- match.call()
     m <- match.call(expand.dots = FALSE)
-    m$Hess <- m$contrasts <- m$model <- m$... <- NULL
+    m$Hess <- m$contrasts <- m$censored <- m$model <- m$... <- NULL
 #    m$summ <- m$Hess <- m$contrasts <- m$censored <- m$model <- m$... <- NULL
     m[[1L]] <- as.name("model.frame")
     m <- eval.parent(m)
@@ -172,34 +171,31 @@ damultinom <- function(formula, data, weights,
     cons <- attr(X, "contrasts")
     Xr <- qr(X)$rank
     Y <- model.response(m)
-    if (is.matrix(Y)) stop("a response matrix is not allowed")
-#    if(!is.matrix(Y)) Y <- as.factor(Y)
-    Y <- as.factor(Y)
+    if (!is.matrix(Y)) 
+    	Y <- as.factor(Y)
     w <- model.weights(m)	## initial weights
-    if(length(w) == 0L)		## no weights given
-        w <- rep(1, length(Y))
-#        if(is.matrix(Y)) w <- rep(1, dim(Y)[1L]) ## if no initial weights given, they default to 1, respective to adjustments 
-#        else w <- rep(1, length(Y))
+    if (length(w) == 0L)		## no weights given
+    	if (is.matrix(Y)) 
+       		w <- rep(1, dim(Y)[1L]) ## if no initial weights given, they default to 1, respective to adjustments 
+       	else w <- rep(1, length(Y))
     lev <- lev1 <- levels(Y)
-#    if(is.factor(Y)) {
-    counts <- table(Y)
-    if(any(counts == 0L)) {
-        empty <- lev[counts == 0L]
-        warning(sprintf(ngettext(length(empty),
+    if (is.factor(Y)) {
+    	counts <- table(Y)
+    	if (any(counts == 0L)) {
+        	empty <- lev[counts == 0L]
+        	warning(sprintf(ngettext(length(empty),
                                  "group %s is empty",
                                  "groups %s are empty"),
                         paste(sQuote(empty), collapse=" ")), domain = NA)
-        Y <- factor(Y, levels=lev[counts > 0L])
-        lev <- lev[counts > 0L]
+        	Y <- factor(Y, levels=lev[counts > 0L])
+        	lev <- lev[counts > 0L]
+    	}
+    	if (length(lev) < 2L)
+        	stop("need two or more classes to fit a damultinom model")
+    	if (length(lev) == 2L) 
+    		Y <- as.vector(unclass(Y)) - 1	## vector
+    	else Y <- class.ind(Y)  			## matrix
     }
-    if(length(lev) < 2L)
-        stop("need two or more classes to fit a damultinom model")
-    if(length(lev) == 2L) 
-    	Y <- as.vector(unclass(Y)) - 1	## vector
-    else Y <- class.ind(Y)  			## matrix
-#print(Y)
-#    }
-    ### 
 #    if(summ == 1) {
 #        Z <- cbind(X, Y)
 #        z1 <- cumprod(apply(Z, 2L, max)+1)
@@ -228,36 +224,36 @@ damultinom <- function(formula, data, weights,
 #    }
     offset <- model.offset(m)
     r <- ncol(X)
-    if(is.matrix(Y)) {
+    if (is.matrix(Y)) {
         # 3 or more response levels or direct matrix spec.
         p <- ncol(Y)
         sY <- Y %*% rep(1, p)   # row sums
-        if(any(sY == 0)) stop("some case has no observations")
-#		if(any(sY > 1)) stop("???") ## can this happem, if censored
-#        if(!censored) {###???
-#            Y <- Y / matrix(sY, nrow(Y), p)  ## zeilensumme = 1
-#            w <- w*sY	# gewichte nach anzahlen adjustieren
-#        }
-        if(length(offset) > 1L) {
-            if(ncol(offset) !=  p) stop("ncol(offset) is wrong")
+        if (any(sY == 0)) 
+        	stop("some case has no observations")
+        if (!censored) {
+        	if (any(Y != 0 & Y != 1))
+        		stop("only 0-1 indicator response matrix allowed")
+        	if (any(sY != 1))
+        		stop("only 0-1 indicator response matrix allowed")
+#            Y <- Y / matrix(sY, nrow(Y), p)  
+#            w <- w*sY
+        }
+        if (length(offset) > 1L) {
+            if(ncol(offset) !=  p) 
+            	stop("ncol(offset) is wrong")
             mask <- c(rep(FALSE, r+1L+p),
                       rep(c(FALSE, rep(TRUE, r), rep(FALSE, p)), p-1L) )
             X <- cbind(X, offset)
             Wts <- as.vector(rbind(matrix(0, r+1L, p), diag(p)))
-            fit <- dannet.default(x = X, y = Y, weights = w, Wts=Wts, mask=mask, size=0, skip=TRUE,
-                                softmax=TRUE, rang=0, ...)
-#            fit <- dannet.default(x = X, y = Y, weights = w, Wts=Wts, mask=mask, size=0, skip=TRUE,
-#                                softmax=TRUE, censored=censored, rang=0, ...)
+           	fit <- dannet.default(x = X, y = Y, weights = w, Wts=Wts, mask=mask, size=0, skip=TRUE,
+                               softmax=TRUE, censored=censored, rang=0, ...)
         } else {
             mask <- c(rep(FALSE, r+1L), rep(c(FALSE, rep(TRUE, r)), p-1L) )
-            fit <- dannet.default(x = X, y = Y, weights = w, mask=mask, size=0, skip=TRUE,
-                                softmax=TRUE, rang=0, ...)
-#            fit <- dannet.default(x = X, y = Y, weights = w, mask=mask, size=0, skip=TRUE,
-#                                softmax=TRUE, censored=censored, rang=0, ...)
+           	fit <- dannet.default(x = X, y = Y, weights = w, mask=mask, size=0, skip=TRUE,
+                               softmax=TRUE, censored=censored, rang=0, ...)
         }
-    } else { # Y 0-1-vector
-                                        # 2 response levels
-        if(length(offset) <= 1L) {
+    } else { # Y 0-1-vector, 2 response levels
+        if (length(offset) <= 1L) {
             mask <- c(FALSE, rep(TRUE, r))
             fit <- dannet.default(x = X, y = Y, weights = w, mask=mask, size=0, skip=TRUE,
                                 entropy=TRUE, rang=0, ...)
@@ -291,7 +287,13 @@ damultinom <- function(formula, data, weights,
     fit$AIC <- fit$deviance + 2 * edf
     if(model) fit$model <- m
     class(fit) <- c("damultinom", "multinom", "nnet")
-    if(Hess) fit$Hessian <- nnet:::multinomHess(fit, X)
+    if(Hess) {
+	    fit$w <- fit$weights
+    	fit$weights <- fit$w[[length(fit$w)]]
+    	fit$Hessian <- nnet:::multinomHess(fit, X)
+    	fit$weights <- fit$w
+    	fit$w <- NULL
+    }
     fit
 }
 
@@ -306,6 +308,8 @@ damultinom <- function(formula, data, weights,
 #' @S3method print damultinom
 
 print.damultinom <- function (x, ...) {
+    if (!inherits(x, "damultinom")) 
+        stop("not a legitimate \"damultinom\" object")
     NextMethod(x, ...)
     if(!is.null(attr(x$wf, "name"))) {
         cat("\nWindow function: ")
@@ -376,3 +380,17 @@ predict.damultinom <- function(object, newdata, ...) {
 	gr <- factor(object$lev[max.col(posterior)], levels = object$lev1) ### y matrix zulassen? klappt das so?
 	return(list(class = gr, posterior = posterior))
 }
+
+
+
+#' @method weights damultinom
+#' @nord
+#'
+#' @S3method weights damultinom
+
+weights.damultinom <- function (object, ...) {
+    if (!inherits(object, "damultinom")) 
+        stop("object not of class \"damultinom\"")
+	NextMethod(object, ...)
+}
+
