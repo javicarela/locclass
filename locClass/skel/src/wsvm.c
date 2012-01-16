@@ -194,6 +194,7 @@ void svmtrain (double *x, int *r, int *c,
 	       int    *labels,
 	       int    *nSV,
 	       double *rho,
+		   double *obj,
 	       double *coefs,
 	       double *sigma,
 	       double *probA,
@@ -260,6 +261,7 @@ void svmtrain (double *x, int *r, int *c,
 	*nr  = model->l;
 	*nclasses = model->nr_class;
 	memcpy (rho, model->rho, *nclasses * (*nclasses - 1)/2 * sizeof(double));
+	memcpy (obj, model->obj, *nclasses * (*nclasses - 1)/2 * sizeof(double));
 
 	if (*probability && par.svm_type != ONE_CLASS) {
 	  if (par.svm_type == EPSILON_SVR || par.svm_type == NU_SVR)
@@ -307,6 +309,7 @@ void svmpredict  (int    *decisionvalues,
 		  int    *colindex,
 		  double *coefs,
 		  double *rho,
+          double *obj,
 		  int    *compprob,
 		  double *probA,
 		  double *probB,
@@ -350,6 +353,7 @@ void svmpredict  (int    *decisionvalues,
 	m.SV   = sparsify(v, *r, *c);
     
     m.rho      = rho;
+    m.obj      = obj;
     m.probA    = probA;
     m.probB    = probB;
     m.label    = labels;
@@ -405,8 +409,9 @@ void svmwrite (double *v, int *r, int *c,
 		  int    *colindex,
 		  double *coefs,
 		  double *rho,
-	          double *probA,
-	          double *probB,
+		  double *obj,
+		  double *probA,
+	      double *probB,
 		  int    *nclasses,
 		  int    *totnSV,
 		  int    *labels,
@@ -441,6 +446,7 @@ void svmwrite (double *v, int *r, int *c,
 	m.SV   = sparsify(v, *r, *c);
     
     m.rho      = rho;
+    m.obj      = obj;
     m.label    = labels;
     m.nSV      = nSV;
     m.probA    = probA;
@@ -464,3 +470,85 @@ void svmwrite (double *v, int *r, int *c,
 
 
 }
+
+
+
+
+/*
+// x enthält margin points
+// dec_values hat länge 
+double svm_predict_values2(const svm_model *model, const svm_node *x, double* dec_values)
+{
+	if(model->param.svm_type == ONE_CLASS ||
+	   model->param.svm_type == EPSILON_SVR ||
+	   model->param.svm_type == NU_SVR)
+	{
+		double *sv_coef = model->sv_coef[0];
+		double sum = 0;
+		for(int i=0;i<model->l;i++)
+			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
+		sum -= model->rho[0];
+		*dec_values = sum;
+		
+		if(model->param.svm_type == ONE_CLASS)
+			return (sum>0)?1:-1;
+		else
+			return sum;
+	}
+	else
+	{
+		int i;
+		int nr_class = model->nr_class;
+		int l = model->l;
+		
+		double *kvalue = Malloc(double,l);
+		for(i=0;i<l;i++)
+			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
+		
+		int *start = Malloc(int,nr_class);
+		start[0] = 0;
+		for(i=1;i<nr_class;i++)
+			start[i] = start[i-1]+model->nSV[i-1];
+		
+		int *vote = Malloc(int,nr_class);
+		for(i=0;i<nr_class;i++)
+			vote[i] = 0;
+		
+		int p=0;
+		for(i=0;i<nr_class;i++)
+			for(int j=i+1;j<nr_class;j++)
+			{
+				double sum = 0;
+				int si = start[i];
+				int sj = start[j];
+				int ci = model->nSV[i];
+				int cj = model->nSV[j];
+				
+				int k;
+				double *coef1 = model->sv_coef[j-1];
+				double *coef2 = model->sv_coef[i];
+				for(k=0;k<ci;k++)
+					sum += coef1[si+k] * kvalue[si+k];
+				for(k=0;k<cj;k++)
+					sum += coef2[sj+k] * kvalue[sj+k];
+				sum -= model->rho[p];
+				dec_values[p] = sum;
+				
+				if(dec_values[p] > 0)
+					++vote[i];
+				else
+					++vote[j];
+				p++;
+			}
+		
+		int vote_max_idx = 0;
+		for(i=1;i<nr_class;i++)
+			if(vote[i] > vote[vote_max_idx])
+				vote_max_idx = i;
+		
+		free(kvalue);
+		free(start);
+		free(vote);
+		return model->label[vote_max_idx];
+	}
+}*/

@@ -93,6 +93,7 @@ struct svm_model
 	struct svm_node **SV;		/* SVs (SV[l]) */
 	double **sv_coef;	/* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
 	double *rho;		/* constants in decision functions (rho[k*(k-1)/2]) */
+	double *obj;		/* new: values of objective functions (obj[k*(k-1)/2]) */
 	double *probA;		/* pariwise probability information */
 	double *probB;
 

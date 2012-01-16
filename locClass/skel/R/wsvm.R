@@ -17,8 +17,7 @@
 
 
 #' This is a modification  of the \code{\link[e1071]{svm}} function in package \pkg{e1071} 
-#' written by David Meyer (based on C/C++-code by Chih-Chung Chang and Chih-Jen Lin) that
-#' can deal with observation weights.
+#' that can deal with observation weights.
 #'
 #' \code{wsvm} is used to train a support vector machine with case weights. 
 #' It can be used to carry
@@ -133,6 +132,7 @@
 #'    the possible effect of \code{na.omit} and \code{subset})}
 #'  \item{coefs}{The corresponding coefficients times the training labels.}
 #'  \item{rho}{The negative intercept.}
+#'  \item{obj}{The value(s) of the objective function.}
 #'  \item{sigma}{In case of a probabilistic regression model, the scale
 #'    parameter of the hypothesized (zero-mean) laplace distribution estimated by
 #'    maximum likelihood.}
@@ -547,6 +547,7 @@ function (x,
                 labels   = integer  (nclass),
                 nSV      = integer  (nclass),
                 rho      = double   (nclass * (nclass - 1) / 2),
+                obj      = double   (nclass * (nclass - 1) / 2),
                 coefs    = double   (nr * (nclass - 1)),
                 sigma    = double   (1),
                 probA    = double   (nclass * (nclass - 1) / 2),
@@ -588,6 +589,7 @@ function (x,
                  index    = cret$index[1:cret$nr],  #indexes of sv in x
                  ##constants in decision functions
                  rho      = cret$rho[1:(cret$nclasses * (cret$nclasses - 1) / 2)],
+                 obj      = cret$obj[1:(cret$nclasses * (cret$nclasses - 1) / 2)],
                  ##probabilites
                  compprob = probability,
                  probA    = if (!probability) NULL else
@@ -829,6 +831,7 @@ function (object, newdata,
                as.integer (if (object$sparse) object$SV@ja else 0),
                as.double  (as.vector(object$coefs)),
                as.double  (object$rho),
+               as.double  (object$obj),
                as.integer (object$compprob),
                as.double  (object$probA),
                as.double  (object$probB),
@@ -897,6 +900,19 @@ function (object, newdata,
                       )
 
     ret2
+}
+
+
+
+#' @method weights wsvm
+#' @nord
+#'
+#' @S3method weights wsvm
+
+weights.wsvm <- function (object, ...) {
+	if (!inherits(object, "wsvm"))
+		stop("object not of class \"wsvm\"")
+	object$case.weights
 }
 
 

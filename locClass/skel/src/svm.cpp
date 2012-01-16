@@ -768,7 +768,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 	// calculate rho
 
 	si->rho = calculate_rho();
-
+	
 	// calculate objective value
 	{
 		double v = 0;
@@ -1705,10 +1705,13 @@ static void solve_nu_svr(
 //
 // decision_function
 //
+
+// new: added obj
 struct decision_function
 {
 	double *alpha;
 	double rho;	
+	double obj;		//new component
 };
 
 static decision_function svm_train_one(
@@ -1772,6 +1775,7 @@ static decision_function svm_train_one(
 	decision_function f;
 	f.alpha = alpha;
 	f.rho = si.rho;
+	f.obj = si.obj;//new
 	return f;
 }
 
@@ -2205,6 +2209,9 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		}
 
 		decision_function f = svm_train_one(prob,param,0,0);
+		model->obj = Malloc(double,1);	// new
+		model->obj[0] = f.obj;			// new
+		
 		model->rho = Malloc(double,1);
 		model->rho[0] = f.rho;
 
@@ -2333,6 +2340,10 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		for(i=0;i<nr_class*(nr_class-1)/2;i++)
 			model->rho[i] = f[i].rho;
 
+		model->obj = Malloc(double,nr_class*(nr_class-1)/2);	// new
+		for(i=0;i<nr_class*(nr_class-1)/2;i++)
+			model->obj[i] = f[i].obj;
+						
 		if(param->probability)
 		{
 			model->probA = Malloc(double,nr_class*(nr_class-1)/2);
@@ -2749,6 +2760,13 @@ int svm_save_model(const char *model_file_name, const svm_model *model)
 			fprintf(fp," %g",model->rho[i]);
 		fprintf(fp, "\n");
 	}
+
+	{	//new
+		fprintf(fp, "obj"); 
+		for(int i=0;i<nr_class*(nr_class-1)/2;i++)
+			fprintf(fp," %g",model->obj[i]);
+		fprintf(fp, "\n");
+	}
 	
 	if(model->label)
 	{
@@ -2837,6 +2855,7 @@ svm_model *svm_load_model(const char *model_file_name)
 	svm_model *model = Malloc(svm_model,1);
 	svm_parameter& param = model->param;
 	model->rho = NULL;
+	model->obj = NULL; //new
 	model->probA = NULL;
 	model->probB = NULL;
 	model->label = NULL;
@@ -2863,6 +2882,7 @@ svm_model *svm_load_model(const char *model_file_name)
 			{
 				fprintf(stderr,"unknown svm type.\n");
 				free(model->rho);
+				free(model->obj);	//new
 				free(model->label);
 				free(model->nSV);
 				free(model);
@@ -2885,6 +2905,7 @@ svm_model *svm_load_model(const char *model_file_name)
 			{
 				fprintf(stderr,"unknown kernel function.\n");
 				free(model->rho);
+				free(model->obj);
 				free(model->label);
 				free(model->nSV);
 				free(model);
@@ -2907,6 +2928,13 @@ svm_model *svm_load_model(const char *model_file_name)
 			model->rho = Malloc(double,n);
 			for(int i=0;i<n;i++)
 				fscanf(fp,"%lf",&model->rho[i]);
+		}
+		else if(strcmp(cmd,"obj")==0) //new
+		{
+			int n = model->nr_class * (model->nr_class-1)/2;
+			model->obj = Malloc(double,n);
+			for(int i=0;i<n;i++)
+				fscanf(fp,"%lf",&model->obj[i]);
 		}
 		else if(strcmp(cmd,"label")==0)
 		{
@@ -2949,6 +2977,7 @@ svm_model *svm_load_model(const char *model_file_name)
 		{
 			fprintf(stderr,"unknown text in model file: [%s]\n",cmd);
 			free(model->rho);
+			free(model->obj);
 			free(model->label);
 			free(model->nSV);
 			free(model);
@@ -3045,6 +3074,9 @@ void svm_free_model_content(svm_model* model_ptr)
 
 	free(model_ptr->rho);
 	model_ptr->rho = NULL;
+
+	free(model_ptr->obj);  //new
+	model_ptr->obj = NULL;
 
 	free(model_ptr->label);
 	model_ptr->label= NULL;
