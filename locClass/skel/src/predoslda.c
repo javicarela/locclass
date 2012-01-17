@@ -57,7 +57,7 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 	
 	double sum_weights;						// sum of weights
 	double class_weights[K];				// class wise sum of weights
-	double norm_weights;					// normalization factor for unbiased version of covariance matrix
+	double norm_weights = 0;				// normalization factor for unbiased version of covariance matrix
 	double center[K][p];					// class means
 	double covmatrix[p * p];				// pooled covariance matrix
 	double z[p * K];						// difference between trial point and class center

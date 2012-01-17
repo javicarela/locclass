@@ -821,7 +821,7 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 	int random = LOGICAL(s_random)[0];		// initialize weights randomly?
 	Sint *Nw = INTEGER(s_Nw);				// # of weights
 	double iwts[*Nw];						// array for saving initial weights if passed
-	double rang;							// parameter of uniform distribution for random initialization of weights
+	double rang = 0;						// parameter of uniform distribution for random initialization of weights
 	if (random) {
 		rang = REAL(s_rang)[0];				// parameter for uniform distribution
 		//Rprintf("rang %f \n", rang);
