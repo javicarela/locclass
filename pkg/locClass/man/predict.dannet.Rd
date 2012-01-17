@@ -1,0 +1,37 @@
+\name{predict.dannet}
+\alias{predict.dannet}
+\title{Predict New Examples by a Trained Discriminant Adaptive Neural Net}
+\usage{\method{predict}{dannet}(object, newdata, ...)
+}
+\description{Predict new examples by a trained discriminant adaptive neural net.}
+\details{This function is a method for the generic function \code{predict()} for class 
+\code{"dannet"}. 
+It can be invoked by calling \code{predict(x)} for an object \code{x} of the 
+appropriate class, or directly by calling \code{predict.dannet(x)} regardless of 
+the class of the object. 
+
+In contrast to \code{\link[nnet]{predict.nnet}} \code{predict.dannet} does not have
+a \code{type} argument. Since \code{dannet} is only suitabe for classification, both, the 
+predicted posterior probabilities and the class labels, are returned.}
+\value{A \code{list} with components:
+\item{class}{The predicted class labels (a \code{factor}).}
+\item{posterior}{Matrix of class posterior probabilities.}}
+\references{Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
+Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
+
+Ripley, B. D. (1996) \emph{Pattern Recognition and Neural Networks}. Cambridge.
+
+Venables, W. N. and Ripley, B. D. (2002) \emph{Modern Applied Statistics with S}. Fourth edition. Springer.}
+\seealso{\code{\link{dannet}}, \code{\link[nnet]{nnet}}.
+
+fit <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, size = 2, rang = 0.1, decay = 5e-4, maxit = 200)
+pred <- predict(fit)
+mean(pred$class != iris$Species)}
+\keyword{classif}
+\keyword{neural}
+\arguments{\item{object}{Object of class \code{"dannet"}.}
+\item{newdata}{A \code{matrix} or \code{data.frame} of test examples. A vector is considered to be
+a row vector comprising a single case.}
+\item{\dots}{Arguments passed to or from other methods.}
+}
+

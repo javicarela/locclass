@@ -1,0 +1,18 @@
+Package: locClass
+Imports: nnet, e1071, mvtnorm
+Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
+License: GPL-2
+Title: Collection of Local Classification Methods
+Author: Julia Schiffner and Stefanie Hillebrand
+Description: Collection of diverse local classification methods such as
+        local versions of linear discriminant analysis, Fisher
+        discriminant analysis and logistic regression.
+Version: 0.0-60
+URL: http://www.statistik.tu-dortmund.de
+Date: 2010-06-07
+Depends: R (>= 2.10.0), stats
+Suggests: mlbench, klaR, MASS, Matrix, SparseM
+Collate: 'checkwf.R' 'dalda.R' 'dalr.R' 'damultinom.R' 'dannet.R'
+        'daqda.R' 'dasvm.R' 'generatewf.R' 'hmcc.R' 'kda.R' 'kmc.R'
+        'oslda.R' 'osmultinom.R' 'osnnet.R' 'osqda.R' 'ossvm.R'
+        'wlda.R' 'wqda.R' 'wsvm.R'
