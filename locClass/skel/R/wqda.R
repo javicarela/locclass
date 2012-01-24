@@ -142,8 +142,9 @@ wqda.data.frame <- function (x, ...) {
 #'
 #' @S3method wqda matrix
 
-wqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
+wqda.matrix <- function (x, grouping, weights = rep(1, nrow(x)), ..., subset, na.action = na.fail) {
     if (!missing(subset)) {
+    	weights <- weights[subset]
         x <- x[subset, , drop = FALSE]
         grouping <- grouping[subset]
     }
@@ -154,11 +155,12 @@ wqda.matrix <- function (x, grouping, ..., subset, na.action = na.fail) {
             else
                 na.action <- naa
     } 
-    dfr <- na.action(structure(list(g = grouping, x = x), 
+    dfr <- na.action(structure(list(g = grouping, w = weights, x = x), 
             class = "data.frame", row.names = rownames(x)))
     grouping <- dfr$g
+    weights <- dfr$w
     x <- dfr$x
-    res <- wqda.default(x, grouping, ...)
+    res <- wqda.default(x, grouping, weights, ...)
     cl <- match.call()
     cl[[1L]] <- as.name("wqda")
     res$call <- cl
@@ -346,13 +348,22 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
             stop("'prior' is of incorrect length")
     }
     lev1 <- names(object$prior)
-    posterior <- matrix(0, ncol = ng, nrow = nrow(x), dimnames = list(rownames(x), lev1))
+    posterior <- matrix(0, ncol = length(object$lev), nrow = nrow(x), dimnames = list(rownames(x), object$lev))
     posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * determinant(object$cov[[z]])$modulus 
     	- 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
-    gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+	post <- posterior[,lev1, drop = FALSE]
+    gr <- factor(lev1[max.col(post)], levels = object$lev)
     names(gr) <- rownames(x)
-    posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
-    posterior <- posterior/rowSums(posterior)
+    post <- exp(post - apply(post, 1L, max, na.rm = TRUE))
+    post <- post/rowSums(post)
+	posterior[,lev1] <- post	
+    # posterior <- matrix(0, ncol = ng, nrow = nrow(x), dimnames = list(rownames(x), lev1))
+    # posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * determinant(object$cov[[z]])$modulus 
+    	# - 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
+    # gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+    # names(gr) <- rownames(x)
+    # posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
+    # posterior <- posterior/rowSums(posterior)
     if(any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")
     return(list(class = gr, posterior = posterior))
