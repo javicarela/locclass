@@ -271,16 +271,17 @@ wsvm.formula <- function (formula, data = NULL, case.weights = rep(1, nrow(data)
         m$data <- as.data.frame(eval.parent(m$data))
     m$... <- NULL
     m$scale <- NULL
-    m$cw <- case.weights
+    m$weights <- case.weights
     m[[1]] <- as.name("model.frame")
     m$na.action <- na.action
     m <- eval(m, parent.frame())
     Terms <- attr(m, "terms")
-    cw <- m[,"(cw)"]
+    case.weights <- model.weights(m)
+    #cw <- m[,"(cw)"]
     attr(Terms, "intercept") <- 0
     x <- model.matrix(Terms, m)
     y <- model.extract(m, "response")
-    attr(x, "na.action") <- attr(y, "na.action") <- attr(cw, "na.action") <- attr(m, "na.action")
+    attr(x, "na.action") <- attr(y, "na.action") <- attr(case.weights, "na.action") <- attr(m, "na.action")
     if (length(scale) == 1)
         scale <- rep(scale, ncol(x))
     if (any(scale)) {
@@ -291,8 +292,7 @@ wsvm.formula <- function (formula, data = NULL, case.weights = rep(1, nrow(data)
                          )
         scale <- !attr(x, "assign") %in% remove
     }
-    ret <- wsvm.default (x, y, scale = scale, case.weights = cw, ..., na.action = na.action)
-    ret$case.weights <- case.weights  # cw?
+    ret <- wsvm.default (x, y, scale = scale, case.weights = case.weights, ..., na.action = na.action)
     ret$call <- call
     ret$call[[1]] <- as.name("wsvm")
     ret$terms <- Terms
@@ -362,8 +362,7 @@ function (x,
 
     #xhold   <- if (fitted) x else NA
     x.scale <- y.scale <- NULL
-    formula <- inherits(x, "wsvm.formula")
-    
+    formula <- !is.null(attr(x, "assign"))
     ## determine model type
     if (is.null(type)) type <-
         if (is.null(y)) "one-classification"
@@ -389,42 +388,50 @@ function (x,
     
     if (length(case.weights) != nrow(x))
     	stop("'nrow(x)' and 'length(case.weights)' are different")
-	cw <- case.weights
-
     ## scaling, subsetting, and NA handling
     if (sparse) {
         scale <- rep(FALSE, ncol(x))
         if(!is.null(y)) na.fail(y)
-        na.fail(cw) #?
-        x <- SparseM::t(SparseM::t(x)) ## make shure that col-indices are sorted
+        na.fail(case.weights) #?
+        x <- SparseM::t(SparseM::t(x)) ## make sure that col-indices are sorted
     } else {
     	x <- as.matrix(x, rownames.force = TRUE)
+		#x <- structure(data.matrix(x, rownames.force = TRUE), class = "matrix")
 
         ## subsetting and na-handling for matrices
         if (!formula) {
             if (!is.null(subset)) {
-            	x <- x[subset,]
-            	cw <- cw[subset]  
+            	case.weights <- case.weights[subset]  
+            	x <- x[subset, , drop = FALSE]
             	if (!is.null(y)) y <- y[subset]
             }
             if (is.null(y)) {
-            	df <- na.action(data.frame(cw, x))
-            	cw <- df[,1]
-            	x <- as.matrix(df[,-1], rownames.force = TRUE)
+            	#df <- na.action(data.frame(case.weights, x))
+            	df <- na.action(structure(list(case.weights = case.weights, x = x), class = "data.frame", row.names = rownames(x)))
+            	case.weights <- df$case.weights #[,1]
+            	x <- df$x #as.matrix(df[,-1], rownames.force = TRUE)
+                nac <-
+                    attr(x, "na.action") <-
+                    	attr(case.weights, "na.action") <-
+							attr(df, "na.action")
+#print(nac)
+#print(attributes(df))
             } else {
-                df <- na.action(data.frame(y, cw, x))
-                y <- df[,1]
-                cw <- df[,2]
-                x <- as.matrix(df[,-c(1:2)], rownames.force = TRUE)
+                #df <- na.action(data.frame(y, case.weights, x)) 
+                df <- na.action(structure(list(y = y, case.weights = case.weights, x = x), class = "data.frame", row.names = rownames(x)))
+                y <- df$y#[,1]
+                case.weights <- df$case.weights#[,2]
+                x <- df$x #as.matrix(df[,-c(1:2)], rownames.force = TRUE)
                 nac <-
                     attr(x, "na.action") <-
                         attr(y, "na.action") <-
-                        	attr(cw, "na.action") <-
+                        	attr(case.weights, "na.action") <-
                             	attr(df, "na.action")
+#print(nac)
+#print(attributes(df))                           	
             }
         }
         xhold   <- if (fitted) x else NA
-
 
         ## scaling
         if (length(scale) == 1)
@@ -471,9 +478,9 @@ function (x,
     lev <- NULL
     weightlabels <- NULL
     
-    if (any(cw < 0))
+    if (any(case.weights < 0))
         stop("'case.weights' have to be larger or equal to zero")
-    if (all(cw == 0))
+    if (all(case.weights == 0))
         stop("all 'case.weights' are zero")
 
     ## in case of classification: transform factors into integers
@@ -530,7 +537,7 @@ function (x,
                 as.integer (weightlabels),
                 as.double  (class.weights),
                 as.integer (length (class.weights)),
-         		as.double  (cw),
+         		as.double  (case.weights),
                 as.double  (cachesize),
                 as.double  (tolerance),
                 as.double  (epsilon),
@@ -628,7 +635,7 @@ function (x,
         if (type > 1) ret$residuals <- y - ret$fitted
     }
 
-    ret$case.weights <- case.weights # cw? both?
+    ret$case.weights <- case.weights
    
     ret
 }
