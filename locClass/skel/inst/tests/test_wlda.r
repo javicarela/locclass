@@ -261,10 +261,10 @@ test_that("predict.wlda works with missing classes in the training data", {
 	expect_warning(fit <- wlda(Species ~ ., data = iris, subset = 1:100))
 	pred <- predict(fit, newdata = iris[-ran,])
 	expect_equal(nlevels(pred$class), 3)
-	expect_equal(ncol(pred$posterior), 3)
-	a <- rep(0,50)
-	names(a) <- rownames(pred$posterior)
-	expect_equal(pred$posterior[,3], a)
+	expect_equal(ncol(pred$posterior), 2)
+	# a <- rep(0,50)
+	# names(a) <- rownames(pred$posterior)
+	# expect_equal(pred$posterior[,3], a)
 })
 
 
