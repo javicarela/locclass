@@ -348,22 +348,22 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
             stop("'prior' is of incorrect length")
     }
     lev1 <- names(object$prior)
-    posterior <- matrix(0, ncol = length(object$lev), nrow = nrow(x), dimnames = list(rownames(x), object$lev))
-    posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * determinant(object$cov[[z]])$modulus 
-    	- 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
-	post <- posterior[,lev1, drop = FALSE]
-    gr <- factor(lev1[max.col(post)], levels = object$lev)
-    names(gr) <- rownames(x)
-    post <- exp(post - apply(post, 1L, max, na.rm = TRUE))
-    post <- post/rowSums(post)
-	posterior[,lev1] <- post	
-    # posterior <- matrix(0, ncol = ng, nrow = nrow(x), dimnames = list(rownames(x), lev1))
+    # posterior <- matrix(0, ncol = length(object$lev), nrow = nrow(x), dimnames = list(rownames(x), object$lev))
     # posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * determinant(object$cov[[z]])$modulus 
     	# - 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
-    # gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+	# post <- posterior[,lev1, drop = FALSE]
+    # gr <- factor(lev1[max.col(post)], levels = object$lev)
     # names(gr) <- rownames(x)
-    # posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
-    # posterior <- posterior/rowSums(posterior)
+    # post <- exp(post - apply(post, 1L, max, na.rm = TRUE))
+    # post <- post/rowSums(post)
+	# posterior[,lev1] <- post	
+    posterior <- matrix(0, ncol = ng, nrow = nrow(x), dimnames = list(rownames(x), lev1))
+    posterior[,lev1] <- sapply(lev1, function(z) log(prior[z]) - 0.5 * determinant(object$cov[[z]])$modulus 
+    	- 0.5 * mahalanobis(x, center = object$means[z,], cov = object$cov[[z]]))
+    gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+    names(gr) <- rownames(x)
+    posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
+    posterior <- posterior/rowSums(posterior)
     if(any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")
     return(list(class = gr, posterior = posterior))
