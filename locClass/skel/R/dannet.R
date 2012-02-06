@@ -252,6 +252,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 			w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * ntr     # rescale weights such that they sum up to ntr
 			if (any(w[[i]] %*% y == 0L)) {               # class where all weights are zero
 				warning("training data from only one group, breaking out of iterative procedure")
+				itr <- i
 				break
 			} else {	
 				res <- nnet.default(x = x, y = y, weights = w[[i+1]], ...)
@@ -259,6 +260,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 		}
 		names(w) <- seq_along(w) - 1
 		res$weights <- w
+		res$itr <- itr
 		return(res)
 	}
     x <- as.matrix(x)
@@ -303,7 +305,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 #    	warning("nonlocal solution")	
 #    }   
 	res <- dannet.fit(x = x, y = y, wf = wf, itr = itr, weights = weights, ...)
-    res <- c(res, list(itr = itr, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
+    res <- c(res, list(wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
     cl <- match.call()
     cl[[1]] <- as.name("dannet")
     res$call <- cl
