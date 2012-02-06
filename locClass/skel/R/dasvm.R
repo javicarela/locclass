@@ -263,7 +263,7 @@ function (x,
 			res["probB"] <- list(probB = NULL)
 			res["sigma"] <- list(sigma = NULL)
 		}
-		names(w) <- 0:itr
+		names(w) <- seq_along(w) - 1
 		res$case.weights <- w
 		return(res)
 	}
