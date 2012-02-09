@@ -41,7 +41,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 	int *g = INTEGER(s_grouping);				// pointer to class labels
 	const int k = INTEGER(s_k)[0];				// number of nearest neighbors
 	const int method = INTEGER(s_method)[0];	// method for scaling the covariance matrices
-	Rprintf("K: %u\n", K);
+	//Rprintf("K: %u\n", K);
 	
 	SEXP s_posterior;							// initialize posteriors
 	PROTECT(s_posterior = allocMatrix(REALSXP, N_test, K));
@@ -146,7 +146,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			}
 		}
 		
-		Rprintf("sum_weights %f\n", sum_weights);
+		//Rprintf("sum_weights %f\n", sum_weights);
 		if (sum_weights == 0) { // all observation weights are zero
 			warning("all observation weights are zero");
 			// set posterior to NA
@@ -155,7 +155,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			}			
 		} else { // proceed
 			// 5. calculate covariance matrices, only lower triangle
-			if (method == 1) { // unbiased
+			if (method == 1) { // unbiased estimate
 				for (m = 0; m < K; m++) {
 					norm_weights[m] = 0;
 					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
@@ -164,11 +164,11 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 								norm_weights[m] += pow(weights[i]/class_weights[m], 2);
 							}
 						}
-						Rprintf("norm_weights %f\n", norm_weights[m]);
+						//Rprintf("norm_weights %f\n", norm_weights[m]);
 						if (norm_weights[m] == 1) { 
 							warning("iteration %u: NaNs in covariance matrix", n+1);
 							br = 1;
-							break; // aus schleife aussteigen
+							break; // break out of loop over m
 						} else { // calculate covariance matrix
 							for (i = 0; i < N_learn; i++) {
 								if (g[i] == m + 1) {
@@ -185,7 +185,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 						}
 					}
 				}
-			} else {			// ML
+			} else {			// ML estimate
 				for (m = 0; m < K; m++) {
 					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
 						for (i = 0; i < N_learn; i++) {
@@ -210,7 +210,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 				}
 			} else { // proceed
 				
-				//
+				/*
 				for (m = 0; m < K; m++) {
 					if (class_weights[m] > 0) {
 						for (j=0; j<p; j++) {
@@ -219,20 +219,20 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 							}				
 						}
 					}
-				}
+				}*/
 				
 				// 6. calculate inverse of covmatrices
 				for (m = 0; m < K; m++) {
 					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
 						F77_CALL(dpotrf)(&uplo, &p, covmatrix[m], &p, &info);
-						Rprintf("info2 %u\n", info);
+						//Rprintf("info2 %u\n", info);
 						
-						//
+						/*
 						for (j=0; j<p; j++) {
 							for (l = 0; l <= j; l++) {
 								Rprintf("covs2 %f\n", covmatrix[m][j + p * l]);
 							}
-						}
+						}*/
 						
 						if (info != 0) { // error in Cholesky decomposition
 							if (info < 0) {
@@ -250,13 +250,13 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 							det[m] = pow(det[m], 2);
 							//Rprintf("determinant %f\n", det[m]);
 							F77_CALL(dpotri)(&uplo, &p, covmatrix[m], &p, &info);
-							Rprintf("info3 %u\n", info);
+							//Rprintf("info3 %u\n", info);
 						
-							for (j=0; j<p; j++) {
+							/*for (j=0; j<p; j++) {
 								for (l = 0; l <= j; l++) {
 									Rprintf("covs3 %f\n", covmatrix[m][j + p * l]);
 								}				
-							}
+							}*/
 						
 							if (info != 0) { // error in calculating the inverse
 								if (info < 0) {
@@ -308,7 +308,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 							posterior[n + N_test * m] = log(class_weights[m]/sum_weights)
 							- 0.5 * log(det[m]) - 0.5 * post[m];
 						} else {
-							posterior[n + N_test * m] = 0;
+							posterior[n + N_test * m] = R_NegInf;
 						}
 					}
 				}

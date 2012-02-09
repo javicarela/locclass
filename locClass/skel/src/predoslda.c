@@ -140,7 +140,7 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			}
 		}
 		
-	Rprintf("sum_weights %f\n", sum_weights);
+	//Rprintf("sum_weights %f\n", sum_weights);
 		if (sum_weights == 0) { // all observation weights are zero
 			warning("all observation weights are zero");
 			// set posterior to NA
@@ -149,16 +149,19 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			}			
 		} else {
 			// 5. calculate covariance matrix, only lower triangle
-			if (method == 1) { // unbiased
+			if (method == 1) { // unbiased estimate
 				norm_weights = 0;
 				for (m = 0; m < K; m++) {
-					for (i = 0; i < N_learn; i++) {
-						if (g[i] == m + 1) {
-							norm_weights += class_weights[m]/sum_weights * pow(weights[i]/class_weights[m], 2);
+					//Rprintf("class_weights %f \n", class_weights[m]);
+					if (class_weights[m] > 0) {
+						for (i = 0; i < N_learn; i++) {
+							if (g[i] == m + 1) {
+								norm_weights += class_weights[m]/sum_weights * pow(weights[i]/class_weights[m], 2);
+							}
 						}
 					}
 				}
-				Rprintf("norm_weights %f\n", norm_weights);
+				//Rprintf("norm_weights %f\n", norm_weights);
 				if (norm_weights == 1) { // it makes no sense to calculate the covariance matrix
 					warning("iteration %u: NaNs in covariance matrix", n+1);
 				} else { // calculate covariance matrix
@@ -179,7 +182,7 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 						}
 					}
 				}
-			} else {			// ML
+			} else {			// ML estimate
 				for (m = 0; m < K; m++) {
 					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
 						for (i = 0; i < N_learn; i++) {
@@ -197,11 +200,11 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 				}
 			}
 
-			for (j = 0; j < p; j++) {
+			/*for (j = 0; j < p; j++) {
 				for (l = 0; l <= j; l++) {
 					Rprintf("covmatrix %f\n", covmatrix[j + p * l]);
 				}
-			}
+			}*/
 		
 			if (norm_weights == 1) {	// then nans in covmatrix, sum_weights = 0?
 				for (m = 0; m < K; m++) {
@@ -210,7 +213,7 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			} else {
 				// 6. calculate inverse of covmatrix
 				F77_CALL(dpotrf)(&uplo, &p, covmatrix, &p, &info);
-				Rprintf("info dpotrf %u\n", info);
+				//Rprintf("info dpotrf %u\n", info);
 				if (info != 0) {		// error in Choleski factorization
 					if (info < 0) {
 						warning("iteration %u: argument %u had an illegal value\n", n+1, abs(info));
@@ -223,7 +226,7 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 					}
 				} else {	// proceed with calculation of inverse covmatrix
 					F77_CALL(dpotri)(&uplo, &p, covmatrix, &p, &info);
-					Rprintf("info dpotri %u\n", info);
+					//Rprintf("info dpotri %u\n", info);
 					if (info != 0) {	// error in calculation of inverse covmatrix
 						if (info < 0) {
 							warning("iteration %u: argument %u had an illegal value\n", n+1, abs(info));
@@ -260,9 +263,9 @@ SEXP predoslda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 								}
 								posterior[n + N_test * m] = log(class_weights[m]/sum_weights) - 0.5 * post[m];
 							} else {
-								posterior[n + N_test * m] = 0;
+								posterior[n + N_test * m] = R_NegInf;
 							}
-							Rprintf("posterior %f\n", posterior[n + N_test * m]);
+							//Rprintf("posterior %f\n", posterior[n + N_test * m]);
 						}			
 					}
 				}
