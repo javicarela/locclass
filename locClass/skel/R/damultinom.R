@@ -171,13 +171,21 @@ damultinom <- function(formula, data, weights,
     cons <- attr(X, "contrasts")
     Xr <- qr(X)$rank
     Y <- model.response(m)
-    if (!is.matrix(Y)) 
+    if (!is.matrix(Y)) {
     	Y <- as.factor(Y)
+    	warning("response variable was coerced to a factor")
+    }
     w <- model.weights(m)	## initial weights
-    if (length(w) == 0L)		## no weights given
+    if (length(w) == 0L) {		## no weights given
     	if (is.matrix(Y)) 
        		w <- rep(1, dim(Y)[1L]) ## if no initial weights given, they default to 1, respective to adjustments 
        	else w <- rep(1, length(Y))
+    } else {
+	    if (any(w < 0))
+	        stop("weights have to be larger or equal to zero")
+    	if (all(w == 0))
+        	stop("all weights are zero")
+    }
     lev <- lev1 <- levels(Y)
     if (is.factor(Y)) {
     	counts <- table(Y)
@@ -376,6 +384,10 @@ predict.damultinom <- function(object, newdata, ...) {
     if (length(object$lev) == 2) {
     	posterior <- cbind(1 - posterior, posterior) # posterior is probability for 2nd factor level
     	colnames(posterior) <- object$lev 
+    } else if (!is.matrix(posterior)) {
+    	posterior <- matrix(posterior, ncol = length(posterior))
+    	colnames(posterior) <- object$lev
+    	rownames(posterior) <- row.names(newdata)
     }
 	gr <- factor(object$lev[max.col(posterior)], levels = object$lev1) ### y matrix zulassen? klappt das so?
 	return(list(class = gr, posterior = posterior))
