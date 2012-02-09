@@ -71,7 +71,8 @@
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
 #' @param intercept Should the model contain an intercept. passed to \code{\link{glm.fit}}, null.model.
-#' @param \dots Further arguments to \code{\link{glm}}. Currently "weights" for specification of initial weights, "offset",
+#' @param weights Initial observation weights (defaults to a vector of 1s).
+#' @param \dots Further arguments to \code{\link{glm}}. Currently "offset",
 #'  "control", model, x, y, contrasts, start, etastart, mustart are supported.
 #'  family is "binomial", method?. Note that some of theses arguments only make sense when using the formula method, namely: ...?
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.)
@@ -204,7 +205,7 @@ dalr <- function(X, ...)
 #'
 #' @S3method dalr formula
 
-dalr.formula <- function(formula, data, ..., subset, na.action) {
+dalr.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subset, na.action) {
     if (missing(data))
         data <- environment(formula)
     mf <- cl <- match.call()
@@ -226,7 +227,8 @@ dalr.formula <- function(formula, data, ..., subset, na.action) {
     X <- if (!is.empty.model(mt))
         model.matrix(mt, mf, contrasts)
     else matrix(, NROW(Y), 0L)
-    res <- dalr.default(X, Y, ...)
+    weights <- model.weights(mf)
+    res <- dalr.default(X, Y, weights = weights, ...)
     if ("model" %in% names(res))
         res$model <- mf
     res$na.action <- attr(mf, "na.action")
@@ -261,9 +263,10 @@ dalr.data.frame <- function (X, ...) {
 #'
 #' @S3method dalr matrix
 
-dalr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
+dalr.matrix <- function (X, Y, weights = rep(1, nrow(X)), intercept = TRUE, ..., subset, na.action) {
     data <- data.frame(X, y = Y)
     if (!missing(subset)) {
+    	weights <- weights[subset]
         X <- X[subset, , drop = FALSE]
         Y <- Y[subset]
     }
@@ -277,15 +280,16 @@ dalr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
             na.action <- na.fail
         }
     } 
-    dfr <- na.action(structure(list(g = Y, x = X), 
+    dfr <- na.action(structure(list(g = Y, w = weights, x = X), 
             class = "data.frame", row.names = rownames(X)))
     Y <- dfr$g
     X <- dfr$x
+    weights <- dfr$w
     if (intercept) {
         X <- cbind(1, X)
         colnames(X)[1] <- "(Intercept)"
     }
-    res <- dalr.default(X, Y, intercept = intercept, ...)
+    res <- dalr.default(X, Y, weights = weights, intercept = intercept, ...)
     if ("model" %in% names(res))
         res$model <- data[,c("y", names(data)[names(data) != "y"])]
     if (any(is.na(data))) res$na.action <- na.action else res$na.action <- NULL
@@ -312,7 +316,7 @@ dalr.matrix <- function (X, Y, intercept = TRUE, ..., subset, na.action) {
 
 dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine", 
 	"epanechnikov", "exponential", "gaussian", "optcosine", "rectangular", "triangular"), 
-    bw, k, nn.only = TRUE, itr = 3, intercept = TRUE, ...) {
+    bw, k, nn.only = TRUE, itr = 3, intercept = TRUE, weights = rep(1, nrow(X)), ...) {
     
     dalr.fit <- function(X, Y, thr, wf, itr, intercept = TRUE, weights = rep(1, nrow(X)),
         offset = NULL, control = list(), model = TRUE, x = FALSE, 
