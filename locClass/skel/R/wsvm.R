@@ -508,7 +508,10 @@ function (x,
         }
 
     nclass <- 2
-    if (type < 2) nclass <- length(lev)
+    if (type < 2) {
+    	nclass <- length(lev)
+    	if (nclass < 2) stop("training data from only one class")
+    }
 
     if (type > 1 && length(class.weights) > 0) {
         class.weights <- NULL
@@ -612,6 +615,11 @@ function (x,
                  na.action = nac
                  )
 
+	if (type < 2) {
+		if (ret$nclasses < length(ret$levels)) 
+			warning("some groups are empty")
+	}
+	
     ## cross-validation-results
     if (cross > 0)
         if (type > 2) {
