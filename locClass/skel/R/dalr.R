@@ -338,6 +338,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
             offset = offset, control = control, intercept = intercept, ...)
         pw[[1]] <- fit$prior.weights
         ww[[1]] <- fit$weights
+        names(pw[[1]]) <- names(ww[[1]]) <- rownames(X)
 	    for (i in seq_len(itr)) {
             pw[[i+1]] <- wf(fit$fitted.values - thr) 
 			pw[[i+1]] <- pw[[i+1]]/sum(pw[[i+1]]) * n     # rescale weights such that they sum up to n        
@@ -346,6 +347,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
         	fit <- glm.fit(x = X, y = Y, weights = pw[[i+1]], family = binomial(), 
                 offset = offset, control = control, intercept = intercept, ...)
             ww[[i+1]] <- fit$weights
+	        names(pw[[i+1]]) <- names(ww[[i+1]]) <- rownames(X)
        	}
     	#if (length(offset) && attr(mt, "intercept") > 0L) {
     	names(pw) <- names(ww) <- 0:itr
