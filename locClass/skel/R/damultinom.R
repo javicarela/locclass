@@ -390,6 +390,7 @@ predict.damultinom <- function(object, newdata, ...) {
     	rownames(posterior) <- row.names(newdata)
     }
 	gr <- factor(object$lev[max.col(posterior)], levels = object$lev1) ### y matrix zulassen? klappt das so?
+	names(gr) <- row.names(newdata)
 	return(list(class = gr, posterior = posterior))
 }
 

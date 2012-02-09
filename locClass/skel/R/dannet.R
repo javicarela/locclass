@@ -264,6 +264,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 		return(res)
 	}
     x <- as.matrix(x)
+    # todo: make sure that y is class.indicator matrix
     y <- as.matrix(y)
     if (any(is.na(x)))
     	stop("missing values in 'x'")
@@ -435,6 +436,7 @@ predict.dannet <- function(object, newdata, ...) {
     	colnames(posterior) <- object$lev 
     }
 	gr <- factor(object$lev1[max.col(posterior)], levels = object$lev)
+	names(gr) <- rownames(posterior)
 	return(list(class = gr, posterior = posterior))
 }
 
