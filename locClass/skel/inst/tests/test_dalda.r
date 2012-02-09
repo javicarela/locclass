@@ -1,37 +1,37 @@
 #======================	
-	mod <- dalda(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5)
-	x1 <- seq(4,8,0.05)
-	x2 <- seq(2,5,0.05)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[1]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[2]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[3]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[4]]*10)
-	legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+	# mod <- dalda(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5)
+	# x1 <- seq(4,8,0.05)
+	# x2 <- seq(2,5,0.05)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[1]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[2]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[3]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[4]]*10)
+	# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
 
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- predict(mod, newdata = iris.grid)
-prob.grid <- pred$posterior
-contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
-contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
-contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- predict(mod, newdata = iris.grid)
+# prob.grid <- pred$posterior
+# contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
+# contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
+# contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
 
 
 
-	mod <- daqda(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5)
-	x1 <- seq(4,8,0.05)
-	x2 <- seq(2,5,0.05)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[1]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[2]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[3]]*10)
-	plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[4]]*10)
-	legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+	# mod <- daqda(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5)
+	# x1 <- seq(4,8,0.05)
+	# x2 <- seq(2,5,0.05)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[1]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[2]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[3]]*10)
+	# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$weights[[4]]*10)
+	# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
 
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- predict(mod, newdata = iris.grid)
-prob.grid <- pred$posterior
-contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
-contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
-contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- predict(mod, newdata = iris.grid)
+# prob.grid <- pred$posterior
+# contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
+# contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
+# contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
 
 
 
@@ -63,7 +63,7 @@ test_that("dalda throws a warning if grouping variable is numeric", {
 	data(iris)
 	# formula, data
 	expect_that(dalda(formula = Sepal.Length ~ ., data = iris, wf = "gaussian", bw = 10), gives_warning("'grouping' was coerced to a factor"))
-	expect_error(dalda(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 10))  ## system singular
+	expect_error(dalda(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 10))
 	# grouping, x
 	expect_that(dalda(grouping = iris[,1], x = iris[,-1], wf = "gaussian", bw = 10), gives_warning("'grouping' was coerced to a factor"))
 	expect_error(dalda(grouping = iris[,4], x = iris[,-1], wf = "gaussian", bw = 10))     ## system singular

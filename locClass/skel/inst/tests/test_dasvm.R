@@ -1,154 +1,154 @@
-library(locClass)
+# library(locClass)
 
-mod <- e1071:::svm(Species ~ ., data = iris, probability = TRUE)
-e1071:::predict.svm(mod, iris, probability = TRUE)
+# mod <- e1071:::svm(Species ~ ., data = iris, probability = TRUE)
+# e1071:::predict.svm(mod, iris, probability = TRUE)
+
+
+# #=====================================================================================================================
+# ## check if decision value weighting method works correctly
+# mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris)#, kernel = "linear")
+# x1 <- seq(4,8,0.05)
+# x2 <- seq(2,5,0.05)
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- e1071:::predict.svm(mod, iris.grid, decision.values = TRUE, main = colnames(decision)[1])
+# decision.grid <- attr(pred, "decision.values")
+
+# filled.contour(x1, x2, matrix(decision.grid[,1], length(x1)), main = colnames(decision.grid)[1])
+# filled.contour(x1, x2, matrix(decision.grid[,2], length(x1)), main = colnames(decision.grid)[2])
+# filled.contour(x1, x2, matrix(decision.grid[,3], length(x1)), main = colnames(decision.grid)[3])
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[1])
+# contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = c(-1,0,1))
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[2])
+# contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = c(-1,0,1))
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[3])
+# contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE, level = c(-1,0,1))
+
+# mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris)#, kernel = "linear")
+# pred <- e1071:::predict.svm(mod, iris, decision.values = TRUE)
+# decision <- attr(pred, "decision.values")
+
+# ###
+# dec <- sapply(1:n, function(x) decision[x,grep(iris$Species[x], colnames(decision))]) 
+# prob <- sapply(1:n, function(x) min(abs(decision[x, grep(iris$Species[x], colnames(decision))])))
+# ##
+
+# inds <- sapply(iris$Species, function(x) grep(x, colnames(decision))) 
+# n <- 150
+# dec <- cbind(decision[cbind(1:n, inds[1,1:n])], decision[cbind(1:n, inds[2,1:n])])
+# problem <- max.col(-abs(dec))
+# wf <- gaussian(bw = 0.5)
+# w <- wf(abs(dec[cbind(1:n,problem)])) 
+
+# plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
+# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+# contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[1])
+# contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[2])
+# contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE,  level = -1:1,label = colnames(decision.grid)[3])
+# ##### durch beta teilen wichtig???
+
+# mean(pred != iris$Species)
+
+# ####
+# mod <- dasvm(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.8, itr = 10, method = "decision", kernel = "linear")
+# x1 <- seq(4,8,0.05)
+# x2 <- seq(2,5,0.05)
+# #mod$case.weights
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[1]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[2]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[3]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[11]]*10)
+# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- predict(mod, newdata = iris.grid, decision.values = TRUE)
+# decision.grid <- attr(pred, "decision.values")
+# contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[1])
+# contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[2])
+# contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[3])
+
+#=====================================================================================================================
+# ## check if probability weighting method works correctly
+# mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris, probability = TRUE)#, kernel = "linear")
+# x1 <- seq(4,8,0.05)
+# x2 <- seq(2,5,0.05)
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- e1071:::predict.svm(mod, iris.grid, probability = TRUE)
+# prob.grid <- attr(pred, "probabilities")
+
+# filled.contour(x1, x2, matrix(prob.grid[,1], length(x1)), main = colnames(prob.grid)[1])
+# filled.contour(x1, x2, matrix(prob.grid[,2], length(x1)), main = colnames(prob.grid)[2])
+# filled.contour(x1, x2, matrix(prob.grid[,3], length(x1)), main = colnames(prob.grid)[3])
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[1])
+# contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE)
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[2])
+# contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE)
+
+# plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[3])
+# contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE)
+
+
+# mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris, probability = TRUE)#, kernel = "linear")
+# pred <- e1071:::predict.svm(mod, iris, probability = TRUE)
+# post <- attr(pred, "probabilities")
+# spost <- apply(post, 1, sort, decreasing = TRUE)
+# wf <- gaussian(bw = 0.3)
+# w <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
+
+# plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
+# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+# contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
+# contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
+# contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
+
+# plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
+# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+# sprob.grid <- apply(prob.grid, 1, max)
+# contour(x1, x2, matrix(sprob.grid, length(x1)), add = TRUE, levels = c(0.45, 0.5, 0.55, 0.6))
+
+
+
+# mod <- dasvm(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, method = "prob", probability = TRUE, kernel = "linear")
+# x1 <- seq(4,8,0.05)
+# x2 <- seq(2,5,0.05)
+# mod$case.weights
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[1]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[2]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[3]]*10)
+# plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[4]]*10)
+# legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+
+# iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
+# pred <- predict(mod, newdata = iris.grid, probability = TRUE)
+# prob.grid <- attr(pred, "probabilities")
+# contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
+# contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
+# contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
 
 
 #=====================================================================================================================
-## check if decision value weighting method works correctly
-mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris)#, kernel = "linear")
-x1 <- seq(4,8,0.05)
-x2 <- seq(2,5,0.05)
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- e1071:::predict.svm(mod, iris.grid, decision.values = TRUE, main = colnames(decision)[1])
-decision.grid <- attr(pred, "decision.values")
 
-filled.contour(x1, x2, matrix(decision.grid[,1], length(x1)), main = colnames(decision.grid)[1])
-filled.contour(x1, x2, matrix(decision.grid[,2], length(x1)), main = colnames(decision.grid)[2])
-filled.contour(x1, x2, matrix(decision.grid[,3], length(x1)), main = colnames(decision.grid)[3])
+# mod1 <- wsvm(Species ~ ., data = iris, probability = TRUE)
+# predict(mod1, iris, probability = TRUE)
 
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[1])
-contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = c(-1,0,1))
-
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[2])
-contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = c(-1,0,1))
-
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(decision.grid)[3])
-contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE, level = c(-1,0,1))
-
-mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris)#, kernel = "linear")
-pred <- e1071:::predict.svm(mod, iris, decision.values = TRUE)
-decision <- attr(pred, "decision.values")
-
-###
-dec <- sapply(1:n, function(x) decision[x,grep(iris$Species[x], colnames(decision))]) 
-prob <- sapply(1:n, function(x) min(abs(decision[x, grep(iris$Species[x], colnames(decision))])))
-##
-
-inds <- sapply(iris$Species, function(x) grep(x, colnames(decision))) 
-n <- 150
-dec <- cbind(decision[cbind(1:n, inds[1,1:n])], decision[cbind(1:n, inds[2,1:n])])
-problem <- max.col(-abs(dec))
-wf <- gaussian(bw = 0.5)
-w <- wf(abs(dec[cbind(1:n,problem)])) 
-
-plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
-legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
-contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[1])
-contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[2])
-contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE,  level = -1:1,label = colnames(decision.grid)[3])
-##### durch beta teilen wichtig???
-
-mean(pred != iris$Species)
-
-####
-mod <- dasvm(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.8, itr = 10, method = "decision", kernel = "linear")
-x1 <- seq(4,8,0.05)
-x2 <- seq(2,5,0.05)
-#mod$case.weights
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[1]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[2]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[3]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[11]]*10)
-legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
-
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- predict(mod, newdata = iris.grid, decision.values = TRUE)
-decision.grid <- attr(pred, "decision.values")
-contour(x1, x2, matrix(decision.grid[,1], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[1])
-contour(x1, x2, matrix(decision.grid[,2], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[2])
-contour(x1, x2, matrix(decision.grid[,3], length(x1)), add = TRUE, level = -1:1, label = colnames(decision.grid)[3])
-
-#=====================================================================================================================
-## check if probability weighting method works correctly
-mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris, probability = TRUE)#, kernel = "linear")
-x1 <- seq(4,8,0.05)
-x2 <- seq(2,5,0.05)
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- e1071:::predict.svm(mod, iris.grid, probability = TRUE)
-prob.grid <- attr(pred, "probabilities")
-
-filled.contour(x1, x2, matrix(prob.grid[,1], length(x1)), main = colnames(prob.grid)[1])
-filled.contour(x1, x2, matrix(prob.grid[,2], length(x1)), main = colnames(prob.grid)[2])
-filled.contour(x1, x2, matrix(prob.grid[,3], length(x1)), main = colnames(prob.grid)[3])
-
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[1])
-contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE)
-
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[2])
-contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE)
-
-plot(iris$Sepal.Length, iris$Sepal.Width, col = iris$Species, main = colnames(prob.grid)[3])
-contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE)
-
-
-mod <- e1071:::svm(Species ~ Sepal.Length + Sepal.Width, data = iris, probability = TRUE)#, kernel = "linear")
-pred <- e1071:::predict.svm(mod, iris, probability = TRUE)
-post <- attr(pred, "probabilities")
-spost <- apply(post, 1, sort, decreasing = TRUE)
-wf <- gaussian(bw = 0.3)
-w <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
-
-plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
-legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
-contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
-contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
-contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
-
-plot(iris[,1], iris[,2], col = iris$Species, cex = w*10)
-legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
-sprob.grid <- apply(prob.grid, 1, max)
-contour(x1, x2, matrix(sprob.grid, length(x1)), add = TRUE, levels = c(0.45, 0.5, 0.55, 0.6))
+# #?e1071:::predict.svm
 
 
 
-mod <- dasvm(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, method = "prob", probability = TRUE, kernel = "linear")
-x1 <- seq(4,8,0.05)
-x2 <- seq(2,5,0.05)
-mod$case.weights
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[1]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[2]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[3]]*10)
-plot(iris[,1], iris[,2], col = iris$Species, cex = mod$case.weights[[4]]*10)
-legend("bottomright", legend = levels(iris$Species), col = as.numeric(unique(iris$Species)), lty = 1)
+# mod2 <- dasvm(Species ~ ., data = iris, bw = 4)
+# predict(mod2)
+# predict(mod2, newdata = iris)
+# predict(mod2, newdata = iris, decision.values = TRUE)
 
-iris.grid <- expand.grid(Sepal.Length = x1, Sepal.Width = x2)
-pred <- predict(mod, newdata = iris.grid, probability = TRUE)
-prob.grid <- attr(pred, "probabilities")
-contour(x1, x2, matrix(prob.grid[,1], length(x1)), add = TRUE, label = colnames(prob.grid)[1])
-contour(x1, x2, matrix(prob.grid[,2], length(x1)), add = TRUE, label = colnames(prob.grid)[2])
-contour(x1, x2, matrix(prob.grid[,3], length(x1)), add = TRUE, label = colnames(prob.grid)[3])
-
-
-#=====================================================================================================================
-
-mod1 <- wsvm(Species ~ ., data = iris, probability = TRUE)
-predict(mod1, iris, probability = TRUE)
-
-#?e1071:::predict.svm
-
-
-
-mod2 <- dasvm(Species ~ ., data = iris, bw = 4)
-predict(mod2)
-predict(mod2, newdata = iris)
-predict(mod2, newdata = iris, decision.values = TRUE)
-
-mod2 <- dasvm(Species ~ ., data = iris, bw = 4, probability = TRUE)
-predict(mod2)
-predict(mod2, newdata = iris)
-predict(mod2, newdata = iris, decision.values = TRUE)
-predict(mod2, newdata = iris, probability = TRUE)
+# mod2 <- dasvm(Species ~ ., data = iris, bw = 4, probability = TRUE)
+# predict(mod2)
+# predict(mod2, newdata = iris)
+# predict(mod2, newdata = iris, decision.values = TRUE)
+# predict(mod2, newdata = iris, probability = TRUE)
 
 
 
@@ -178,33 +178,33 @@ test_that("dasvm: misspecified arguments", {
 	expect_error(dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, method = c("ML","unbiased")))
 })
 
-
-test_that("dasvm throws a warning if grouping variable is numeric", {
-	data(iris)
-	# formula, data
-	expect_that(dasvm(formula = Sepal.Length ~ ., data = iris, wf = "gaussian", bw = 10), gives_warning("'y' was coerced to a factor"))
-	expect_warning(dasvm(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 10))  ## system singular
-	# y, x
-	expect_that(dasvm(y = iris[,1], x = iris[,-1], wf = "gaussian", bw = 10), gives_warning("'y' was coerced to a factor"))
-	expect_error(dasvm(y = iris[,4], x = iris[,-1], wf = "gaussian", bw = 10))     ## system singular
-	expect_warning(dasvm(y = iris$Petal.Width, x = iris[,-5], wf = "gaussian", bw = 10))
-})
+# todo
+# test_that("dasvm throws a warning if grouping variable is numeric", {
+	# data(iris)
+	# # formula, data
+	# expect_that(dasvm(formula = Sepal.Length ~ ., data = iris, wf = "gaussian", bw = 10), gives_warning("'y' was coerced to a factor"))
+	# expect_warning(dasvm(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 10))  ## system singular
+	# # y, x
+	# expect_that(dasvm(y = iris[,1], x = iris[,-1], wf = "gaussian", bw = 10), gives_warning("'y' was coerced to a factor"))
+	# expect_error(dasvm(y = iris[,4], x = iris[,-1], wf = "gaussian", bw = 10))     ## system singular
+	# expect_warning(dasvm(y = iris$Petal.Width, x = iris[,-5], wf = "gaussian", bw = 10))
+# })
 
 
 test_that("dasvm works if only one predictor variable is given", {
 	data(iris)
 	fit <- dasvm(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 5)
-#	expect_equal(ncol(fit$means), 1)	
-#	expect_equal(dim(fit$cov), rep(1, 2))	
+	expect_equal(ncol(fit$SV), 1)
 })
 
 
-test_that("dasvm: detectig singular covariance matrix works", {
+# todo: meaningful error message
+test_that("dasvm: one training observation", {
 	data(iris)
 	# one training observation
-	expect_error(dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1))            ## system singular	
+	expect_error(dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1))
 	# one training observation in one predictor variable
-	expect_error(dasvm(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = 1))   ## system singular
+	expect_error(dasvm(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = 1))
 })
 
 
@@ -243,6 +243,7 @@ test_that("dasvm: detectig singular covariance matrix works", {
 #})
 
 
+#todo
 #test_that("dasvm breaks out of for-loop if only one class is left", {
 #	expect_that(fit <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1:50), gives_warning(c("groups versicolor, virginica are empty or weights in these groups are all zero", "training data from only one group, breaking out of iterative procedure")))
 #	expect_equal(fit$itr, 1)

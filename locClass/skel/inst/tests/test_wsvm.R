@@ -320,16 +320,16 @@ test_that("predict.wsvm works with one single test observation", {
 	expect_equal(length(pred), 1)
 	expect_equal(dim(posterior), c(1, 3))
 	a <- factor("setosa", levels = c("setosa", "versicolor", "virginica"))
-	names(a) <- "5"
-	attr(a, "probabilites") <- posterior
+	names(a) <- 5
+	attr(a, "probabilities") <- posterior
 	expect_equal(pred, a) ##???
 	pred <- predict(fit, newdata = iris[58,], probability = TRUE)
 	posterior <- attr(pred, "probabilities")
 	expect_equal(length(pred), 1)
 	expect_equal(dim(posterior), c(1, 3))
 	a <- factor("versicolor", levels = c("setosa", "versicolor", "virginica"))
-	names(a) <- "58"
-	attr(a, "probabilites") <- posterior	
+	names(a) <- 58
+	attr(a, "probabilities") <- posterior	
 	expect_equal(pred, a)
 })	
 
