@@ -184,7 +184,7 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
     xint <- match("(Intercept)", colnames(x), nomatch=0L)
     if (xint > 0L) x <- x[, -xint, drop=FALSE] # Bias term is used for intercepts
     w <- model.weights(m)
-    if (length(w) == 0L) 
+    if (length(w) == 0L)
     	w <- rep(1, nrow(x))
     y <- model.response(m)
     if (!is.factor(y)) {
@@ -219,7 +219,7 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
     res$na.action <- attr(m, "na.action")
     res$contrasts <- cons
     res$xlevels <- .getXlevels(Terms, m)
-    class(res) <- c("dannet.formula", "dannet", "nnet")
+    class(res) <- c("dannet.formula", "nnet.formula", "dannet", "nnet")
     res
 }
 
@@ -232,7 +232,7 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
 
 ##...: size, Wts, mask, linout, entropy, softmax, censored, skip, rang, decay, maxit, Hess, trace, MaxNWts, abstol, reltol, ...
 dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
-	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights, ...) {
+	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights = rep(1, nrow(x)), ...) {
 	dannet.fit <- function(x, y, wf, itr, weights = rep(1, nrow(x)), ...) {
 		ntr <- nrow(x)
 		w <- list()
@@ -277,11 +277,17 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
     	if (abs(itr - round(itr)) > .Machine$double.eps^0.5)
        		warning("'itr' is not a natural number and is rounded off")
     }
+
+    if (any(weights < 0))
+        stop("weights have to be larger or equal to zero")
+    if (all(weights == 0))
+        stop("all weights are zero")
+
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
     	m$n <- ntr
     	m[[1L]] <- as.name("generatewf")
-    	wf <- eval.parent(m)
+    	wf <- eval(m)
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
