@@ -328,7 +328,7 @@ function (x,
     	#m$na.action <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("generatewf")
-    	wf <- eval.parent(m)
+    	wf <- eval(m)
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
