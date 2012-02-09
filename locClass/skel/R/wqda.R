@@ -391,7 +391,7 @@ weights.wqda <- function (object, ...) {
 
 model.frame.wqda <- function (formula, ...) {
     oc <- formula$call
-    oc$wf <- oc$bw <- oc$k <- oc$nn.only <- oc$itr <- oc$weights <- NULL
+    oc$weights <- oc$method <- oc$wf <- oc$bw <- oc$k <- oc$nn.only <- oc$itr <- NULL
     oc[[1L]] <- as.name("model.frame")
     if (length(dots <- list(...))) {
         nargs <- dots[match(c("data", "na.action", "subset"), 
