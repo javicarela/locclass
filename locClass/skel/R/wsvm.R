@@ -644,6 +644,7 @@ function (x,
     }
 
     ret$case.weights <- case.weights
+    names(ret$case.weights) <- rownames(x)
    
     ret
 }

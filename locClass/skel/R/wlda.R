@@ -192,6 +192,7 @@ wlda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
         stop("weights have to be larger or equal to zero")
     if (all(weights == 0))
         stop("all weights are zero")
+    names(weights) <- rownames(x)
 
     if (n != length(grouping)) 
         stop("'nrow(x)' and 'length(grouping)' are different")

@@ -190,6 +190,7 @@ wqda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
         stop("all 'weights' are zero")
     if (n != length(grouping)) 
         stop("nrow(x) and length(grouping) are different")
+    names(weights) <- rownames(x)
 	# remove all observations with weight 0
     x <- x[weights > 0, , drop = FALSE]
     grouping <- grouping[weights > 0]
@@ -364,7 +365,7 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
     names(gr) <- rownames(x)
     posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
     posterior <- posterior/rowSums(posterior)
-    if(any(is.infinite(posterior))) 
+    if (any(is.infinite(posterior))) 
     	warning("infinite, NA or NaN values in 'posterior'")
     return(list(class = gr, posterior = posterior))
 }

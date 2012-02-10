@@ -247,6 +247,7 @@ function (x,
 		n <- nrow(x)
 		case.weights <- case.weights/sum(case.weights) * n		# rescale the weights such that they sum up to n
 		w[[1]] <- case.weights
+		names(w[[1]]) <- rownames(x)
 		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, probability = TRUE, ..., subset = subset, na.action = na.action)
 		for(i in seq_len(itr)) {
 			post <- attr(predict(res, newdata = x, probability = TRUE, ...), "probabilities")
@@ -255,6 +256,7 @@ function (x,
 			spost <- apply(post, 1, sort, decreasing = TRUE)
 			w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
 			w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * n			# rescale the weights such that they sum up to n
+			names(w[[i+1]]) <- rownames(x)
 			res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], probability = TRUE, ..., subset = subset, na.action = na.action)
 		}
 		if (!probability) {
@@ -271,12 +273,14 @@ function (x,
 		w <- list()
 		#case.weights <- case.weight/sum(case.weights) * n		# rescale the weights such that they sum up to n
 		w[[1]] <- case.weights
+		names(w[[1]]) <- rownames(x)
 		n <- nrow(x)
 		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, ..., subset = subset, na.action = na.action)
 		if (res$nclasses == 2) {
 			for(i in seq_len(itr)) {
 				decision <- as.vector(attr(predict(res, newdata = x, decision.values = TRUE, ...), "decision.values"))
 				w[[i+1]] <- wf(abs(decision))    # largest if decision value = 0
+				names(w[[i+1]]) <- rownames(x)
 				res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], ..., subset = subset, na.action = na.action)
 			}			
 		} else {
@@ -289,6 +293,7 @@ function (x,
 				prob <- sapply(1:n, function(x) min(abs(decision[x, grep(y[x], colnames(decision))])))
 				w[[i+1]] <- wf(prob)    # largest if decision value is zero
 				# w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * n
+				names(w[[i+1]]) <- rownames(x)
 				res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], ..., subset = subset, na.action = na.action)
 			}
 		}

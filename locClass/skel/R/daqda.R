@@ -203,6 +203,7 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 		n <- nrow(x)
 		#w[[1]] <- weights
 		w[[1]] <- weights/sum(weights) * n
+		names(w[[1]]) <- rownames(x)
 		res <- wqda.default(x = x, grouping = grouping, weights = weights, ...)
 		for(i in seq_len(itr)) {
 			post <- predict(res)$posterior
@@ -216,6 +217,7 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 				spost <- apply(post, 1, sort, decreasing = TRUE)
 				weights <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
 				w[[i+1]] <- weights/sum(weights) * n
+				names(w[[i+1]]) <- rownames(x)
 				#w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
 				res <- wqda.default(x = x, grouping = grouping, weights = weights, ...)
 			}
