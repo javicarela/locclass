@@ -592,14 +592,14 @@ test_that("predict.dalda works correctly with formula and data.frame interface a
   	expect_equal(rownames(pred$posterior), rownames(iris)[ran])  	
 	## formula, data, newdata
 	fit <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = ran)  
-  	predict(fit, newdata = iris[-ran,])
+  	pred <- predict(fit, newdata = iris[-ran,])
 	## grouping, x
 	fit <- dalda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, subset = ran)  
   	pred <- predict(fit)
   	expect_equal(rownames(pred$posterior), rownames(iris)[ran])  	
 	## grouping, x, newdata
 	fit <- dalda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, subset = ran)  
-  	predict(fit, newdata = iris[-ran,-5])
+  	pred <- predict(fit, newdata = iris[-ran,-5])
 })
 
 
