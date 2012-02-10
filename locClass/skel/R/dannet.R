@@ -202,7 +202,7 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
         lev1 <- lev[counts > 0L]
         y <- factor(y, levels=lev1)
     }
-    if (length(lev1) == 0L)
+    if (length(lev1) == 1L)
     	stop("training data from only one class given")
     if (length(lev) == 2L) {
         y <- as.vector(unclass(y)) - 1
@@ -238,6 +238,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 		w <- list()
 		weights <- weights/sum(weights) * ntr     		# rescale weights such that they sum up to ntr
 		w[[1]] <- weights
+		names(w[[1]]) <- rownames(x)
 		res <- nnet.default(x = x, y = y, weights = weights, ...)
 		for(i in seq_len(itr)) {
 			post <- predict(res, type = "raw")
@@ -250,6 +251,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 				w[[i+1]] <- wf(spost[1,] - spost[2,])    # largest if both probabilities are equal
 			}
 			w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * ntr     # rescale weights such that they sum up to ntr
+			names(w[[i+1]]) <- rownames(x)
 			if (any(w[[i]] %*% y == 0L)) {               # class where all weights are zero
 				warning("training data from only one group, breaking out of iterative procedure")
 				itr <- i
@@ -274,7 +276,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 
     if (!missing(itr)) {
     	if (itr < 1)
-			stop("'itr' must be > 1")
+			stop("'itr' must be >= 1")
     	if (abs(itr - round(itr)) > .Machine$double.eps^0.5)
        		warning("'itr' is not a natural number and is rounded off")
     }
