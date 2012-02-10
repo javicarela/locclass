@@ -282,7 +282,7 @@ test_that("osqda: local solution with rectangular window function and large bw a
 	fit2 <- osqda(formula = Species ~ ., data = iris, wf = rectangular(20), method = "ML")
 	pred2 <- predict(fit2)
 	expect_equal(pred1, pred2)
-	fit3 <- lda(Species ~ ., data = iris, method = "mle")
+	fit3 <- qda(Species ~ ., data = iris, method = "mle")
 	pred3 <- predict(fit3, newdata = iris)
 	names(pred3$class) <- names(pred2$class)
 	expect_equal(pred2$class, pred3$class)
