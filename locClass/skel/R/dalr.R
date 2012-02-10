@@ -527,7 +527,10 @@ predict.dalr <- function(object, newdata = NULL, ...) {
     post <- NextMethod(type = "response", ...)
     if (is.list(post)) {
         lev1 <- names(object$counts)
-        l <- names(post$fit)
+        if (missing(newdata))
+        	l <- names(object$weights[[1]])
+        else
+        	l <- rownames(newdata)
         if (length(lev1) == 1) {
 			group <- factor(rep(lev1, length(post$fit)), levels = object$lev)
         	post$fit <- as.matrix(post$fit)
@@ -541,7 +544,10 @@ predict.dalr <- function(object, newdata = NULL, ...) {
         post <- list(class = group, posterior = post$fit, se.fit = post$se.fit, residual.scale = post$residual.scale)
     } else {
         lev1 <- names(object$counts)
-        l <- names(post)
+        if (missing(newdata))
+        	l <- names(object$weights[[1]])
+        else
+        	l <- rownames(newdata)
         if (length(lev1) == 1) {
         	group <- factor(rep(lev1, length(post)), levels = object$lev)
         	post <- as.matrix(post)
