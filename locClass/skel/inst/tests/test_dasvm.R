@@ -787,7 +787,7 @@ test_that("predict.dasvm: misspecified arguments", {
     expect_error(predict(fit, newdata = TRUE))
     expect_error(predict(fit, newdata = -50:50))
     # errors in prior
-    expect_error(predict(fit, prior = rep(2,length(levels(iris$Species))), newdata = iris[-ran,]))
-    expect_error(predict(fit, prior = TRUE, newdata = iris[-ran,]))
-    expect_error(predict(fit, prior = 0.6, newdata = iris[-ran,]))
+#    expect_error(predict(fit, prior = rep(2,length(levels(iris$Species))), newdata = iris[-ran,]))
+#    expect_error(predict(fit, prior = TRUE, newdata = iris[-ran,]))
+#    expect_error(predict(fit, prior = 0.6, newdata = iris[-ran,]))
 })  	
