@@ -523,6 +523,9 @@ print.dalr <- function(x, ...) {
 #'
 #' @S3method predict dalr
 
+## todo: fix bug in predict.dalr if dalr.data.frame was used for fitting and newdata is given
+## todo: NAs in newdata
+
 predict.dalr <- function(object, newdata = NULL, ...) {
     post <- NextMethod(type = "response", ...)
     if (is.list(post)) {

@@ -386,6 +386,9 @@ print.dalda <- function (x, ...) {
 #'
 #' @S3method predict dalda
 
+## todo: eval.parent: if newdata not given and training data is retrieved from the call to dalda.data.frame or dalda.matrix 
+# an unevaluated index vector is not found anymore
+
 predict.dalda <- function(object, newdata, ...) {
     if (!inherits(object, "dalda")) 
         stop("object not of class \"dalda\"")
