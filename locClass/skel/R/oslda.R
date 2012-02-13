@@ -323,6 +323,7 @@ print.oslda <- function(x, ...) {
 #' @useDynLib locClass
 
 
+## todo: na.action
 predict.oslda <- function(object, newdata, ...) {	
     if (!inherits(object, "oslda")) 
         stop("object not of class \"oslda\"")

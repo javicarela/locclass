@@ -68,6 +68,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 	double det[K];								// determinants of covariance matrices
 	double C[K][p * K];
 	double post[K];
+	int nas = 0;
 	int br = 0;
 	
 	int i, j, l, m, n;							// indices
@@ -90,94 +91,123 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 		
 		br = 0;
 		
-		// 1. calculate distances to n-th test observation
-		for (i = 0; i < N_learn; i++) {
-			dist[i] = 0;
-			for (j = 0; j < p; j++) {
-				dist[i] += pow(learn[i + N_learn * j] - test[n + N_test * j], 2);
-			}
-			dist[i] = sqrt(dist[i]);
-			weights[i] = 0;
-			//Rprintf("dist %f\n", dist[i]);
+		// 0. check for NAs in test
+		nas = 0;
+		for (j = 0; j < p; j++) {
+			nas += ISNA(test[n + N_test * j]);
 		}
-		
-		// 2. calculate observation weights
-		if (isInteger(s_wf)) {
-			// case 1: wf is integer
-			// calculate weights by reading number and calling corresponding C function
-			wf (weights, dist, N_learn, REAL(s_bw), k);
-		} else if (isFunction(s_wf)) {
-			// case 2: wf is R function
-			// calculate weights by calling R function
-			SEXP R_fcall;
-			PROTECT(R_fcall = lang2(s_wf, R_NilValue));
-			SETCADR(R_fcall, s_dist);
-			weights = REAL(eval(R_fcall, s_env));
-			UNPROTECT(1); // R_fcall
-		}
-		/*for(i = 0; i < N_learn; i++) {
-			Rprintf("weights %f\n", weights[i]);
-		}*/
-		
-		// 3. initialization
-		sum_weights = 0;
-		for (m = 0; m < K; m++) {
-			class_weights[m] = 0;
-			det[m] = 1.0;
-			for (j = 0; j < p; j++) {
-				center[m][j] = 0;
-				for (l = 0; l <= j; l++) {
-					covmatrix[m][j + p * l] = 0;
-				}
-				
-			}
-		}
-
-		// 4. calculate sum of weights, class wise sum of weights and unnormalized class means
-		for (i = 0; i < N_learn; i++) {
-			sum_weights += weights[i];
-			for (m = 0; m < K; m++) {
-				if (g[i] == m + 1) {
-					class_weights[m] += weights[i];
-					for (j = 0; j < p; j++) {
-						center[m][j] += learn[i + N_learn * j] * weights[i];
-					}
-				}
-			}
-		}
-		
-		//Rprintf("sum_weights %f\n", sum_weights);
-		if (sum_weights == 0) { // all observation weights are zero
-			warning("all observation weights are zero");
+		if (nas > 0) { // NAs in n-th test observation
+			warning("NAs in test observation %u", n+1);
 			// set posterior to NA
 			for (m = 0; m < K; m++) {
 				posterior[n + N_test * m] = NA_REAL;
-			}			
-		} else { // proceed
-			// 5. calculate covariance matrices, only lower triangle
-			if (method == 1) { // unbiased estimate
+			}	
+		} else {
+			// 1. calculate distances to n-th test observation
+			for (i = 0; i < N_learn; i++) {
+				dist[i] = 0;
+				for (j = 0; j < p; j++) {
+					dist[i] += pow(learn[i + N_learn * j] - test[n + N_test * j], 2);
+				}
+				dist[i] = sqrt(dist[i]);
+				weights[i] = 0;
+				//Rprintf("dist %f\n", dist[i]);
+			}
+			
+			// 2. calculate observation weights
+			if (isInteger(s_wf)) {
+				// case 1: wf is integer
+				// calculate weights by reading number and calling corresponding C function
+				wf (weights, dist, N_learn, REAL(s_bw), k);
+			} else if (isFunction(s_wf)) {
+				// case 2: wf is R function
+				// calculate weights by calling R function
+				SEXP R_fcall;
+				PROTECT(R_fcall = lang2(s_wf, R_NilValue));
+				SETCADR(R_fcall, s_dist);
+				weights = REAL(eval(R_fcall, s_env));
+				UNPROTECT(1); // R_fcall
+			}
+			/*for(i = 0; i < N_learn; i++) {
+				Rprintf("weights %f\n", weights[i]);
+			}*/
+			
+			// 3. initialization
+			sum_weights = 0;
+			for (m = 0; m < K; m++) {
+				class_weights[m] = 0;
+				det[m] = 1.0;
+				for (j = 0; j < p; j++) {
+					center[m][j] = 0;
+					for (l = 0; l <= j; l++) {
+						covmatrix[m][j + p * l] = 0;
+					}
+					
+				}
+			}
+
+			// 4. calculate sum of weights, class wise sum of weights and unnormalized class means
+			for (i = 0; i < N_learn; i++) {
+				sum_weights += weights[i];
 				for (m = 0; m < K; m++) {
-					norm_weights[m] = 0;
-					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
-						for (i = 0; i < N_learn; i++) {
-							if (g[i] == m + 1) {
-								norm_weights[m] += pow(weights[i]/class_weights[m], 2);
+					if (g[i] == m + 1) {
+						class_weights[m] += weights[i];
+						for (j = 0; j < p; j++) {
+							center[m][j] += learn[i + N_learn * j] * weights[i];
+						}
+					}
+				}
+			}
+			
+			//Rprintf("sum_weights %f\n", sum_weights);
+			if (sum_weights == 0) { // all observation weights are zero
+				warning("all observation weights are zero");
+				// set posterior to NA
+				for (m = 0; m < K; m++) {
+					posterior[n + N_test * m] = NA_REAL;
+				}			
+			} else { // proceed
+				// 5. calculate covariance matrices, only lower triangle
+				if (method == 1) { // unbiased estimate
+					for (m = 0; m < K; m++) {
+						norm_weights[m] = 0;
+						if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+							for (i = 0; i < N_learn; i++) {
+								if (g[i] == m + 1) {
+									norm_weights[m] += pow(weights[i]/class_weights[m], 2);
+								}
+							}
+							//Rprintf("norm_weights %f\n", norm_weights[m]);
+							if (norm_weights[m] == 1) { 
+								warning("iteration %u: NaNs in covariance matrix", n+1);
+								br = 1;
+								break; // break out of loop over m
+							} else { // calculate covariance matrix
+								for (i = 0; i < N_learn; i++) {
+									if (g[i] == m + 1) {
+										for (j = 0; j < p; j++) {
+											for (l = 0; l <= j; l++) {
+												covmatrix[m][j + p * l] += weights[i]/class_weights[m] * 
+												(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
+												(learn[i + N_learn * l] - center[m][l]/class_weights[m])/
+												(1 - norm_weights[m]);
+											}
+										}
+									}
+								}
 							}
 						}
-						//Rprintf("norm_weights %f\n", norm_weights[m]);
-						if (norm_weights[m] == 1) { 
-							warning("iteration %u: NaNs in covariance matrix", n+1);
-							br = 1;
-							break; // break out of loop over m
-						} else { // calculate covariance matrix
+					}
+				} else {			// ML estimate
+					for (m = 0; m < K; m++) {
+						if (class_weights[m] > 0) {	// only for classes with positive sum of weights
 							for (i = 0; i < N_learn; i++) {
 								if (g[i] == m + 1) {
 									for (j = 0; j < p; j++) {
 										for (l = 0; l <= j; l++) {
 											covmatrix[m][j + p * l] += weights[i]/class_weights[m] * 
 											(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
-											(learn[i + N_learn * l] - center[m][l]/class_weights[m])/
-											(1 - norm_weights[m]);
+											(learn[i + N_learn * l] - center[m][l]/class_weights[m]);
 										}
 									}
 								}
@@ -185,130 +215,114 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 						}
 					}
 				}
-			} else {			// ML estimate
-				for (m = 0; m < K; m++) {
-					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
-						for (i = 0; i < N_learn; i++) {
-							if (g[i] == m + 1) {
-								for (j = 0; j < p; j++) {
-									for (l = 0; l <= j; l++) {
-										covmatrix[m][j + p * l] += weights[i]/class_weights[m] * 
-										(learn[i + N_learn * j] - center[m][j]/class_weights[m]) * 
-										(learn[i + N_learn * l] - center[m][l]/class_weights[m]);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		
-			if (br == 1) { // covariance matrix could not be calculated for all classes
-				// set posterior to NA
-				for (m = 0; m < K; m++) {
-					posterior[n + N_test * m] = NA_REAL;
-				}
-			} else { // proceed
-				
-				/*
-				for (m = 0; m < K; m++) {
-					if (class_weights[m] > 0) {
-						for (j=0; j<p; j++) {
-							for (l = 0; l <= j; l++) {
-								Rprintf("covs %f\n", covmatrix[m][j + p * l]);
-							}				
-						}
-					}
-				}*/
-				
-				// 6. calculate inverse of covmatrices
-				for (m = 0; m < K; m++) {
-					if (class_weights[m] > 0) {	// only for classes with positive sum of weights
-						F77_CALL(dpotrf)(&uplo, &p, covmatrix[m], &p, &info);
-						//Rprintf("info2 %u\n", info);
-						
-						/*
-						for (j=0; j<p; j++) {
-							for (l = 0; l <= j; l++) {
-								Rprintf("covs2 %f\n", covmatrix[m][j + p * l]);
-							}
-						}*/
-						
-						if (info != 0) { // error in Cholesky decomposition
-							if (info < 0) {
-								warning("iteration %u, class %u: argument %u had an illegal value\n", n+1, m+1, abs(info));
-							} else {
-								warning("iteration %u, class %u: the leading minor of order %u is not positive definite and the Cholesky factorization could not be completed\n", n+1, m+1, info);
-							}
-							br = 1;
-							break;
-						} else { // proceed					
-							for (j = 0; j < p; j++) {
-								//Rprintf("diagcovs %f\n", covmatrix[j + p * j]);
-								det[m] *= covmatrix[m][j + p * j];
-							}
-							det[m] = pow(det[m], 2);
-							//Rprintf("determinant %f\n", det[m]);
-							F77_CALL(dpotri)(&uplo, &p, covmatrix[m], &p, &info);
-							//Rprintf("info3 %u\n", info);
-						
-							/*for (j=0; j<p; j++) {
-								for (l = 0; l <= j; l++) {
-									Rprintf("covs3 %f\n", covmatrix[m][j + p * l]);
-								}				
-							}*/
-						
-							if (info != 0) { // error in calculating the inverse
-								if (info < 0) {
-									warning("iteration %u, class %u: argument %u had an illegal value\n", n+1, m+1, abs(info));
-								} else {
-									warning("iteration %u, class %u: element (%u, %u) of factor L is zero\n", n+1, m+1, info, info);
-								}
-								br = 1;
-								break;
-							}
-						}
-					}
-				}
-				
-				if (br == 1) {
+			
+				if (br == 1) { // covariance matrix could not be calculated for all classes
 					// set posterior to NA
 					for (m = 0; m < K; m++) {
 						posterior[n + N_test * m] = NA_REAL;
 					}
 				} else { // proceed
 					
-					// 7. calculate difference between n-th test observation and all class centers
-					for (m = 0; m < K; m++) {
-						if (class_weights[m] > 0) {	// only for classes with positive sum of weights
-							for (j = 0; j < p; j++) {
-								z[j + p * m] = test[n + N_test * j] - center[m][j]/class_weights[m];
-							}
-						} else {
-							for (j = 0; j < p; j++) {
-								z[j + p * m] = 0;
-							}
-						}
-					}
-					
-					// 8. calculate C[m] = covmatrix[m] * z
-					for (m = 0; m < K; m++) {
-						if (class_weights[m] > 0) {	// only for classes with positive sum of weights
-							F77_CALL(dsymm)(&side, &uplo, &p, &K, &onedouble, covmatrix[m], &p, z, &p, &zerodouble, C[m], &p);
-						}
-					}
-					
-					// 9. calculate t(z) * C (mahalanobis distance) and unnormalized posterior probabilities
+					/*
 					for (m = 0; m < K; m++) {
 						if (class_weights[m] > 0) {
-							post[m] = 0;
-							for (j = 0; j < p; j++) {
-								post[m] += C[m][j + p * m] * z[j + p * m];
+							for (j=0; j<p; j++) {
+								for (l = 0; l <= j; l++) {
+									Rprintf("covs %f\n", covmatrix[m][j + p * l]);
+								}				
 							}
-							posterior[n + N_test * m] = log(class_weights[m]/sum_weights)
-							- 0.5 * log(det[m]) - 0.5 * post[m];
-						} else {
-							posterior[n + N_test * m] = R_NegInf;
+						}
+					}*/
+					
+					// 6. calculate inverse of covmatrices
+					for (m = 0; m < K; m++) {
+						if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+							F77_CALL(dpotrf)(&uplo, &p, covmatrix[m], &p, &info);
+							//Rprintf("info2 %u\n", info);
+							
+							/*
+							for (j=0; j<p; j++) {
+								for (l = 0; l <= j; l++) {
+									Rprintf("covs2 %f\n", covmatrix[m][j + p * l]);
+								}
+							}*/
+							
+							if (info != 0) { // error in Cholesky decomposition
+								if (info < 0) {
+									warning("iteration %u, class %u: argument %u had an illegal value\n", n+1, m+1, abs(info));
+								} else {
+									warning("iteration %u, class %u: the leading minor of order %u is not positive definite and the Cholesky factorization could not be completed\n", n+1, m+1, info);
+								}
+								br = 1;
+								break;
+							} else { // proceed					
+								for (j = 0; j < p; j++) {
+									//Rprintf("diagcovs %f\n", covmatrix[j + p * j]);
+									det[m] *= covmatrix[m][j + p * j];
+								}
+								det[m] = pow(det[m], 2);
+								//Rprintf("determinant %f\n", det[m]);
+								F77_CALL(dpotri)(&uplo, &p, covmatrix[m], &p, &info);
+								//Rprintf("info3 %u\n", info);
+							
+								/*for (j=0; j<p; j++) {
+									for (l = 0; l <= j; l++) {
+										Rprintf("covs3 %f\n", covmatrix[m][j + p * l]);
+									}				
+								}*/
+							
+								if (info != 0) { // error in calculating the inverse
+									if (info < 0) {
+										warning("iteration %u, class %u: argument %u had an illegal value\n", n+1, m+1, abs(info));
+									} else {
+										warning("iteration %u, class %u: element (%u, %u) of factor L is zero\n", n+1, m+1, info, info);
+									}
+									br = 1;
+									break;
+								}
+							}
+						}
+					}
+					
+					if (br == 1) {
+						// set posterior to NA
+						for (m = 0; m < K; m++) {
+							posterior[n + N_test * m] = NA_REAL;
+						}
+					} else { // proceed
+						
+						// 7. calculate difference between n-th test observation and all class centers
+						for (m = 0; m < K; m++) {
+							if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+								for (j = 0; j < p; j++) {
+									z[j + p * m] = test[n + N_test * j] - center[m][j]/class_weights[m];
+								}
+							} else {
+								for (j = 0; j < p; j++) {
+									z[j + p * m] = 0;
+								}
+							}
+						}
+						
+						// 8. calculate C[m] = covmatrix[m] * z
+						for (m = 0; m < K; m++) {
+							if (class_weights[m] > 0) {	// only for classes with positive sum of weights
+								F77_CALL(dsymm)(&side, &uplo, &p, &K, &onedouble, covmatrix[m], &p, z, &p, &zerodouble, C[m], &p);
+							}
+						}
+						
+						// 9. calculate t(z) * C (mahalanobis distance) and unnormalized posterior probabilities
+						for (m = 0; m < K; m++) {
+							if (class_weights[m] > 0) {
+								post[m] = 0;
+								for (j = 0; j < p; j++) {
+									post[m] += C[m][j + p * m] * z[j + p * m];
+								}
+								posterior[n + N_test * m] = log(class_weights[m]/sum_weights)
+								- 0.5 * log(det[m]) - 0.5 * post[m];
+							} else {
+								posterior[n + N_test * m] = R_NegInf;
+							}
 						}
 					}
 				}
