@@ -1,0 +1,30 @@
+Package: locClassData
+Version: 0.1-0
+Date: 2011-12-29
+Title: Collection of Artificial Classification Problems
+Author: Julia Schiffner
+Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
+Depends:
+    R (>= 2.13.2)
+Imports:
+    mvtnorm
+Suggests:
+    MASS
+Description: Collection of diverse artificial classification problems.
+License: GPL-2
+URL: http://www.statistik.tu-dortmund.de
+Collate:
+    'bayes.R'
+    'flashData.R'
+    'hvData.R'
+    'hvQuadraticData.R'
+    'mixtureData.R'
+    'outlierCorrectData.R'
+    'outlierWrongData.R'
+    'ringData.R'
+    'twonormLinearData.R'
+    'twonormQuadraticData.R'
+    'vData.R'
+    'vNormalLinearData.R'
+    'vNormalQuadratic.R'
+    'xorData.R'
