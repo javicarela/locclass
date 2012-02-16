@@ -12,6 +12,7 @@ usage:
 	echo " check    - run R CMD check on the package"
 	echo " package  - build source package"
 	echo " help     - shows all available targets"
+	echo " reforge	- prepare package for R-forge"
 
 help: usage
 	echo " clean    - clean up package cruft"
@@ -34,6 +35,12 @@ clean:
 package: pkg
 	echo "Building package file ..."
 	${R} CMD build ../pkg/locClassData/ > package.log 2>&1
+
+rforge: package
+	  echo "Deleting unused files ..."
+	${DELETE} ../pkg/locClassData/.svn
+	${DELETE} ../pkg/locClassData/R/.Rapp.history
+	${DELETE} ../pkg/locClassData/R/.svn
 
 pkg: clean
 	echo "Roxygenizing package ..."
