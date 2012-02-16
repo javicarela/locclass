@@ -67,7 +67,7 @@
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 
 #' Fitting models where it matters, \emph{The American Statistician}, \bold{57(2)} 124--130.
 #'
-#' @alias hvQuadraticData hvQuadraticLabels hvQuadraticPosterior hvQuadraticBayesClass
+#' @aliases hvQuadraticData hvQuadraticLabels hvQuadraticPosterior hvQuadraticBayesClass
 #'
 #' @rdname hvQuadraticData
 #'

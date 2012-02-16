@@ -146,7 +146,7 @@ hvBayesClass <- function(data, k = 2) {
 
 
 
-#' @nord
+#' @noRd
 #' @method as.data.frame locClass
 #'
 #' @S3method as.data.frame locClass

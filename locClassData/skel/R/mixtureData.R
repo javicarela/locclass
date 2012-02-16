@@ -152,7 +152,7 @@ mixtureData <- function(n, prior, lambda, mu, sigma) {
 
 
 
-#' @nord
+#' @noRd
 
 mixtureDataHelper <- function(n_k, lambda_k, mu_k, sigma_k) {
 	ncomp_k <- length(lambda_k)
@@ -248,7 +248,7 @@ mixturePosterior <- function(data, prior, lambda, mu, sigma) {
   
   
   
-#' @nord
+#' @noRd
     
 mixturePosteriorHelper <- function(data, lambda_k, mu_k, sigma_k) {
 	ncomp_k <- length(lambda_k)

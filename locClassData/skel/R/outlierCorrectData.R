@@ -30,7 +30,7 @@
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
-#' @example
+#' @examples
 #' # Generate a training and a test set
 #' train <- outlierCorrectData(n = 1000, alpha = 20)
 #' test <- outlierCorrectData(n = 1000, alpha = 20)
