@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+require(methods)
+require(utils)
 require("roxygen2")
 roxygenize("skel", "../pkg/locClassData", unlink.target=TRUE)
 
