@@ -233,11 +233,11 @@ wqda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
 
 
 
-#' @param x A \code{wqda} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{wqda} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print wqda
-#' @nord
+#' @noRd
 #'
 #' @S3method print wqda
 
@@ -373,7 +373,7 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
 
 
 #' @method weights wqda
-#' @nord
+#' @noRd
 #'
 #' @S3method weights wqda
 
@@ -386,7 +386,7 @@ weights.wqda <- function (object, ...) {
 
 
 #' @method model.frame wqda
-#' @nord
+#' @noRd
 #'
 #' @S3method model.frame wqda
 

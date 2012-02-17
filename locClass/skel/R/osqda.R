@@ -251,11 +251,11 @@ osqda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "
 	
 
 
-#' @param x A \code{osqda} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{osqda} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print osqda
-#' @nord
+#' @noRd
 #'
 #' @S3method print osqda
 

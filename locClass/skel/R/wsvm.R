@@ -921,7 +921,7 @@ function (object, newdata,
 
 
 #' @method weights wsvm
-#' @nord
+#' @noRd
 #'
 #' @S3method weights wsvm
 

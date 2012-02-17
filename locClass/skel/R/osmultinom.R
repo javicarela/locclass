@@ -325,11 +325,11 @@ osmultinom <- function (formula, data, subset, na.action, contrasts = NULL, cens
     # invisible(x)
 # }
 
-#' @param x An \code{osmultinom} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x An \code{osmultinom} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print osmutlinom
-#' @nord
+#' @noRd
 #'
 #' @S3method print osmultinom
 

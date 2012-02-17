@@ -240,11 +240,11 @@ wlda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
 
 
 
-#' @param x A \code{wlda} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{wlda} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print wlda
-#' @nord
+#' @noRd
 #'
 #' @S3method print wlda
 
@@ -378,7 +378,7 @@ predict.wlda <- function(object, newdata, prior = object$prior, ...) {
 
 
 #' @method weights wlda
-#' @nord
+#' @noRd
 #'
 #' @S3method weights wlda
 
@@ -391,7 +391,7 @@ weights.wlda <- function (object, ...) {
 
 
 #' @method model.frame wlda
-#' @nord
+#' @noRd
 #'
 #' @S3method model.frame wlda
 

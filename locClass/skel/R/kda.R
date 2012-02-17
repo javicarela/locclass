@@ -249,11 +249,11 @@ kda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "ep
 
 
 
-#' @param x A \code{kda} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{kda} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print kda
-#' @nord
+#' @noRd
 #'
 #' @S3method print kda
 

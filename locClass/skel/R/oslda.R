@@ -254,11 +254,11 @@ oslda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "
 	
 
 
-#' @param x An \code{oslda} object.
-#' @param \dots Further arguments to \code{\link{print}}.
-#'
+# @param x An \code{oslda} object.
+# @param \dots Further arguments to \code{\link{print}}.
+#
 #' @method print oslda
-#' @nord
+#' @noRd
 #'
 #' @S3method print oslda
 

@@ -15,13 +15,13 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' @param wf A string. The name of the window function. Default is \code{"biweight"}.
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
-#' @param /dots Unused.
-#'
-#' @nord
+# @param wf A string. The name of the window function. Default is \code{"biweight"}.
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+# @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
+# @param /dots Unused.
+#
+#' @noRd
 
 generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
 	"optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n, ...) {
@@ -383,9 +383,9 @@ biweight <- function(bw, k) { ## nn.only überhaupt als argument zulassen
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+# @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
 #'
 #' @rdname wfs
 
@@ -466,9 +466,9 @@ cauchy <- function(bw, k, nn.only = TRUE) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+#
 #' @rdname wfs
 
 cosine <- function(bw, k) {
@@ -536,9 +536,9 @@ cosine <- function(bw, k) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+#
 #' @rdname wfs
 
 epanechnikov <- function(bw, k) {
@@ -576,10 +576,8 @@ epanechnikov <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-    		epan <- function(x) {
-        		ax <- abs(x)
-        		ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
-    		}
+    		epan <- function(x)
+        		ifelse(abs(x) < bw, 3/4 * (1 - (x/bw)^2)/bw, 0)
     		attributes(epan) <- list(name = "epanechnikov", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -608,10 +606,10 @@ epanechnikov <- function(bw, k) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+# @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
+#
 #' @rdname wfs
 
 exponential <- function(bw, k, nn.only = TRUE) {
@@ -696,10 +694,10 @@ exponential <- function(bw, k, nn.only = TRUE) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+# @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
+#
 #' @rdname wfs
 
 gaussian <- function(bw, k, nn.only = TRUE) {
@@ -782,9 +780,9 @@ gaussian <- function(bw, k, nn.only = TRUE) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+#
 #' @rdname wfs
 
 optcosine <- function(bw, k) {
@@ -852,9 +850,9 @@ optcosine <- function(bw, k) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+#
 #' @rdname wfs
 
 rectangular <- function(bw, k) {
@@ -922,9 +920,9 @@ rectangular <- function(bw, k) {
 }
 
 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#'
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+#
 #' @rdname wfs
 
 triangular <- function(bw, k) {

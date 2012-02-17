@@ -298,11 +298,11 @@ kmc.default <- function(x, grouping, K = 2, wf = c("biweight", "cauchy", "cosine
 
 
 
-#' @param x A \code{kmc} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{kmc} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print kmc
-#' @nord
+#' @noRd
 #'
 #' @S3method print kmc
 
@@ -505,7 +505,7 @@ predict.kmc <- function(object, newdata = NULL, ...) {
 
 
 #' @method model.frame kmc
-#' @nord
+#' @noRd
 #'
 #' @S3method model.frame kmc
 

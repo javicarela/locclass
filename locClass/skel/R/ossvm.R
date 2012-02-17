@@ -877,11 +877,11 @@ names(ret) <- c("error", "ret", "prob", "dec")
 #}
 
 
-#' @param x An \code{ossvm} object.
-#' @param \dots Further arguments to \code{\link{print}}.
-#'
+# @param x An \code{ossvm} object.
+# @param \dots Further arguments to \code{\link{print}}.
+#
 #' @method print ossvm
-#' @nord
+#' @noRd
 #'
 #' @S3method print ossvm
 

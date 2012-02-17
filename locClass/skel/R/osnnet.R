@@ -342,11 +342,11 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
 
 
 
-#' @param x An \code{osnnet} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x An \code{osnnet} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print osnnet
-#' @nord
+#' @noRd
 #'
 #' @S3method print osnnet
 

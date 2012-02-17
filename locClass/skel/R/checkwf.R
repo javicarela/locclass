@@ -14,16 +14,15 @@
 #  http://www.r-project.org/Licenses/
 #
 
-
-#' @param wf A string. The name of the window function. 
-#' @param bw The bandwidth parameter.
-#' @param k The number of nearest neighbors.
-#' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the \code{k} nearest neighbors or 
-#'   all observations receive positive weights? 
-#' @param n The number of training observations.
-#' @param \dots Unused.
-#'
-#' @nord
+# @param wf A string. The name of the window function. 
+# @param bw The bandwidth parameter.
+# @param k The number of nearest neighbors.
+# @param nn.only (Logical. Only required for window functions with infinite support.) Should only the \code{k} nearest neighbors or 
+#   all observations receive positive weights? 
+# @param n The number of training observations.
+# @param \dots Unused.
+#
+#' @noRd
 
 checkwf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", 
 	"gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, n, ...) {
