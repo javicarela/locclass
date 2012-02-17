@@ -13,6 +13,7 @@ usage:
 	echo " package  - build source package"
 	echo " help     - shows all available targets"
 	echo " test	- run tests"
+	echo " rforge 	- prepare package for R-forge"
 
 help: usage
 	echo " clean    - clean up package cruft"
@@ -40,8 +41,18 @@ package: pkg
 	echo "Building package file ..."
 	${R} CMD build ../pkg/locClass/ > package.log 2>&1
 
+rforge: package
+	  echo "Deleting unused files ..."
+	${DELETE} ../pkg/locClass/.svn
+	${DELETE} ../pkg/locClass/inst/.svn
+	${DELETE} ../pkg/locClass/inst/tests/.Rapp.history
+	${DELETE} ../pkg/locClass/inst/tests/.svn
+	${DELETE} ../pkg/locClass/inst/doc/.svn
+	${DELETE} ../pkg/locClass/R/.Rapp.history
+	${DELETE} ../pkg/locClass/R/.svn
+	${DELETE} ../pkg/locClass/src/.svn
+
 pkg: clean
 	echo "Roxygenizing package ..."
 	${RSCRIPT} ./tools/roxygenize > roxygen.log 2>&1
-	${DELETE} ../pkg/locClass/inst
 	${RSCRIPT} ./tools/set-version > version.log 2>&1
