@@ -46,13 +46,13 @@
 #' pred <- predict(fit, newdata = grid, out = "posterior")
 #' post <- do.call("rbind", pred)
 #' 
-#' image(x, x, matrix(as.numeric(post[,1]), length(x)), xlab = x.1, ylab = x.2)
+#' image(x, x, matrix(as.numeric(post[,1]), length(x)), xlab = "x.1", ylab = "x.2")
 #' contour(x, x, matrix(as.numeric(post[,1]), length(x)), levels = 0.5, add = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #' 
 #' ## predict node membership
 #' splits <- predict(fit, newdata = grid, type = "node")
-#' contour(x, x, matrix(splits, length(x)), levels = range(splits), add = TRUE, lty = 2)
+#' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
 #'
 #' @rdname ldaModel 
 #'
@@ -133,16 +133,16 @@ ldaModel <- new("StatModel",
 		},
 	fit = function (object, weights = NULL, ...) {
     		if (is.null(weights)) {
-       			z <- wlda(object@get("designMatrix"), object@get("responseMatrix"), ...)
+       			z <- wlda(object@get("designMatrix"), object@get("responseMatrix"), method = "ML", ...)
     		} else {
-        		z <- wlda(object@get("designMatrix"), object@get("responseMatrix"), 
+        		z <- wlda(object@get("designMatrix"), object@get("responseMatrix"), method = "ML",
             		weights = weights, ...)
     		}
     		class(z) <- c("ldaModel", "wlda")
     		z$terms <- attr(object@get("input"), "terms")
     		z$contrasts <- attr(object@get("designMatrix"), "contrasts")
     		z$xlevels <- attr(object@get("designMatrix"), "xlevels")
-    		z$predict_response <- function(newdata = NULL) {#### prior als Argument für predict? wird für mob nicht gebraucht
+    		z$predict_response <- function(newdata = NULL) {#### prior as argument for predict?
         		if (!is.null(newdata)) {
             		penv <- new.env()
             		object@set("input", data = newdata, env = penv)
@@ -253,6 +253,7 @@ estfun.wlda <- function(x, ...) {
 		return(wts * sum(diag(cov.inv.E)) - mahalanobis(z, center = 0, cov = cov.inv.E.cov.inv, inverted = TRUE))
 	}
 	d2 <- apply(inds, 1, f, cov.inv = cov.inv, z = z)
+#print(colSums(cbind(d1, d2)))
 	return(cbind(d1, d2))
 }
 
