@@ -45,13 +45,13 @@
 #' ## predict decision values
 #' dec <- predict(fit, newdata = grid, out = "decision")
 #' 
-#' image(x, x, matrix(dec, length(x)))
+#' image(x, x, matrix(dec, length(x)), xlab = "x.1", ylab = "x.2")
 #' contour(x, x, matrix(dec, length(x)), levels = 0, add = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #' 
 #' ## predict node membership
 #' splits <- predict(fit, newdata = grid, type = "node")
-#' contour(x, x, matrix(splits, length(x)), levels = range(splits), add = TRUE, lty = 2)
+#' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
 #'
 #' @rdname svmModel 
 #'
@@ -313,6 +313,8 @@ estfun.wsvm <- function(x, ...) {
 	#d2[,] <- x$rho[] - d1[] * kernel[]        
 #cat("d\n")
 #print(d1)
+#print(wts * d1)
+#print(colSums(wts*d1))
     return(wts * d1)
 }
 
@@ -323,6 +325,7 @@ estfun.wsvm <- function(x, ...) {
 #' @method predict svmModel
 #' @S3method predict svmModel
 
+## todo: class labels can be interchanged: correct sign of decision.values
 predict.svmModel <- function(object, out = c("class", "posterior", "decision"), ...) {
 	pred <- NextMethod(object, ...)
 # m <- match.call(expand.dots = FALSE)
