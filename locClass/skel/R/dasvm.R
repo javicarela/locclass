@@ -108,6 +108,7 @@
 #'   only the \code{k} nearest neighbors or all observations receive positive weights? 
 #'   (See \code{\link[=biweight]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
+#' @param case.weights Initial observation weights (defaults to a vector of 1s).
 #' @param method The method for adaptation to the decision boundary, either \code{"prob"} or \code{"decision"}. 
 #'   Defaults to "prob".
 #' @param scale A logical vector indicating the variables to be scaled. If \code{scale} is of length 1, the 
@@ -167,7 +168,6 @@
 #' pred <- predict(fit)
 #' mean(pred != iris$Species)
 
-# todo: allow for initial weights?
 # todo: cross: even if cross = TRUE set to FALSE during iterations to avoid unnecessary cross-validation?
 
 dasvm <- function(x, ...)
@@ -181,7 +181,7 @@ dasvm <- function(x, ...)
 #' @S3method dasvm formula
 
 dasvm.formula <-
-function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
+function (formula, data = NULL, case.weights = rep(1, nrow(data)), ..., subset, na.action = na.omit, scale = TRUE)
 {
     call <- match.call()
     if (!inherits(formula, "formula"))
@@ -189,17 +189,19 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
     m <- match.call(expand.dots = FALSE)
     if (identical(class(eval.parent(m$data)), "matrix"))
         m$data <- as.data.frame(eval.parent(m$data))
+    m$case.weights <- case.weights
     m$... <- NULL
     m$scale <- NULL
     m[[1]] <- as.name("model.frame")
     m$na.action <- na.action
     m <- eval(m, parent.frame())
     Terms <- attr(m, "terms")
+    case.weights <- m[,"(case.weights)"]
     attr(Terms, "intercept") <- 0
     x <- model.matrix(Terms, m)
     y <- model.extract(m, "response")
 	#y <- model.response(m)
-    attr(x, "na.action") <- attr(y, "na.action") <- attr(m, "na.action")
+    attr(x, "na.action") <- attr(y, "na.action") <- attr(case.weights, "na.action") <- attr(m, "na.action")
     if (length(scale) == 1)
         scale <- rep(scale, ncol(x))
     if (any(scale)) {
@@ -210,7 +212,7 @@ function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
                          )
         scale <- !attr(x, "assign") %in% remove
     }
-    ret <- dasvm.default (x, y, scale = scale, ..., na.action = na.action)
+    ret <- dasvm.default (x, y, scale = scale, case.weights = case.weights, ..., na.action = na.action)
     ret$call <- call
     ret$call[[1]] <- as.name("dasvm")
     ret$terms <- Terms
@@ -238,26 +240,40 @@ function (x,
 		  method 	  = c("prob", "decision"),
           scale       = TRUE,
           type        = NULL,
+          case.weights = rep(1, nrow(x)),
           ...,
           subset       = NULL,
           na.action    = na.omit)
 {
-	dasvm.fit.prob <- function(x, y, wf, itr, case.weights = rep(1, nrow(x)), scale, type, probability = FALSE, ..., subset, na.action) {
+	dasvm.fit.prob <- function(x, y, wf, itr, case.weights = rep(1, nrow(x)), scale, type, probability = FALSE, ...) {
 		w <- list()
 		n <- nrow(x)
 		case.weights <- case.weights/sum(case.weights) * n		# rescale the weights such that they sum up to n
 		w[[1]] <- case.weights
 		names(w[[1]]) <- rownames(x)
-		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, probability = TRUE, ..., subset = subset, na.action = na.action)
-		for(i in seq_len(itr)) {
+		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, probability = TRUE, ...)
+		for (i in seq_len(itr)) {
+			# 1. prediction
 			post <- attr(predict(res, newdata = x, probability = TRUE, ...), "probabilities")
 			if (any(!is.finite(post)))
 				stop("inifinite, NA or NaN values in 'post', may indiciate numerical problems due to small observation weights, please check your settings of 'bw', 'k' and 'wf'")
+			# 2. calculate weights and fit model
 			spost <- apply(post, 1, sort, decreasing = TRUE)
-			w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
-			w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * n			# rescale the weights such that they sum up to n
-			names(w[[i+1]]) <- rownames(x)
-			res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], probability = TRUE, ..., subset = subset, na.action = na.action)
+			weights <- wf((spost[1,] - spost[2,]))    	# largest if both probabilities are equal
+			weights <- weights/sum(weights) * n			# rescale the weights such that they sum up to n
+			names(weights) <- rownames(x)
+			# 3. check if break		
+			freqs <- tapply(weights, y, sum)
+			if (any(freqs == 0L, na.rm = TRUE))               	# classes where all weights are zero
+				warning("for at least one class all weights are zero")
+			if (sum(freqs > 0, na.rm = TRUE) <= 1L) { 			# additionally look if only one single class left
+				warning("training data from only one class, breaking out of iterative procedure")
+				itr <- i - 1
+				break
+			} else {			 			
+				w[[i+1]] <- weights
+				res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = weights, probability = TRUE, ...)
+			}
 		}
 		if (!probability) {
 			res$compprob = FALSE
@@ -267,41 +283,100 @@ function (x,
 		}
 		names(w) <- seq_along(w) - 1
 		res$case.weights <- w
+		attr(res$case.weights, "na.action") <- attr(w[[1]], "na.action")
+		attr(res$case.weights[[1]], "na.action") <- NULL
+		res$itr <- itr
 		return(res)
 	}
-	dasvm.fit.decision <- function(x, y, wf, itr, case.weights = rep(1, nrow(x)), scale, type, ..., subset, na.action) {
+	dasvm.fit.decision <- function(x, y, wf, itr, case.weights = rep(1, nrow(x)), scale, type, ...) {
 		w <- list()
-		#case.weights <- case.weight/sum(case.weights) * n		# rescale the weights such that they sum up to n
+		n <- nrow(x)
+		case.weights <- case.weights/sum(case.weights) * n		# rescale the weights such that they sum up to n
 		w[[1]] <- case.weights
 		names(w[[1]]) <- rownames(x)
-		n <- nrow(x)
-		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, ..., subset = subset, na.action = na.action)
-		if (res$nclasses == 2) {
-			for(i in seq_len(itr)) {
-				decision <- as.vector(attr(predict(res, newdata = x, decision.values = TRUE, ...), "decision.values"))
-				w[[i+1]] <- wf(abs(decision))    # largest if decision value = 0
-				names(w[[i+1]]) <- rownames(x)
-				res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], ..., subset = subset, na.action = na.action)
-			}			
-		} else {
-			for(i in seq_len(itr)) {
-				decision <- attr(predict(res, newdata = x, decision.values = TRUE, ...), "decision.values")
+		res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = case.weights, ...)
+		
+		for (i in seq_len(itr)) {
+			# 1. prediction
+			decision <- attr(predict(res, newdata = x, decision.values = TRUE, ...), "decision.values")
+#print(decision)
+			if (ncol(decision) == 1L) {
+#print("2 classes")
+				decision <- as.vector(decision)
+				# 2. calculate weights and fit model
+				weights <- wf(abs(decision))    			# largest if decision value = 0
+				weights <- weights/sum(weights) * n		# rescale the weights such that they sum up to n					
+				names(weights) <- rownames(x)
+				# 3. check if break
+				freqs <- tapply(weights, y, sum)
+#cat("iteration", i, "\n")
+#print(freqs)
+				if (any(freqs == 0L, na.rm = TRUE))               	# classes where all weights are zero
+					warning("for at least one class all weights are zero")
+				if (sum(freqs > 0, na.rm = TRUE) <= 1L) { 			# additionally look if only one single class left
+					warning("training data from only one class, breaking out of iterative procedure")
+					itr <- i - 1
+					break
+				} else {			 			
+					w[[i+1]] <- weights
+					res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = weights, ...)
+				}
+			} else {
+#print("> 2 classes")
 				# for each training observation consider the two-class problems it is involved in,
 				# take the minimum absolute decision value over all two-class problems (i.e. determine the two-class
 				# problem for which the training observation is closest to the decision boundary) and use this decision
 				# value to determine the weight
+				# 2. calculate weights and fit model
 				prob <- sapply(1:n, function(x) min(abs(decision[x, grep(y[x], colnames(decision))])))
-				w[[i+1]] <- wf(prob)    # largest if decision value is zero
-				# w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * n
-				names(w[[i+1]]) <- rownames(x)
-				res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = w[[i+1]], ..., subset = subset, na.action = na.action)
+				weights <- wf(prob)    				# largest if decision value is zero
+				weights <- weights/sum(weights) * n	# rescale the weights such that they sum up to n
+				names(weights) <- rownames(x)
+				# 3. check if break
+				freqs <- tapply(weights, y, sum)
+#cat("iteration", i, "\n")
+#print(freqs)
+				if (any(freqs == 0L, na.rm = TRUE))               	# classes where all weights are zero
+					warning("for at least one class all weights are zero")
+				if (sum(freqs > 0, na.rm = TRUE) <= 1L) { 			# additionally look if only one single class left
+					warning("training data from only one class, breaking out of iterative procedure")
+					itr <- i - 1
+					break
+				} else {			 			
+					w[[i+1]] <- weights
+					res <- wsvm.default(x = x, y = y, scale = scale, type = type, case.weights = weights, ...)
+				}
 			}
 		}
-		names(w) <- 0:itr
+		names(w) <- seq_along(w) - 1
 		res$case.weights <- w
+		attr(res$case.weights, "na.action") <- attr(w[[1]], "na.action")
+		attr(res$case.weights[[1]], "na.action") <- NULL
+		res$itr <- itr
 		return(res)
 	}
 	
+    if (inherits(x, "Matrix")) {
+        library("SparseM")
+        library("Matrix")
+        x <- as(x, "matrix.csr")
+    }
+    if (inherits(x, "simple_triplet_matrix")) {
+        library("SparseM")
+        ind <- order(x$i, x$j)
+        x <- new("matrix.csr",
+                 ra = x$v[ind],
+                 ja = x$j[ind],
+                 ia = as.integer(cumsum(c(1, tabulate(x$i[ind])))),
+                 dimension = c(x$nrow, x$ncol))
+    }
+    if (sparse <- inherits(x, "matrix.csr"))
+        library("SparseM")
+
+	method <- match.arg(method)
+	
+	n <- nrow(x)
+
 	if (is.null(y))
 		stop("y is missing")
 	else {
@@ -310,9 +385,10 @@ function (x,
 			warning("'y' was coerced to a factor")
 		}
 	}	
-	method <- match.arg(method)
-	n <- nrow(x) ## does this work for sparse matrices?
 	
+    x.scale <- y.scale <- NULL
+    formula <- !is.null(attr(x, "assign"))
+
 	## check/determine model type
     if (is.null(type)) 
     	type <- "C-classification"
@@ -320,20 +396,79 @@ function (x,
     if (!type %in% c("C-classification", "nu-classification"))
     	stop ("only classification is supported by dasvm")
 
+    nac <- attr(x, "na.action")
+    
+    if (length(case.weights) != n)
+    	stop("'nrow(x)' and 'length(case.weights)' are different")
+   
+    ## scaling, subsetting, and NA handling
+    if (sparse) {
+        scale <- rep(FALSE, ncol(x))
+        if (!is.null(y)) na.fail(y)
+        na.fail(case.weights) #?
+        x <- SparseM::t(SparseM::t(x)) ## make sure that col-indices are sorted
+    } else {
+    	x <- as.matrix(x, rownames.force = TRUE)
+
+        ## subsetting and na-handling for matrices
+        if (!formula) {
+            if (!is.null(subset)) {
+            	case.weights <- case.weights[subset]  
+            	x <- x[subset, , drop = FALSE]
+            	if (!is.null(y)) y <- y[subset]
+            }
+            df <- na.action(structure(list(y = y, case.weights = case.weights, x = x), class = "data.frame", row.names = rownames(x)))
+            y <- df$y
+            case.weights <- df$case.weights
+            x <- df$x
+                nac <-
+                    attr(x, "na.action") <-
+                        attr(y, "na.action") <-
+                        	attr(case.weights, "na.action") <-
+                            	attr(df, "na.action")
+        }
+
+        ## scaling
+        if (length(scale) == 1)
+            scale <- rep(scale, ncol(x))
+        if (any(scale)) {
+            co <- !apply(x[,scale, drop = FALSE], 2, var)
+            if (any(co)) {
+                warning(paste("Variable(s)",
+                              paste(sQuote(colnames(x[,scale,
+                                                      drop = FALSE])[co]),
+                                    sep="", collapse=" and "),
+                              "constant. Cannot scale data.")
+                        )
+                scale <- rep(FALSE, ncol(x))
+            } else {
+                xtmp <- scale(x[,scale])
+                x[,scale] <- xtmp
+                x.scale <- attributes(xtmp)[c("scaled:center","scaled:scale")]
+            }
+        }
+    }
+
+    
+    if (any(case.weights < 0))
+        stop("'case.weights' have to be larger or equal to zero")
+    if (all(case.weights == 0))
+        stop("all 'case.weights' are zero")
+
     if (!missing(itr)) {
     	if (itr < 1)
-			stop("'itr' must be > 1")
+			stop("'itr' must be >= 1")
     	if (abs(itr - round(itr)) > .Machine$double.eps^0.5)
        		warning("'itr' is not a natural number and is rounded off")
     }
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
-    	#m$x <- m$y <- m$itr <- m$method <- m$scale <- m$type <- m$kernel <- m$degree <- m$gamma <- m$coef0 <- m$cost <- m$nu <- m$class.weights <- 
-    	#m$case.weights <- m$cachesize <- m$tolerance <- m$epsilon <- m$shrinking <- m$cross <- m$probability <- m$fitted <- m$seed <-  m$... <- m$subset <-
-    	#m$na.action <- NULL
     	m$n <- n
     	m[[1L]] <- as.name("generatewf")
-    	wf <- eval(m)
+    	if (formula)
+    		wf <- eval.parent(m)
+    	else		
+    		wf <- eval.parent(m, n = 0)
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
@@ -341,26 +476,24 @@ function (x,
     		warning("argument 'bw' is ignored")
     	if (!missing(nn.only))
     		warning("argument 'nn.only' is ignored")
-    	if(!is.null(attr(wf, "adaptive"))) {
-    		if(attr(wf, "adaptive")) {
-    			if(!is.null(attr(wf, "k")) && attr(wf, "k") + 1 > n)
+    	if (!is.null(attr(wf, "adaptive"))) {
+    		if (attr(wf, "adaptive")) {
+    			if (!is.null(attr(wf, "k")) && attr(wf, "k") + 1 > n)
     				stop("'k + 1' is larger than 'nrow(x)'")
     		} else {
-    			if(!is.null(attr(wf, "k")) && attr(wf, "k") > n)
+    			if (!is.null(attr(wf, "k")) && attr(wf, "k") > n)
     				stop("'k' is larger than 'nrow(x)'")
     		}
     	}
     } else
     	stop("argument 'wf' has to be either a character or a function")
-#	if (!is.null(attr(wf, "adaptive")) && attr(wf, "adaptive") && attr(wf, "name") == "rectangular" && attr(wf, "k") == n) { # todo
-#    	itr <- 0
-#    	warning("nonlocal solution")	
-#    }   
+
 	if (method == "prob")	
-		res <- dasvm.fit.prob(x = x, y = y, wf = wf, itr = itr, scale = scale, type = type, ..., subset = subset, na.action = na.action)
+		res <- dasvm.fit.prob(x = x, y = y, wf = wf, itr = itr, scale = scale, type = type, case.weights = case.weights, ...)
 	else
-		res <- dasvm.fit.decision(x = x, y = y, wf = wf, itr = itr, scale = scale, type = type, ..., subset = subset, na.action = na.action)
-    res <- c(res, list(itr = itr, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method))
+		res <- dasvm.fit.decision(x = x, y = y, wf = wf, itr = itr, scale = scale, type = type, case.weights = case.weights, ...)
+    res <- c(res, list(wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), method = method))
+    res$x.scale <- x.scale
     cl <- match.call()
     cl[[1]] <- as.name("dasvm")
     res$call <- cl
@@ -370,11 +503,11 @@ function (x,
 
 
 
-#' @param x A \code{dasvm} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{dasvm} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print dasvm
-#' @nord
+#' @noRd
 #'
 #' @S3method print dasvm
 
@@ -574,7 +707,7 @@ predict.dasvm <- function(object, newdata, ...) {
 
 
 #' @method weights dasvm
-#' @nord
+#' @noRd
 #'
 #' @S3method weights dasvm
 
