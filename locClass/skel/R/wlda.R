@@ -217,6 +217,8 @@ wlda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
         g <- factor(g, levels = lev1)
         counts <- as.vector(table(g))
     }
+    if (length(lev1) == 1L)
+    	stop("training data from only one group given")
 	method <- match.arg(method)
 	
 	
