@@ -488,7 +488,19 @@ function (x,
         y <- rep(1, nr)
     else
         if (is.factor(y)) {
-            lev <- levels(y)
+            lev <- lev1 <- levels(y)
+###
+       		counts <- as.vector(table(y))
+    		if (any(counts == 0)) {
+        		empty <- lev[counts == 0]
+        		warning(sprintf(ngettext(length(empty), "group %s is empty", 
+            		"groups %s are empty"), paste(empty, collapse = ", ")), 
+            		domain = NA)
+        		lev1 <- lev[counts > 0]
+    			if (length(lev1) == 1L)
+    				stop("training data from only one class")
+    		}
+###            
             y <- as.integer(y)
             if (!is.null(class.weights)) {
                 if (is.null(names(class.weights)))
@@ -498,20 +510,22 @@ function (x,
                     stop("At least one level name is missing or misspelled.")
             }
         } else {
-            if (type < 3) {
+            if (type < 3) { ### ?
                 if(any(as.integer(y) != y))
                     stop("dependent variable has to be of factor or integer type for classification mode.")
                 y <- as.factor(y)
                 lev <- levels(y)
+###
+    			if (length(lev) == 1L)
+    				stop("training data from only one class")
+###            
                 y <- as.integer(y)
             } else lev <- unique(y)
         }
 
     nclass <- 2
-    if (type < 2) {
+    if (type < 2)
     	nclass <- length(lev)
-    	if (nclass < 2) stop("training data from only one class")
-    }
 
     if (type > 1 && length(class.weights) > 0) {
         class.weights <- NULL
