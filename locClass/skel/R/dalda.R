@@ -201,23 +201,31 @@ dalda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 	dalda.fit <- function(x, grouping, wf, itr, weights = rep(1, nrow(x)), ...) {
 		w <- list()
 		n <- nrow(x)
-		#w[[1]] <- weights
 		w[[1]] <- weights/sum(weights) * n
+		names(w[[1]]) <- rownames(x)
 		res <- wlda.default(x = x, grouping = grouping, weights = weights, ...)
 		for(i in seq_len(itr)) {
+			# 1. prediction
 			post <- predict(res)$posterior
 			if (any(!is.finite(post)))
 				stop("inifinite, NA or NaN values in 'post', may indiciate numerical problems due to small observation weights, please check your settings of 'bw', 'k' and 'wf'")
-			if (length(res$prior) == 1) { ### todo
+			# 2. calculate weights and fit model	
+			spost <- apply(post, 1, sort, decreasing = TRUE)
+			weights <- wf((spost[1,] - spost[2,]))    			# largest if both probabilities are equal
+			# 3. check if break
+			freqs <- tapply(weights, grouping, sum)
+# print(w[[i]])
+# print(freqs)
+			if (any(freqs == 0L, na.rm = TRUE))               	# classes where all weights are zero
+				warning("for at least one class all weights are zero")
+			if (sum(freqs > 0, na.rm = TRUE) <= 1L) {
 				warning("training data from only one group, breaking out of iterative procedure")
-				itr <- i
+				itr <- i - 1
 				break
 			} else {	
-				spost <- apply(post, 1, sort, decreasing = TRUE)
-				weights <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
 				w[[i+1]] <- weights/sum(weights) * n
-				#w[[i+1]] <- wf((spost[1,] - spost[2,]))    # largest if both probabilities are equal
-				res <- wlda.default(x = x, grouping = grouping, weights = weights, ...)
+				names(w[[i+1]]) <- rownames(x)
+				res <- wlda.default(x = x, grouping = grouping, weights = weights, ...)		
 			}
 		}
 		names(w) <- seq_along(w) - 1
@@ -252,7 +260,7 @@ dalda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
     #ng <- nlevels(g)
     if (!missing(itr)) {
     	if (itr < 1)
-			stop("'itr' must be > 1")
+			stop("'itr' must be >= 1")
     	if (abs(itr - round(itr)) > .Machine$double.eps^0.5)
        		warning("'itr' is not a natural number and is rounded off")
     }
@@ -294,11 +302,11 @@ dalda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 
 
 
-#' @param x A \code{dalda} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{dalda} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print dalda
-#' @nord
+#' @noRd
 #'
 #' @S3method print dalda
 
@@ -398,7 +406,7 @@ predict.dalda <- function(object, newdata, ...) {
 
 
 #' @method weights dalda
-#' @nord
+#' @noRd
 #'
 #' @S3method weights dalda
 
