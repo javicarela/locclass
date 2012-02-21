@@ -166,14 +166,18 @@ damultinom <- function(formula, data, weights,
 #    m$summ <- m$Hess <- m$contrasts <- m$censored <- m$model <- m$... <- NULL
     m[[1L]] <- as.name("model.frame")
     m <- eval.parent(m)
+#print(m)
     Terms <- attr(m, "terms")
     X <- model.matrix(Terms, m, contrasts)
+#print(X)
     cons <- attr(X, "contrasts")
     Xr <- qr(X)$rank
     Y <- model.response(m)
+#print(Y)
     if (!is.matrix(Y)) {
+    	if (!is.factor(Y))
+	    	warning("response variable was coerced to a factor")	
     	Y <- as.factor(Y)
-    	warning("response variable was coerced to a factor")
     }
     w <- model.weights(m)	## initial weights
     if (length(w) == 0L) {		## no weights given
@@ -307,11 +311,11 @@ damultinom <- function(formula, data, weights,
 
 
 
-#' @param x A \code{damultinom} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{damultinom} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print damultinom
-#' @nord
+#' @noRd
 #'
 #' @S3method print damultinom
 
@@ -387,17 +391,20 @@ predict.damultinom <- function(object, newdata, ...) {
     } else if (!is.matrix(posterior)) {
     	posterior <- matrix(posterior, ncol = length(posterior))
     	colnames(posterior) <- object$lev
-    	rownames(posterior) <- row.names(newdata)
+    	if (missing(newdata))
+    		rownames(posterior) <- names(fit$weights[[1]])
+    	else
+    		rownames(posterior) <- row.names(newdata)
     }
 	gr <- factor(object$lev[max.col(posterior)], levels = object$lev1) ### y matrix zulassen? klappt das so?
-	names(gr) <- row.names(newdata)
+	names(gr) <- rownames(posterior)
 	return(list(class = gr, posterior = posterior))
 }
 
 
 
 #' @method weights damultinom
-#' @nord
+#' @noRd
 #'
 #' @S3method weights damultinom
 
