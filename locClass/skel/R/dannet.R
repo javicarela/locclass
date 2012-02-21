@@ -60,7 +60,8 @@
 #' discriminators.  
 #' @param data A \code{data.frame} from which variables specified in \code{formula} are to be taken.
 #' @param x (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} containing the explanatory variables.
-#' @param y (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} of target values for examples.
+#' @param y (Required if no \code{formula} is given as principal argument.) A \code{factor} specifying
+#' the class membership for each observation.
 #' @param weights Initial observation weights (defaults to a vector of 1s).
 #' @param wf A window function which is used to calculate weights that are introduced into 
 #'   the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
@@ -147,7 +148,7 @@
 #
 #' @keywords classif multivariate
 #'
-#' @aliases dannet dannet.default dannet.formula
+#' @aliases dannet dannet.default dannet.formula dannet.matrix dannet.data.frame
 #'
 #' @export
 #'
@@ -164,8 +165,7 @@ dannet <- function(x, ...)
 #' @S3method dannet formula
 
 dannet.formula <- function(formula, data, weights, ..., subset, na.action, contrasts = NULL) {
-    class.ind <- function(cl)
-    {
+    class.ind <- function(cl) {
         n <- length(cl)
         x <- matrix(0, n, length(levels(cl)))
         x[(1L:n) + n * (as.vector(unclass(cl)) - 1L)] <- 1
@@ -189,7 +189,7 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
     y <- model.response(m)
     if (!is.factor(y)) {
     	y <- as.factor(y)
-    	warning("'y' was coerced to a factor")
+    	warning("response was coerced to a factor")
     }
     lev <- lev1 <- levels(y)
     counts <- table(y)
@@ -226,6 +226,94 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
 
 
 #' @rdname dannet
+#' @method dannet data.frame
+#'
+#' @S3method dannet data.frame
+
+dannet.data.frame <- function (x, ...) {
+    res <- dannet(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
+    cl <- match.call()
+    cl[[1L]] <- as.name("dannet")
+    res$call <- cl
+    res
+}
+
+
+
+#' @rdname dannet
+#' @method dannet matrix
+#'
+#' @S3method dannet matrix
+
+dannet.matrix <- function (x, y, weights = rep(1, nrow(x)), ..., subset, na.action = na.fail) {
+    class.ind <- function(cl) {
+        n <- length(cl)
+        x <- matrix(0, n, length(levels(cl)))
+        x[(1L:n) + n * (as.vector(unclass(cl)) - 1L)] <- 1
+        dimnames(x) <- list(names(cl), levels(cl))
+        x
+    }
+    if (is.matrix(y))
+    	stop("only factors are allowed as reponse")
+	else { 
+		if (!is.factor(y)) {
+			y <- as.factor(y)
+			warning("'y' was coerced to a factor")
+		}	
+    	if (!missing(subset)) {
+        	weights <- weights[subset]
+        	x <- x[subset, , drop = FALSE]
+        	y <- y[subset]
+    	}
+    	if (missing(na.action)) {
+        	if (!is.null(naa <- getOption("na.action")))    # if options(na.action = NULL) the default of na.action comes into play
+            	if(!is.function(naa))
+            		na.action <- get(naa, mode = "function")
+            	else
+                	na.action <- naa
+    	} 
+    	dfr <- na.action(structure(list(y = y, w = weights, x = x), 
+        	    class = "data.frame", row.names = rownames(x)))
+    	y <- dfr$y
+    	x <- dfr$x
+    	w <- dfr$w
+		lev <- lev1 <- levels(y)
+    	counts <- table(y)
+   	 	if (any(counts == 0L)) {
+       		empty <- lev[counts == 0L]
+       		warning(sprintf(ngettext(length(empty),
+                    "group %s is empty",
+                    "groups %s are empty"),
+        			paste(empty, collapse=" ")), domain = NA)
+        	lev1 <- lev[counts > 0L]
+	    	if (length(lev1) == 1L)
+	    		stop("training data from only one class given")
+        	y <- factor(y, levels=lev1)
+    	}
+    	if (length(lev) == 1L)
+    		stop("training data from only one class given")
+	    if (length(lev) == 2L) {
+    	   	y <- as.vector(unclass(y)) - 1
+       		res <- dannet.default(x = x, y = y, weights = w, entropy = TRUE, ...)
+   	 	} else {
+       		y <- class.ind(y)
+       		res <- dannet.default(x = x, y = y, weights = w, softmax = TRUE, ...)
+    	}
+    	res$lev <- lev
+    	res$lev1 <- lev1
+    	res$coefnames <- colnames(x)
+    	cl <- match.call()
+    	cl[[1]] <- as.name("dannet")
+    	res$call <- cl
+    	res$na.action <- na.action
+    	class(res) <- c("dannet", "nnet")
+    	res
+    }
+}
+
+
+
+#' @rdname dannet
 #' @method dannet default
 #'
 #' @S3method dannet default
@@ -234,30 +322,44 @@ dannet.formula <- function(formula, data, weights, ..., subset, na.action, contr
 dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights = rep(1, nrow(x)), ...) {
 	dannet.fit <- function(x, y, wf, itr, weights = rep(1, nrow(x)), ...) {
-		ntr <- nrow(x)
 		w <- list()
+		ntr <- nrow(x)
 		weights <- weights/sum(weights) * ntr     		# rescale weights such that they sum up to ntr
 		w[[1]] <- weights
 		names(w[[1]]) <- rownames(x)
 		res <- nnet.default(x = x, y = y, weights = weights, ...)
-		for(i in seq_len(itr)) {
+		for (i in seq_len(itr)) {
+			# 1. prediction
 			post <- predict(res, type = "raw")
 			if (any(!is.finite(post)))
 				stop("inifinite, NA or NaN values in 'post', may indiciate numerical problems due to small observation weights, please check your settings of 'bw', 'k' and 'wf'")
+			# 2. calculate weights and fit model
 			if (ncol(y) == 1L) {	             		# in this case predict.nnet returns posteriors for only one class
-				w[[i+1]] <- wf(abs(2*as.vector(post) - 1))	# largest if both probabilities are equal
+				weights <- wf(abs(2*as.vector(post) - 1))	# largest if both probabilities are equal
 			} else {
 				spost <- apply(post, 1, sort, decreasing = TRUE)
-				w[[i+1]] <- wf(spost[1,] - spost[2,])    # largest if both probabilities are equal
+				weights <- wf(spost[1,] - spost[2,])    # largest if both probabilities are equal
 			}
-			w[[i+1]] <- w[[i+1]]/sum(w[[i+1]]) * ntr     # rescale weights such that they sum up to ntr
-			names(w[[i+1]]) <- rownames(x)
-			if (any(w[[i]] %*% y == 0L)) {               # class where all weights are zero
-				warning("training data from only one group, breaking out of iterative procedure")
-				itr <- i
+			weights <- weights/sum(weights) * ntr     	# rescale weights such that they sum up to ntr
+			names(weights) <- rownames(x)
+# print(weights)			
+# print(y)
+# print(ncol(y))
+			# 3. check if break
+			if (ncol(y) == 1L) 
+				freqs <- tapply(weights, y, sum)  
+			else 
+				freqs <- weights %*% y 
+# print(freqs)
+			if (any(freqs == 0L))               	# class where all weights are zero
+				warning("for at least one class all weights are zero")
+			if (sum(freqs > 0) <= 1L) { 			# additionally look if only one single class left
+				warning("training data from only one class, breaking out of iterative procedure")
+				itr <- i - 1
 				break
-			} else {	
-				res <- nnet.default(x = x, y = y, weights = w[[i+1]], ...)
+			} else {
+				w[[i+1]] <- weights
+				res <- nnet.default(x = x, y = y, weights = weights, ...)
 			}
 		}
 		names(w) <- seq_along(w) - 1
@@ -266,7 +368,6 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 		return(res)
 	}
     x <- as.matrix(x)
-    # todo: make sure that y is class.indicator matrix
     y <- as.matrix(y)
     if (any(is.na(x)))
     	stop("missing values in 'x'")
@@ -290,7 +391,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
     	m <- match.call(expand.dots = FALSE)
     	m$n <- ntr
     	m[[1L]] <- as.name("generatewf")
-    	wf <- eval(m)
+    	wf <- eval.parent(m)
     } else if (is.function(wf)) {
     	if (!missing(k))
     		warning("argument 'k' is ignored")
@@ -309,10 +410,6 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
     	}
     } else
     	stop("argument 'wf' has to be either a character or a function")
-#	if (!is.null(attr(wf, "adaptive")) && attr(wf, "adaptive") && attr(wf, "name") == "rectangular" && attr(wf, "k") == n) { # todo
-#    	itr <- 0
-#    	warning("nonlocal solution")	
-#    }   
 	res <- dannet.fit(x = x, y = y, wf = wf, itr = itr, weights = weights, ...)
     res <- c(res, list(wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
     cl <- match.call()
@@ -324,16 +421,38 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 
 
 
-#' @param x A \code{dannet} object.
-#' @param ... Further arguments to \code{\link{print}}.
-#'
+# @param x A \code{dannet} object.
+# @param ... Further arguments to \code{\link{print}}.
+#
 #' @method print dannet
-#' @nord
+#' @noRd
 #'
 #' @S3method print dannet
 
 print.dannet <- function (x, ...) {
-    NextMethod(x, ...)
+	if (inherits(x, "dannet.formula")) {
+    	NextMethod(x, ...)
+    } else {
+    	cat("a ", x$n[1L], "-", x$n[2L], "-", x$n[3L], " network", 
+        	sep = "")
+    	cat(" with", length(x$wts), "weights\n")
+    	if (length(x$coefnames)) 
+        	cat("inputs:", x$coefnames, "\noutput(s):", deparse(x$call$y, 
+            	backtick = TRUE), "\n")
+    	cat("options were -")
+    	tconn <- diff(x$nconn)
+    	if (tconn[length(tconn)] > x$n[2L] + 1L) 
+        	cat(" skip-layer connections ")
+    	if (x$nunits > x$nsunits && !x$softmax) 
+        	cat(" linear output units ")
+    	if (x$entropy) 
+        	cat(" entropy fitting ")
+    	if (x$softmax) 
+        	cat(" softmax modelling ")
+    	if (x$decay[1L] > 0) 
+        	cat(" decay=", x$decay[1L], sep = "")
+    	cat("\n")
+    }    	
     if(!is.null(attr(x$wf, "name"))) {
         cat("\nWindow function: ")
         cat(deparse(attr(x$wf, "name")), sep = "\n")  
@@ -355,7 +474,6 @@ print.dannet <- function (x, ...) {
 
 
 
-#  file nnet/man/predict.nnet.Rd
 #  Copyright (C) 1994-9 W. N. Venables and B. D. Ripley
 #' Predict new examples by a trained discriminant adaptive neural net.
 #'
@@ -445,7 +563,7 @@ predict.dannet <- function(object, newdata, ...) {
 
 
 #' @method weights dannet
-#' @nord
+#' @noRd
 #'
 #' @S3method weights dannet
 
@@ -461,7 +579,7 @@ weights.dannet <- function (object, ...) {
 #'
 #' @param object Object inheriting from \code{"nnet"}.
 #'
-#' @value Value of objective function of a fitted neural network. The attribute "gradient" contains the gradient vector.
+#' @return Value of objective function of a fitted neural network. The attribute "gradient" contains the gradient vector.
 #'
 #' @export
 
@@ -494,7 +612,7 @@ nnetGradient <- function(object) { #, x, y, weights, ...) {
 
 
 
-# @nord
+# @noRd
 #
 # @export
 
