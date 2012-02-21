@@ -4,7 +4,7 @@
 #' (\code{\link[party]{mob}} from package \pkg{party}). See the example for how to do that.
 #'
 #' \code{svmModel} is an object of class \code{\link[modeltools]{StatModel-class}} implemented in package \pkg{modeltools} that
-#' provides an infra-structure for an unfitted \code{\link{wsda}} model.
+#' provides an infra-structure for an unfitted \code{\link{wsvm}} model.
 #'
 #' Moreover, methods for \code{\link{wsvm}} and \code{svmModel} objects for the generic functions
 #' \code{\link[party]{reweight}}, \code{\link[stats]{deviance}}, \code{\link[sandwich]{estfun}}, and
