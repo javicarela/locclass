@@ -156,7 +156,8 @@ osnnet.formula <- function(formula, data, ..., subset, na.action, contrasts = NU
     x <- model.matrix(Terms, m, contrasts)
     cons <- attr(x, "contrast")
     xint <- match("(Intercept)", colnames(x), nomatch=0L)
-    if (xint > 0L) x <- x[, -xint, drop=FALSE] # Bias term is used for intercepts
+    if (xint > 0L) 
+    	x <- x[, -xint, drop=FALSE] # Bias term is used for intercepts
     y <- model.response(m)
     if (is.factor(y)) {							# y factor
         lev <- levels(y)
@@ -202,7 +203,7 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
 	censored = FALSE, skip = FALSE, rang = 0.7, decay = 0, maxit = 100, 
     trace = TRUE, MaxNWts = 1000, abstol = 1e-04, reltol = 1e-08, ...) {
 	net <- NULL
-    x <- as.matrix(x)
+    x <- as.matrix(x, rownames.force = TRUE)
     y <- as.matrix(y)
     if (any(is.na(x))) 
         stop("missing values in 'x'")
@@ -293,10 +294,25 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
         lev <- colnames(y)
 	## checks on k and bw
     if (is.character(wf)) {
+		cl <- sys.call(-1)
+#print(cl)
+#print(match.call(call = cl))
+#print(cl$formula)
+#stop("bla")
+#print(sys.call())
+#print(sys.call(-1))
+#print(sys.call(-2))
+#print(sys.call(-3))
+#print(sys.calls())
+		formula <- grepl("formula", cl[[1L]]) || grepl("multinom", cl[[1L]]) #????
+#print(formula)
     	m <- match.call(expand.dots = FALSE)
     	m$n <- ntr
     	m[[1L]] <- as.name("checkwf")
-    	check <- eval.parent(m)
+    	if (formula)
+    		check <- eval.parent(m)
+    	else
+    		check <- eval.parent(m, n = 0)    	
     	cl <- match.call()
     	cl[[1]] <- as.name("osnnet")
     	return(structure(c(list(x = x, y = y), net, list(mask = mask, maxit = maxit, trace = trace, 
@@ -317,10 +333,6 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
     					variant <- 3
     				else						# all observations
     					variant <- 4
-#    				if (attr(wf, "name") == "rectangular" && attr(wf, "k") == ntr) { # todo
-#    					warning("nonlocal solution")
-#    					variant <- 0
-#					}   					
     		} else {							# fixed bandwidth
     			if (!is.null(attr(wf, "k"))) {
     				if (attr(wf, "k") > ntr)
@@ -449,32 +461,17 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
     if (missing(newdata)) {
     	x <- object$x
     	rn <- rownames(x)
-   		# if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "osnnet.formula")?
-   			# newdata <- model.frame(object)
-        	# x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-       		# xint <- match("(Intercept)", colnames(x), nomatch = 0L)
-        	# if (xint > 0L) 
-            	# x <- x[, -xint, drop = FALSE]
-			# rn <- rownames(x)
-   		# } else {
-            # newdata <- eval.parent(object$call$x)
-        	# if (is.null(dim(newdata))) 
-            	# dim(newdata) <- c(1L, length(newdata))
-        	# x <- as.matrix(newdata)
-            # if (any(is.na(x))) 
-                # stop("missing values in 'x'")
-            # rn <- rownames(x)
-   		# }
     } else { ## keep
         if (inherits(object, "osnnet.formula")) {
             newdata <- as.data.frame(newdata)
-            rn <- row.names(newdata)
+            #rn <- row.names(newdata)
             Terms <- delete.response(object$terms)
             m <- model.frame(Terms, newdata, na.action = na.omit, 
                 xlev = object$xlevels)
             if (!is.null(cl <- attr(Terms, "dataClasses"))) 
                 .checkMFClasses(cl, m)
             x <- model.matrix(Terms, m, contrasts = object$contrasts)
+      		rn <- rownames(x)
             xint <- match("(Intercept)", colnames(x), nomatch = 0L)
             if (xint > 0L) 
                 x <- x[, -xint, drop = FALSE]
@@ -485,7 +482,7 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
             x <- as.matrix(newdata)
             if (any(is.na(x))) 
                 stop("missing values in 'x'")
-            rn <- rownames(x)
+            rn <- rownames(newdata)
         }
 	}
 	if (object$trace) {
@@ -499,32 +496,6 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
     ntest <- nrow(x)
     nout <- object$n[3L]
 	Z <- as.double(cbind(object$x, object$y))
-#    if (!is.null(Terms <- object$terms)) {
-#        if (missing(newdata)) 
-#            newdata <- model.frame(object)
-#        else {
-#            newdata <- model.frame(as.formula(delete.response(Terms)), 
-#                newdata, na.action = function(x) x, xlev = object$xlevels)
-#        }
-#        x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-#        xint <- match("(Intercept)", colnames(x), nomatch = 0)
-#        if (xint > 0) 
-#            x <- x[, -xint, drop = FALSE]
-#    }
-#    else {
-#        if (missing(newdata)) {
-#            if (!is.null(sub <- object$call$subset)) 
-#                newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
-#                  backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
-#                  ",]")))
-#            else newdata <- eval.parent(object$call$x)
-#            if (!is.null(nas <- object$call$na.action)) 
-#                newdata <- eval(call(nas, newdata))
-#        }
-#        if (is.null(dim(newdata))) 
-#            dim(newdata) <- c(1, length(newdata))
-#        x <- as.matrix(newdata)
-#    }
 	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
 		"optcosine", "rectangular", "triangular")
 	if (is.function(object$wf) && !is.null(attr(object$wf,"name")) && attr(object$wf, "name") %in% wfs)
@@ -568,11 +539,16 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
 		ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L),
 		new.env())
 
-	dimnames(z) <- list(rn, object$lev)
+	dimnames(z) <- list(rn, colnames(object$y))
     switch(type, raw = z,
-           class = {
-               if(is.null(object$lev)) stop("inappropriate fit for class")
-               if(ncol(z) > 1L) object$lev[max.col(z)]
-               else object$lev[1L + (z > 0.5)]
-           }) ## factor???
+    	class = {
+        	if (is.null(object$lev)) 
+            	stop("inappropriate fit for class")
+          	if (ncol(z) > 1L) 
+          		cl <- factor(object$lev[max.col(z)], levels = object$lev)
+            else 
+            	cl <- factor(object$lev[1L + (z > 0.5)], levels = object$lev)
+            names(cl) <- rn
+            cl
+           })
 }
