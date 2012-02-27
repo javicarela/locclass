@@ -556,7 +556,12 @@ predict.dannet <- function(object, newdata, ...) {
     	colnames(posterior) <- object$lev 
     }
 	gr <- factor(object$lev1[max.col(posterior)], levels = object$lev)
-	names(gr) <- rownames(posterior)
+	names(gr) <- rn <- rownames(posterior)
+	if (is.null(rn)) {
+		rn <- seq_along(gr)
+		rownames(posterior) <- rn
+		names(gr) <- rn
+	}
 	return(list(class = gr, posterior = posterior))
 }
 
