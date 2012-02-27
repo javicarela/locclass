@@ -205,7 +205,7 @@ dalr <- function(X, ...)
 #'
 #' @S3method dalr formula
 
-dalr.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subset, na.action) {
+dalr.formula <- function(formula, data, weights, ..., subset, na.action) {
     if (missing(data))
         data <- environment(formula)
     mf <- cl <- match.call()
@@ -228,6 +228,8 @@ dalr.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., subse
         model.matrix(mt, mf, contrasts)
     else matrix(, NROW(Y), 0L)
     weights <- model.weights(mf)
+    if (is.null(weights))
+    	weights <- rep(1, nrow(X))
     res <- dalr.default(X, Y, weights = weights, ...)
     if ("model" %in% names(res))
         res$model <- mf
@@ -324,9 +326,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
         n <- nrow(X)
         pw <- ww <- list()
         control <- do.call("glm.control", control)
-        if (!is.null(weights) && !is.numeric(weights))
-            stop("'weights' must be a numeric vector")
-        if (!is.null(weights) && any(weights < 0))
+        if (any(weights < 0))
             stop("negative weights not allowed")
         if (!is.null(offset)) {
             if (length(offset) != NROW(Y))
@@ -434,7 +434,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
 #    	itr <- 0
 #    	warning("nonlocal solution")	
 #    }   
-	fit <- dalr.fit(X = X, Y = g, thr = thr, wf = wf, itr = itr, intercept = intercept, ...)
+	fit <- dalr.fit(X = X, Y = g, thr = thr, wf = wf, itr = itr, intercept = intercept, weights = weights, ...)
     fit.class <- class(fit)
     fit <- c(fit, list(counts = counts, N = n, lev = lev, thr = thr, itr = itr, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
     cl <- match.call()
