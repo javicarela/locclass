@@ -204,6 +204,8 @@ oslda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "
         counts <- as.vector(table(g))
     }
 	names(counts) <- lev1
+    if (length(lev1) == 1L)
+    	stop("training data from only one group given")
 	method <- match.arg(method)
 	## checks on k and bw
     if (is.character(wf)) {
@@ -385,7 +387,12 @@ predict.oslda <- function(object, newdata, ...) {
     	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
 	lev1 <- levels(object$grouping)	# class labels that are in training data
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
-    names(gr) <- rownames(x)
+    names(gr) <- rn <- rownames(x)
+    if (is.null(rn)) {
+		rn <- seq_along(gr)
+		names(gr) <- rn
+		rownames(posterior) <- rn    	
+    }
     posterior <- exp(posterior - apply(posterior, 1L, max, na.rm = TRUE))
     posterior <- posterior/rowSums(posterior)
     return(list(class = gr, posterior = posterior))
