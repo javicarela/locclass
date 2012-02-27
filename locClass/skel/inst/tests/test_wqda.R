@@ -1,3 +1,5 @@
+context("wqda")
+
 test_that("wqda: misspecified arguments", {
 	data(iris)
 	# wrong variable names
@@ -32,13 +34,11 @@ test_that("wqda works if only one predictor variable is given", {
 })
 
 
-#test_that("wqda: detectig singular covariance matrix works", {
-	#data(iris)
-	# one training observation
-	#expect_error(wqda(Species ~ ., data = iris, subset = 1))            ## funktioniert???	
-	# one training observation in one predictor variable
-	#expect_error(wqda(Species ~ Petal.Width, data = iris, subset = 1))   ## funktioniert NaNs in cov
-#})
+test_that("wqda: training data from only one class", {
+	data(iris)
+	expect_that(wqda(Species ~ Petal.Width, data = iris, subset = 1:50), throws_error("training data from only one group given"))
+	expect_that(wqda(Species ~ ., data = iris, subset = 1), throws_error("training data from only one group given"))
+})
 
 
 test_that("wqda: weighting works correctly", {
@@ -48,21 +48,27 @@ test_that("wqda: weighting works correctly", {
 	fit2 <- wqda(Species ~ ., data = iris, weights = rep(1,150))
 	expect_equal(fit1[c(1:7,9:10)],fit2[c(1:7,9:10)])
 	## returned weights	
-	expect_equal(fit1$weights, rep(1,150))
-	expect_equal(fit2$weights, rep(1,150))
+	a <- rep(1,150)
+	names(a) <- 1:150
+	expect_equal(fit1$weights, a)
+	expect_equal(fit2$weights, a)
 	## weights and subsetting
 	# formula, data
 	fit <- wqda(Species ~ ., data = iris, subset = 11:60)
-	expect_equal(fit$weights, rep(1,50))
+	a <- rep(1,50)
+	names(a) <- 11:60
+	expect_equal(fit$weights, a)
 	# formula, data, weights
 	fit <- wqda(Species ~ ., data = iris, weights = rep(1:3, 50), subset = 11:60)
-	expect_equal(fit$weights, rep(1:3,50)[11:60])
+	b <- rep(1:3,50)[11:60]
+	names(b) <- 11:60
+	expect_equal(fit$weights, b)
 	# x, grouping
 	fit <- wqda(x = iris[,-5], grouping = iris$Species, subset = 11:60)
-	expect_equal(fit$weights, rep(1,50))	
+	expect_equal(fit$weights, a)	
 	# x, grouping, weights
 	fit <- wqda(x = iris[,-5], grouping = iris$Species, weights = rep(1:3, 50), subset = 11:60)
-	expect_equal(fit$weights, rep(1:3,50)[11:60])
+	expect_equal(fit$weights, b)
 	## wrong specification of weights argument
 	# weights in a matrix
 	weight <- matrix(seq(1:150),nrow=50)
@@ -235,6 +241,8 @@ test_that("wqda: NA handling works correctly", {
 
 
 #=================================================================================================================
+context("predict.wqda")
+
 test_that("predict.wqda works correctly with formula and data.frame interface and with missing newdata", {
 	data(iris)
 	ran <- sample(1:150,100)
@@ -265,6 +273,34 @@ test_that("predict.wqda works with missing classes in the training data", {
 	# a <- rep(0,50)
 	# names(a) <- rownames(pred$posterior)
 	# expect_equal(pred$posterior[,3], a)
+})
+
+
+test_that("predict.wqda: retrieving training data works", {
+	data(iris)
+	## no subset
+	# formula, data
+	fit <- wqda(formula = Species ~ ., data = iris)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris)
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- wqda(x = iris[,-5], grouping = iris$Species)  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[,-5])
+  	expect_equal(pred1, pred2)
+	## subset
+	ran <- sample(1:150,100)
+	# formula, data
+	fit <- wqda(formula = Species ~ ., data = iris, subset = ran)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[ran,])
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- wqda(x = iris[,-5], grouping = iris$Species, subset = ran)  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[ran,-5])
+  	expect_equal(pred1, pred2)
 })
 
 
@@ -333,6 +369,35 @@ test_that("predict.wqda: misspecified arguments", {
     expect_error(predict(fit, prior = TRUE, newdata = iris[-ran,]))
     expect_error(predict(fit, prior = 0.6, newdata = iris[-ran,]))
 })
+
+#=================================================================================================================
+context("wqda: mlr interface code")
+
+test_that("wqda: mlr interface works", {
+	library(mlr)
+	source("../../../../mlr/classif.wqda.R")
+	task <- makeClassifTask(data = iris, target = "Species")
+
+	# class prediction
+	lrn <- makeLearner("classif.wqda")
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- wqda(Species ~ ., data = iris, method = "ML")
+	pred2 <- predict(tr2)
+	expect_equivalent(pred2$class, pred1@df$response)
+
+	# posterior prediction
+	lrn <- makeLearner("classif.wqda", par.vals = list(method = "ML"), predict.type = "prob")
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- wqda(Species ~ ., data = iris, method = "ML")
+	pred2 <- predict(tr2)
+	expect_true(all(pred2$posterior == pred1@df[,3:5]))
+	expect_equivalent(pred2$class, pred1@df$response)
+})
+
+
+#=================================================================================================================
 
 
 # test_that("wqda works", {

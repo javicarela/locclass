@@ -1,3 +1,5 @@
+context("wsvm")
+
 test_that("wsvm: misspecified arguments", {
 	data(iris)
 	# wrong variable names
@@ -18,13 +20,23 @@ test_that("wsvm works if only one predictor variable is given", {
 })
 	
 
-#test_that("wsvm: one training observation", {
-	#data(iris)
-	# one training observation
-	#expect_error(wsvm(Species ~ ., data = iris, subset = 1))            ## komischer Fehler
-	# one training observation in one predictor variable
-	#expect_error(wsvm(Species ~ Petal.Width, data = iris, subset = 1))   ## komischer Fehler
-#})
+test_that("wsvm: training data from only one class", {
+	data(iris)
+	## y factor
+	expect_that(wsvm(Species ~ ., data = iris, subset = 1:50), throws_error("training data from only one class"))
+	#expect_that(wsvm(Species ~ ., data = iris, subset = 1), throws_error("training data from only one class"))
+	expect_that(wsvm(y = iris$Species, x = iris[,-5], subset = 1:50), throws_error("training data from only one class"))
+	## y integer & type = C-classification
+	irisint <- iris
+	irisint$Species <- as.numeric(irisint$Species)
+	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	#expect_that(wsvm(Species ~ ., data = irisint, subset = 1, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	## y integer & type = nu-classification
+	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "nu-classification"), throws_error("training data from only one class"))
+	#expect_that(wsvm(Species ~ ., data = irisint, subset = 1, type = "nu-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+})
 
 
 test_that("wsvm.default and wsvm.formula yield the same results", {
@@ -60,22 +72,28 @@ test_that("wsvm: weighting works correctly", {
 	fit1 <- wsvm(Species ~ ., data = iris)
 	fit2 <- wsvm(Species ~ ., data = iris, weights = rep(1,150))
 	expect_equal(fit1[-1],fit2[-1])
-	## returned weights	
-	expect_equal(fit1$case.weights, rep(1,150))
-	expect_equal(fit2$case.weights, rep(1,150))
+	## returned weights
+	a <- rep(1,150)
+	names(a) <- 1:150
+	expect_equal(fit1$case.weights, a)
+	expect_equal(fit2$case.weights, a)
 	## weights and subsetting
 	# formula, data
 	fit <- wsvm(Species ~ ., data = iris, subset = 11:60)
-	expect_equal(fit$case.weights, rep(1,50))
+	a <- rep(1,50)
+	names(a) <- 11:60
+	expect_equal(fit$case.weights, a)
 	# formula, data, weights
 	fit <- wsvm(Species ~ ., data = iris, case.weights = rep(1:3, 50), subset = 11:60)
-	expect_equal(fit$case.weights, rep(1:3,50)[11:60])
+	b <- rep(1:3,50)[11:60]
+	names(b) <- 11:60
+	expect_equal(fit$case.weights, b)
 	# x, grouping
 	fit <- wsvm(x = iris[,-5], y = iris$Species, subset = 11:60)
-	expect_equal(fit$case.weights, rep(1,50))	
+	expect_equal(fit$case.weights, a)	
 	# x, grouping, weights
 	fit <- wsvm(x = iris[,-5], y = iris$Species, case.weights = rep(1:3, 50), subset = 11:60)
-	expect_equal(fit$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit$case.weights, b)
 	## wrong specification of weights argument
 	# weights in a matrix
 	weight <- matrix(seq(1:150),nrow=50)
@@ -127,8 +145,10 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = irisna, subset = 6:60, na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = irisna, subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	a <- rep(1, 50)
+	names(a) <- 11:60
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## formula, data, weights
 	# na.fail
 	expect_error(wsvm(Species ~ ., data = irisna, subset = 6:60, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -136,8 +156,10 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = irisna, subset = 6:60, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = irisna, subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	b <- rep(1:3,50)[11:60]
+	names(b) <- 11:60
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 	## x, grouping
 	# na.fail
 	expect_error(wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.fail))
@@ -145,8 +167,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.omit)
 	fit2 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## x, grouping, weights
 	# na.fail
 	expect_error(wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -154,8 +176,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 	
 	### NA in grouping
 	irisna <- iris
@@ -167,8 +189,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = irisna, subset = 6:60, na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = irisna, subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## formula, data, weights
 	# na.fail
 	expect_error(wsvm(Species ~ ., data = irisna, subset = 6:60, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -176,8 +198,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = irisna, subset = 6:60, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = irisna, subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 	## x, grouping
 	# na.fail
 	expect_error(wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.fail))
@@ -185,8 +207,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.omit)
 	fit2 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## x, grouping, weights
 	# na.fail
 	expect_error(wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -194,8 +216,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 6:60, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(y = irisna$Species, x = irisna[,-5], subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 
 	### NA in weights
 	weights <- rep(1:3,50)
@@ -207,8 +229,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = iris, subset = 6:60, case.weights = weights, na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = iris, subset = 11:60, case.weights = weights)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 	## x, grouping, weights
 	# na.fail
 	expect_error(wsvm(y = iris$Species, x = iris[,-5], subset = 6:60, case.weights = weights, na.action = na.fail))
@@ -216,8 +238,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = iris$Species, x = iris[,-5], subset = 6:60, case.weights = weights, na.action = na.omit)
 	fit2 <- wsvm(y = iris$Species, x = iris[,-5], subset = 11:60, case.weights = weights)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 
 	### NA in subset
 	subset <- 6:60
@@ -229,8 +251,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = iris, subset = subset, na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = iris, subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## formula, data, weights
 	# na.fail
 	expect_error(wsvm(Species ~ ., data = iris, subset = subset, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -238,8 +260,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(Species ~ ., data = iris, subset = subset, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(Species ~ ., data = iris, subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 	## x, grouping
 	# na.fail
 	expect_error(wsvm(y = iris$Species, x = iris[,-5], subset = subset, na.action = na.fail))
@@ -247,8 +269,8 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = iris$Species, x = iris[,-5], subset = subset, na.action = na.omit)
 	fit2 <- wsvm(y = iris$Species, x = iris[,-5], subset = 11:60)
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1,50))
-	expect_equal(fit2$case.weights, rep(1,50))
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], a)
+	expect_equal(fit2$case.weights, a)
 	## x, grouping, weights
 	# na.fail
 	expect_error(wsvm(y = iris$Species, x = iris[,-5], subset = subset, case.weights = rep(1:3, 50), na.action = na.fail))
@@ -256,12 +278,14 @@ test_that("wsvm: NA handling works correctly", {
 	fit1 <- wsvm(y = iris$Species, x = iris[,-5], subset = subset, case.weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wsvm(y = iris$Species, x = iris[,-5], subset = 11:60, case.weights = rep(1:3, 50))
 	expect_equal(fit1[-c(1,28,31)], fit2[-c(1,28,31)])
-	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], rep(1:3,50)[11:60])
-	expect_equal(fit2$case.weights, rep(1:3,50)[11:60])
+	expect_equal(fit1$case.weights[1:length(fit1$case.weights)], b)
+	expect_equal(fit2$case.weights, b)
 })
 
 
 #=================================================================================================================
+context("predict.wsvm")
+
 test_that("predict.wsvm works correctly with formula and data.frame interface and with missing newdata", {
 	data(iris)
 	ran <- sample(1:150,100)
@@ -279,6 +303,34 @@ test_that("predict.wsvm works correctly with formula and data.frame interface an
 	## grouping, x, newdata
 	fit <- wsvm(x = iris[,-5], y = iris$Species, subset = ran, probability = TRUE)  
   	predict(fit, newdata = iris[-ran,-5], probability = TRUE, decision.values = TRUE)
+})
+
+
+test_that("predict.wsvm: retrieving training data works", {
+	data(iris)
+	## no subset
+	# formula, data
+	fit <- wsvm(formula = Species ~ ., data = iris)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris)
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- wsvm(x = iris[,-5], y = iris$Species)  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[,-5])
+  	expect_equal(pred1, pred2)
+	## subset
+	ran <- sample(1:150,100)
+	# formula, data
+	fit <- wsvm(formula = Species ~ ., data = iris, subset = ran)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[ran,])
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- wsvm(x = iris[ran,-5], y = iris$Species[ran])  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris[ran,-5])
+  	expect_equal(pred1, pred2)
 })
 
 
@@ -366,4 +418,31 @@ test_that("predict.wsvm: misspecified arguments", {
     expect_error(predict(fit, newdata = TRUE))
     expect_error(predict(fit, newdata = -50:50))
     # errors in prior
+})
+
+
+#=================================================================================================================
+context("wsvm: mlr interface code")
+
+test_that("wsvm: mlr interface works", {
+	library(mlr)
+	source("../../../../mlr/classif.wsvm.R")
+	task <- makeClassifTask(data = iris, target = "Species")
+
+	# class prediction
+	lrn <- makeLearner("classif.wsvm")
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- wsvm(Species ~ ., data = iris)
+	pred2 <- predict(tr2)
+	expect_equivalent(pred2, pred1@df$response)
+
+	# posterior prediction
+	lrn <- makeLearner("classif.wsvm", par.vals = list(kernel = "linear"), predict.type = "prob")
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- wsvm(Species ~ ., data = iris, kernel = "linear", probability = TRUE)
+	pred2 <- predict(tr2, newdata = iris, probability = TRUE)
+	expect_true(all(attr(pred2, "probabilities") == pred1@df[,3:5]))
+	expect_equivalent(pred2, pred1@df$response)
 })

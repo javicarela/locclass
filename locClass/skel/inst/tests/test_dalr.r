@@ -1,244 +1,5 @@
-library(RUnit)
+context("dalr")
 
-test.llr <- function() {
-	data(iris)
-	
-	## number of classes larger than 2
-	checkException(llr(Species ~ ., data = iris, wf = "gaussian",bw = 50, thr = 0.3))
-
-	iris <- iris[1:100,]
-	iris$Species <- factor(iris$Species, levels = c("setosa", "versicolor"))
-
-	# only 1 class
-	#llr(Species ~ ., data = iris, wf = "gaussian",bw = 50, thr = 0.3, subset = 1:50) ## warning
-	
-	## formula
-	# wrong variable names
-	checkException(llr(Species ~ V1, data = iris, wf = "gaussian",bw = 50, thr = 0.3))
-
-	# numeric grouping variable
-	checkException(llr(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 50, thr = 0.3))
-
-	# wrong class
-	checkException(llr(formula = iris, data = iris))
-
-	## data.frame/matrix
-	# numeric grouping variable/number of classes not 2
-	checkException(llr(X = iris[,-1], Y = iris[,1], bw = 50))         
-
-	# target variable also in x
-	checkException(llr(X = iris, Y = iris$Species, wf = "gaussian", bw = 50 ))         ## todo: works, but should not
-
-	# missing x
-	checkException(llr(Y = iris$Species))
-
-	## subset
-	# wrong class
-	checkException(llr(Species ~ ., data = iris, bw = 5, subset = iris[1:10,]))
-	checkException(llr(Species ~ ., data = iris, bw = 5, subset = FALSE))
-	# nonsensical indices
-	checkException(llr(Species ~ ., data = iris, bw = 5, subset = -10:50))
-
-	## na.action
-	irisna <- iris
-	irisna[1:10,c(1,3)] <- NA	
-	# default na.omit
-	llr(Species ~ ., data = irisna, wf = "gaussian", bw = 0.5)
-	# na.fail
-	checkException(llr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, na.action = na.fail))
-	# check if na.omit works correctly
-	fit1 <- llr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, na.action = na.omit)
-	fit2 <- llr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, subset = 11:100)
-	all.equal(fit1[-c(21:23)], fit2[-c(21:22)])
-	all.equal(fit1[[21]][1:5], fit2[[21]][1:5])
-	all.equal(attributes(fit1[[21]])[1:4], attributes(fit2[[21]])[1:4])
-	
-	# one predictor variable
-	llr(Species ~ Petal.Width, data = iris, k = 60)
-	
-	# one training observation -> one class
-	checkException(llr(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1)) ### glm.fit: Indizierung außerhalb der Grenzen???
-	
-	# one training observation in one predictor variable
-	checkException(llr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = 1))  ### glm.fit: Indizierung außerhalb der Grenzen???
-
-	# itr
-	checkException(llr(Species ~ ., data = iris, wf = "gaussian", bw = 10, itr = -5))
-	checkException(llr(Species ~ ., data = iris, wf = "gaussian", bw = 10, itr = 0))
-	
-	# bw not necessary
-	#llr(Species ~ ., data = iris, bw = 0.5, k = 30)
-	fit1 <- llr(Species ~ ., data = iris, wf = gaussian(0.5), k = 30, bw = 0.5)  ## warning
-	fit2 <- llr(Species ~ ., data = iris, wf = gaussian(0.5), k = 30)
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(Species ~ ., data = iris, wf = gaussian(0.5), bw = 0.5)          ## warning
-	fit2 <- llr(Species ~ ., data = iris, wf = gaussian(0.5))
-	all.equal(fit1[-22], fit2[-22])
-	#fit1$k == nrow(iris)
-
-	fit1 <- llr(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5, k = 30)  ## warning
-	fit2 <- llr(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30)
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5)  ## warning
-	fit2 <- llr(Species ~ ., data = iris, wf = function(x) exp(-x))
-	all.equal(fit1[-22], fit2[-22])
-	#fit1$k == nrow(iris)
-
-	# missing quotes
-	checkException(llr(formula = Species ~ ., data = iris, wf = gaussian, bw = 50)) ### todo: error message not understandable
-
-	# bw missing
-	checkException(llr(formula = Species ~ ., data = iris, wf = "gaussian"))
-	#checkException(llr(formula = Species ~ ., data = iris, wf = "gaussian", k = 50))
-	checkException(llr(formula = Species ~ ., data = iris, wf = gaussian()))
-	checkException(llr(formula = Species ~ ., data = iris, wf = gaussian(), k = 10))
-	# bw < 0
-	checkException(llr(formula = Species ~ ., data = iris, wf = "gaussian", bw = -5))
-	checkException(llr(formula = Species ~ ., data = iris, wf = "cosine", k = 10, bw = -50))
-	# bw vector
-	llr(formula = Species ~., data = iris, wf = "gaussian", bw = rep(1, nrow(iris)))      ## warning
-	
-	# k missing
-	#llr(Species ~ ., data = iris) ## warning
-	#llr(Species ~ ., data = iris, bw = 0.5) ## warning
-
-	# k < 0
-	checkException(llr(formula = Species ~ ., data = iris, wf = "gaussian", k =-7, bw = 50))
-	# k too large
-	checkException(llr(formula = Species ~ ., data = iris, k = 250, wf = "gaussian", bw = 50))
-	# k vector
-	llr(formula = Species ~., data = iris, wf = "rectangular", k = rep(50, nrow(iris)))          ## warning
-
-	# try all available weight functions
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5)    
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = gaussian(0.5))    
-	all.equal(fit1[-22], fit2[-22])
-	#fit1$k == nrow(iris)
-	
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 30)    
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5, k = 30))    
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "epanechnikov", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = epanechnikov(bw = 0.5, k = 30))
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "rectangular", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = rectangular(bw = 0.5, k = 30))
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "triangular", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = triangular(bw = 0.5, k = 30))
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "biweight", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = biweight(bw = 0.5, k = 30))
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "optcosine", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = optcosine(bw = 0.5, k = 30))
-	all.equal(fit1[-22], fit2[-22])
-
-	fit1 <- llr(formula = Species ~ ., data = iris, wf = "cosine", bw = 0.5, k = 30)
-	fit2 <- llr(formula = Species ~ ., data = iris, wf = cosine(bw = 1, k = 30), bw = 0.5)
-	all.equal(fit1[-22], fit2[-22])
-
-	llr(formula = Species ~ ., data = iris, wf = "none", k = 30)
-	llr(formula = Species ~ ., data = iris, k = 30)
-	
-	# individual weight functions
-	llr(Species ~ ., data = iris, wf = function(x) exp(-x))
-	llr(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30)
-	
-	# wrong weight functions
-	checkException(llr(Species ~ ., data = iris, wf = TRUE))
-	checkException(llr(Species ~ ., data = iris, wf = rep(-5, 100)))
-	checkException(llr(Species ~ ., data = iris, wf = "iris"))
-	  
-	## check if glm with family="binomial" equals llr
-	l1 <- glm(Species ~ ., data = iris, family = "binomial", x = FALSE, y = FALSE)
-	l2 <- llr(Species ~ ., data = iris, wf = "none", k = 100, x = FALSE, y = FALSE)
-	checkEquals(l1[-c(21,27)],l2[-c(21,27, 30:35)])                                
-	
-	l1 <- glm(Species ~ ., data = iris, family = "binomial", x = TRUE, y = FALSE)
-	l2 <- llr(Species ~ ., data = iris, wf = "none", k = 100, x = TRUE, y = FALSE)
-	checkEquals(l1[-c(22, 28)],l2[-c(22,28, 31:36)])                                    
-
-	l1 <- glm(Species ~ ., data = iris, family = "binomial", x = FALSE, y = TRUE)
-	l2 <- llr(Species ~ ., data = iris, wf = "none", k = 100, x = FALSE, y = TRUE)
-	checkEquals(l1[-c(22, 28)],l2[-c(22,28, 31:36)])                                    
-
-	l1 <- glm(Species ~ ., data = iris, family = "binomial", x = TRUE, y = TRUE)
-	l2 <- llr(Species ~ ., data = iris, wf = "none", k = 100, x = TRUE, y = TRUE)
-	checkEquals(l1[-c(23, 29)],l2[-c(23,29, 32:37)])       
-	
-	## initial weights
-	fit <- llr(Species ~ ., data = iris, wf = "gaussian", k = 70, weights = rep(1:2, 50))
-	fit$weights   
-	fit$prior.weights                                  
-
-}
-
-
-test.predict.llr <- function(){
-	
-	data(iris)
-	
-	iris <- iris[1:100,]
-	iris$Species <- factor(iris$Species, levels = c("setosa", "versicolor"))
-
-	ran <- sample(1:100,50)
-
-	fit <- llr(formula = Species ~ ., data = iris, k = 50, subset = ran)  
-  	predict(fit, newdata= iris[-ran,])
-  	
-  	# missing classes
-	fit <- llr(Species ~ ., data = iris, k = 50, subset = 1:50) ## warning
-	p <- predict(fit, newdata = iris[-ran,])
-	nlevels(p$class) == 2
-	ncol(p$posterior) == 1
-	## levels verschwunden???
-
-  	
-  	  
-  	# one predictor variable
-	fit <- llr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = ran)
-	predict(fit, newdata = iris[-ran,])
-	
-	# one predictor variable and one test observation
-	fit <- llr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = ran)
-	predict(fit, newdata = iris[5,])
-	
-    # one test observation
-  	predict(fit, newdata = iris[5,])
-  	predict(fit, newdata = iris[58,])
-  
-  	# errors in newdata
-  	checkException(predict(fit, newdata = TRUE))
-  	checkException(predict(fit, newdata = -50:50)) 
-  
-    # try se.fit and dispersion          
-	fit <- llr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 50, subset = ran)  
-	predict(fit, newdata = iris[10,], se.fit = TRUE)
-    predict(fit, newdata = iris[10,], se.fit = TRUE, dispersion = 20)
-
-	## todo: test further arguments to predict
-	
-	# NA in newdata
-	irisna <- iris
-	irisna[1:17,c(1,3)] <- NA
-  	fit <- llr(Species ~ ., data = iris, wf = "gaussian", bw = 50, subset = ran)
-	predict(fit, newdata = irisna)  ### todo: warning if NAs in newdata
-}
-
-
-
-####################################################################################
-
-
-#======================	
 test_that("dalr: misspecified arguments", {
 	data(iris)
 	iris2 <- iris[c(51:150),]
@@ -309,32 +70,32 @@ test_that("dalr: initial weighting works correctly", {
 	expect_equal(fit1[-c(21,22)],fit2[-c(21,22)])
 	## returned weights	
 	a <- rep(1,100)
-  names(a) <- 51:150
-  expect_equal(fit1$prior.weights[[1]], a)
+  	names(a) <- 51:150
+  	expect_equal(fit1$prior.weights[[1]], a)
 	expect_equal(fit1$prior.weights, fit2$prior.weights)
 	## weights and subsetting
 	# formula, data
 	fit <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = 11:60)
 	a <- rep(1,50)
-  names(a) <- 61:110
-  expect_equal(fit$prior.weights[[1]], a)                  
+  	names(a) <- 61:110
+  	expect_equal(fit$prior.weights[[1]], a)                  
 	# formula, data, weights
-	a <- rep(1:2,50)[11:60]                                           
-	a <- a/sum(a) * length(a)
-	names(a) <- 61:110
-	fit <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 2, weights = rep(1:2, 50), subset = 11:60)      
-	expect_equal(fit$prior.weights[[1]], a)                          
+	# a <- rep(1:2,50)[11:60]                                           
+	# a <- a/sum(a) * length(a)
+	# names(a) <- 61:110
+	# fit <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 2, weights = rep(1:2, 50), subset = 11:60)      
+	# expect_equal(fit$prior.weights[[1]], a)                          
 	# x, y
 	a <- rep(1,50)
-  names(a) <- 61:110
-  fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, subset = 11:60)
+  	names(a) <- 61:110
+  	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, subset = 11:60)
 	expect_equal(fit$prior.weights[[1]], a)	              
 	# x, y, weights
-	a <- rep(1:2,50)[11:60]                                           
-	a <- a/sum(a) * length(a)
-	names(a) <- 61:110
-	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, weights = rep(1:2, 50), subset = 11:60)   
-	expect_equal(fit$prior.weights[[1]], a)
+	# a <- rep(1:2,50)[11:60]                                           
+	# a <- a/sum(a) * length(a)
+	# names(a) <- 61:110
+	# fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, weights = rep(1:2, 50), subset = 11:60)   
+	# expect_equal(fit$prior.weights[[1]], a)
 	## wrong specification of weights argument
 	# weights in a matrix
 	weight <- matrix(seq(1:100), nrow = 50)
@@ -362,38 +123,38 @@ test_that("dalr: subsetting works", {
 	iris2$Species <- factor(iris2$Species, levels = c("versicolor", "virginica"))
 	# formula, data
 	a <- rep(1,80)
-  names(a) <- 51:130
-  fit1 <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = 1:80)         
+  	names(a) <- 51:130
+  	fit1 <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = 1:80)         
 	fit2 <- dalr(Species ~ ., data = iris2[1:80,], wf = "gaussian", bw = 2)
 	expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])                                          
 	expect_equal(fit1$prior.weights[[1]], a)
 	# formula, data, weights
-	fit1 <- dalr(Species ~ ., data = iris2, weights = rep(1:2, each = 50), wf = "gaussian", bw = 2, subset = 1:80)
-	fit2 <- dalr(Species ~ ., data = iris2[1:80,], weights = rep(1:2, each = 50)[1:80], wf = "gaussian", bw = 2)
-	expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])
-	a <- rep(80, 4)
-	names(a) <- 0:3
-	expect_equal(sapply(fit1$prior.weights, length), a)
-	b <- rep(1:2, each = 50)[1:80]
-	b <- b/sum(b) * length(b)
-	expect_equal(fit1$prior.weights[[1]], b)
-  # x, y
+	# fit1 <- dalr(Species ~ ., data = iris2, weights = rep(1:2, each = 50), wf = "gaussian", bw = 2, subset = 1:80)
+	# fit2 <- dalr(Species ~ ., data = iris2[1:80,], weights = rep(1:2, each = 50)[1:80], wf = "gaussian", bw = 2)
+	# expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])
+	# a <- rep(80, 4)
+	# names(a) <- 0:3
+	# expect_equal(sapply(fit1$prior.weights, length), a)
+	# b <- rep(1:2, each = 50)[1:80]
+	# b <- b/sum(b) * length(b)
+	# expect_equal(fit1$prior.weights[[1]], b)
+  	# x, y
 	a <- rep(1,80)
-  names(a) <- 51:130
-  fit1 <- dalr(Y = iris2$Species, X = iris2[,-5], wf = "gaussian", bw = 2, subset = 1:80)
+	names(a) <- 51:130
+  	fit1 <- dalr(Y = iris2$Species, X = iris2[,-5], wf = "gaussian", bw = 2, subset = 1:80)
 	fit2 <- dalr(Y = iris2$Species[1:80], X = iris2[1:80,-5], wf = "gaussian", bw = 2)
 	expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])
 	expect_equal(fit1$prior.weights[[1]], a)
 	# x, y, weights
-	fit1 <- dalr(Y = iris2$Species, X = iris2[,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50), subset = 1:80)
-	fit2 <- dalr(Y = iris2$Species[1:80], X = iris2[1:80,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50)[1:80])
-	expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])
-	a <- rep(80, 4)     
-	names(a) <- 0:3
-	expect_equal(sapply(fit1$prior.weights, length), a)
-	b <- rep(1:3, each = 50)[1:80]
-	b <- b/sum(b) * length(b)
-	expect_equal(fit1$prior.weights[[1]], b)
+	# fit1 <- dalr(Y = iris2$Species, X = iris2[,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50), subset = 1:80)
+	# fit2 <- dalr(Y = iris2$Species[1:80], X = iris2[1:80,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50)[1:80])
+	# expect_equal(fit1[-c(21,22,25)],fit2[-c(21,22,25)])
+	# a <- rep(80, 4)     
+	# names(a) <- 0:3
+	# expect_equal(sapply(fit1$prior.weights, length), a)
+	# b <- rep(1:3, each = 50)[1:80]
+	# b <- b/sum(b) * length(b)
+	# expect_equal(fit1$prior.weights[[1]], b)
 	# wrong specification of subset argument
 	expect_error(dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 10, subset = iris[1:10,]))
 	expect_error(dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 10, subset = FALSE))
@@ -832,25 +593,63 @@ test_that("dalr: weighting schemes work", {
 
 
 #=================================================================================================================
+context("predict.dalr")
+
 test_that("predict.dalr works correctly with formula and data.frame interface and with missing newdata", {
 	data(iris)
 	iris2 <- iris[c(51:150),]
 	iris2$Species <- factor(iris2$Species, levels = c("versicolor", "virginica"))
-  ran <- sample(1:100,60)
+  	ran <- sample(1:100,60)
 	## formula, data
 	fit <- dalr(formula = Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = ran)
   	pred <- predict(fit)
   	expect_equal(rownames(pred$posterior), rownames(iris2)[ran])  	
+  	expect_equal(names(pred$class), rownames(iris2)[ran])  	
 	## formula, data, newdata
 	fit <- dalr(formula = Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = ran)  
-  	predict(fit, newdata = iris2[-ran,])
+  	pred <- predict(fit, newdata = iris2[-ran,])
+  	expect_equal(rownames(pred$posterior), rownames(iris2)[-ran])  	
+  	expect_equal(names(pred$class), rownames(iris2)[-ran])  	
 	## Y, x
 	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, subset = ran)  
   	pred <- predict(fit)
   	expect_equal(rownames(pred$posterior), rownames(iris2)[ran])  	
+  	expect_equal(names(pred$class), rownames(iris2)[ran])  	
 	## Y, x, newdata
 	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, subset = ran)  
-  	predict(fit, newdata = iris2[-ran,-5])          ### To Do !!!
+  	pred <- predict(fit, newdata = iris2[-ran,-5])          ### To Do !!!
+  	expect_equal(rownames(pred$posterior), rownames(iris2)[-ran])  	
+  	expect_equal(names(pred$class), rownames(iris2)[-ran])  	
+})
+
+
+test_that("predict.dalr: retrieving training data works", {
+	data(iris)
+	iris2 <- iris[c(51:150),]
+	iris2$Species <- factor(iris2$Species, levels = c("versicolor", "virginica"))
+	## no subset
+	# formula, data
+	fit <- dalr(formula = Species ~ ., data = iris2, wf = "gaussian", bw = 2)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris2)
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2)  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris2[,-5])
+  	expect_equal(pred1, pred2)
+	## subset
+	ran <- sample(1:150,100)
+	# formula, data
+	fit <- dalr(formula = Species ~ ., data = iris2, wf = "gaussian", bw = 2, subset = ran)
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris2[ran,])
+  	expect_equal(pred1, pred2)
+	# y, x
+	fit <- dalr(X = iris2[,-5], Y = iris2$Species, wf = "gaussian", bw = 2, subset = ran)  
+  	pred1 <- predict(fit)
+  	pred2 <- predict(fit, newdata = iris2[ran,-5])
+  	expect_equal(pred1, pred2)
 })
 
 
@@ -926,11 +725,11 @@ test_that("predict.dalr: NA handling in newdata works", {
 	data(iris)
 	iris2 <- iris[c(51:150),]
 	iris2$Species <- factor(iris2$Species, levels = c("versicolor", "virginica"))
-  ran <- sample(1:100,60)
+  	ran <- sample(1:100,60)
 	irisna <- iris2
 	irisna[1:17,c(1,3)] <- NA
 	fit <- dalr(Species ~ ., data = iris2, wf = "gaussian", bw = 50, subset = ran)
-	expect_warning(pred <- predict(fit, newdata = irisna))                          ### ???
+	pred <- predict(fit, newdata = irisna)
 	expect_equal(all(is.na(pred$class[1:17])), TRUE)
 	expect_equal(all(is.na(pred$posterior[1:17,])), TRUE)	
 })
@@ -950,3 +749,273 @@ test_that("predict.dalr: misspecified arguments", {
 #    expect_error(predict(fit, prior = TRUE, newdata = iris2[-ran,]))
 #    expect_error(predict(fit, prior = 0.6, newdata = iris2[-ran,]))
 })  	
+
+
+#=================================================================================================================
+context("dalda: mlr interface code")
+
+test_that("dalr: mlr interface works", {
+	library(mlr)
+	source("../../../../mlr/classif.dalr.R")
+	data(iris)
+	iris2 <- iris[51:150,]
+	iris2$Species <- factor(iris2$Species, levels = unique(iris2$Species))
+	task <- makeClassifTask(data = iris2, target = "Species")
+
+	# missing parameters
+	expect_that(train("classif.dalr", task), gives_warning("either 'bw' or 'k' have to be specified"))
+
+	# class prediction
+	lrn <- makeLearner("classif.dalr", par.vals = list(bw = 10))
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- dalr(Species ~ ., data = iris2, bw = 10)
+	pred2 <- predict(tr2)
+	expect_equivalent(pred2$class, pred1@df$response)
+
+	# posterior prediction
+	lrn <- makeLearner("classif.dalr", par.vals = list(bw = 10), predict.type = "prob")
+	tr1 <- train(lrn, task)
+	pred1 <- predict(tr1, task = task)
+	tr2 <- dalr(Species ~ ., data = iris2, bw = 10)
+	pred2 <- predict(tr2)
+	expect_true(all(pred2$posterior == pred1@df[,3:4]))
+	expect_equivalent(pred2$class, pred1@df$response)
+})
+
+
+
+#=================================================================================================================
+
+# test.dalr <- function() {
+	# data(iris)
+	
+	# ## number of classes larger than 2
+	# checkException(dalr(Species ~ ., data = iris, wf = "gaussian",bw = 50, thr = 0.3))
+
+	# iris <- iris[1:100,]
+	# iris$Species <- factor(iris$Species, levels = c("setosa", "versicolor"))
+
+	# # only 1 class
+	# #dalr(Species ~ ., data = iris, wf = "gaussian",bw = 50, thr = 0.3, subset = 1:50) ## warning
+	
+	# ## formula
+	# # wrong variable names
+	# checkException(dalr(Species ~ V1, data = iris, wf = "gaussian",bw = 50, thr = 0.3))
+
+	# # numeric grouping variable
+	# checkException(dalr(formula = Petal.Width ~ ., data = iris, wf = "gaussian", bw = 50, thr = 0.3))
+
+	# # wrong class
+	# checkException(dalr(formula = iris, data = iris))
+
+	# ## data.frame/matrix
+	# # numeric grouping variable/number of classes not 2
+	# checkException(dalr(X = iris[,-1], Y = iris[,1], bw = 50))         
+
+	# # target variable also in x
+	# checkException(dalr(X = iris, Y = iris$Species, wf = "gaussian", bw = 50 ))         ## todo: works, but should not
+
+	# # missing x
+	# checkException(dalr(Y = iris$Species))
+
+	# ## subset
+	# # wrong class
+	# checkException(dalr(Species ~ ., data = iris, bw = 5, subset = iris[1:10,]))
+	# checkException(dalr(Species ~ ., data = iris, bw = 5, subset = FALSE))
+	# # nonsensical indices
+	# checkException(dalr(Species ~ ., data = iris, bw = 5, subset = -10:50))
+
+	# ## na.action
+	# irisna <- iris
+	# irisna[1:10,c(1,3)] <- NA	
+	# # default na.omit
+	# dalr(Species ~ ., data = irisna, wf = "gaussian", bw = 0.5)
+	# # na.fail
+	# checkException(dalr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, na.action = na.fail))
+	# # check if na.omit works correctly
+	# fit1 <- dalr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, na.action = na.omit)
+	# fit2 <- dalr(Species ~ ., data = irisna, wf = "gaussian", bw = 1, subset = 11:100)
+	# all.equal(fit1[-c(21:23)], fit2[-c(21:22)])
+	# all.equal(fit1[[21]][1:5], fit2[[21]][1:5])
+	# all.equal(attributes(fit1[[21]])[1:4], attributes(fit2[[21]])[1:4])
+	
+	# # one predictor variable
+	# dalr(Species ~ Petal.Width, data = iris, k = 60)
+	
+	# # one training observation -> one class
+	# checkException(dalr(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1)) ### glm.fit: Indizierung außerhalb der Grenzen???
+	
+	# # one training observation in one predictor variable
+	# checkException(dalr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = 1))  ### glm.fit: Indizierung außerhalb der Grenzen???
+
+	# # itr
+	# checkException(dalr(Species ~ ., data = iris, wf = "gaussian", bw = 10, itr = -5))
+	# checkException(dalr(Species ~ ., data = iris, wf = "gaussian", bw = 10, itr = 0))
+	
+	# # bw not necessary
+	# #dalr(Species ~ ., data = iris, bw = 0.5, k = 30)
+	# fit1 <- dalr(Species ~ ., data = iris, wf = gaussian(0.5), k = 30, bw = 0.5)  ## warning
+	# fit2 <- dalr(Species ~ ., data = iris, wf = gaussian(0.5), k = 30)
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(Species ~ ., data = iris, wf = gaussian(0.5), bw = 0.5)          ## warning
+	# fit2 <- dalr(Species ~ ., data = iris, wf = gaussian(0.5))
+	# all.equal(fit1[-22], fit2[-22])
+	# #fit1$k == nrow(iris)
+
+	# fit1 <- dalr(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5, k = 30)  ## warning
+	# fit2 <- dalr(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30)
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5)  ## warning
+	# fit2 <- dalr(Species ~ ., data = iris, wf = function(x) exp(-x))
+	# all.equal(fit1[-22], fit2[-22])
+	# #fit1$k == nrow(iris)
+
+	# # missing quotes
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = gaussian, bw = 50)) ### todo: error message not understandable
+
+	# # bw missing
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = "gaussian"))
+	# #checkException(dalr(formula = Species ~ ., data = iris, wf = "gaussian", k = 50))
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = gaussian()))
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = gaussian(), k = 10))
+	# # bw < 0
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = "gaussian", bw = -5))
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = "cosine", k = 10, bw = -50))
+	# # bw vector
+	# dalr(formula = Species ~., data = iris, wf = "gaussian", bw = rep(1, nrow(iris)))      ## warning
+	
+	# # k missing
+	# #dalr(Species ~ ., data = iris) ## warning
+	# #dalr(Species ~ ., data = iris, bw = 0.5) ## warning
+
+	# # k < 0
+	# checkException(dalr(formula = Species ~ ., data = iris, wf = "gaussian", k =-7, bw = 50))
+	# # k too large
+	# checkException(dalr(formula = Species ~ ., data = iris, k = 250, wf = "gaussian", bw = 50))
+	# # k vector
+	# dalr(formula = Species ~., data = iris, wf = "rectangular", k = rep(50, nrow(iris)))          ## warning
+
+	# # try all available weight functions
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5)    
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = gaussian(0.5))    
+	# all.equal(fit1[-22], fit2[-22])
+	# #fit1$k == nrow(iris)
+	
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 30)    
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5, k = 30))    
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "epanechnikov", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = epanechnikov(bw = 0.5, k = 30))
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "rectangular", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = rectangular(bw = 0.5, k = 30))
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "triangular", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = triangular(bw = 0.5, k = 30))
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "biweight", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = biweight(bw = 0.5, k = 30))
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "optcosine", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = optcosine(bw = 0.5, k = 30))
+	# all.equal(fit1[-22], fit2[-22])
+
+	# fit1 <- dalr(formula = Species ~ ., data = iris, wf = "cosine", bw = 0.5, k = 30)
+	# fit2 <- dalr(formula = Species ~ ., data = iris, wf = cosine(bw = 1, k = 30), bw = 0.5)
+	# all.equal(fit1[-22], fit2[-22])
+
+	# dalr(formula = Species ~ ., data = iris, wf = "none", k = 30)
+	# dalr(formula = Species ~ ., data = iris, k = 30)
+	
+	# # individual weight functions
+	# dalr(Species ~ ., data = iris, wf = function(x) exp(-x))
+	# dalr(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30)
+	
+	# # wrong weight functions
+	# checkException(dalr(Species ~ ., data = iris, wf = TRUE))
+	# checkException(dalr(Species ~ ., data = iris, wf = rep(-5, 100)))
+	# checkException(dalr(Species ~ ., data = iris, wf = "iris"))
+	  
+	# ## check if glm with family="binomial" equals dalr
+	# l1 <- glm(Species ~ ., data = iris, family = "binomial", x = FALSE, y = FALSE)
+	# l2 <- dalr(Species ~ ., data = iris, wf = "none", k = 100, x = FALSE, y = FALSE)
+	# checkEquals(l1[-c(21,27)],l2[-c(21,27, 30:35)])                                
+	
+	# l1 <- glm(Species ~ ., data = iris, family = "binomial", x = TRUE, y = FALSE)
+	# l2 <- dalr(Species ~ ., data = iris, wf = "none", k = 100, x = TRUE, y = FALSE)
+	# checkEquals(l1[-c(22, 28)],l2[-c(22,28, 31:36)])                                    
+
+	# l1 <- glm(Species ~ ., data = iris, family = "binomial", x = FALSE, y = TRUE)
+	# l2 <- dalr(Species ~ ., data = iris, wf = "none", k = 100, x = FALSE, y = TRUE)
+	# checkEquals(l1[-c(22, 28)],l2[-c(22,28, 31:36)])                                    
+
+	# l1 <- glm(Species ~ ., data = iris, family = "binomial", x = TRUE, y = TRUE)
+	# l2 <- dalr(Species ~ ., data = iris, wf = "none", k = 100, x = TRUE, y = TRUE)
+	# checkEquals(l1[-c(23, 29)],l2[-c(23,29, 32:37)])       
+	
+	# ## initial weights
+	# fit <- dalr(Species ~ ., data = iris, wf = "gaussian", k = 70, weights = rep(1:2, 50))
+	# fit$weights   
+	# fit$prior.weights                                  
+
+# }
+
+
+# test.predict.dalr <- function(){
+	
+	# data(iris)
+	
+	# iris <- iris[1:100,]
+	# iris$Species <- factor(iris$Species, levels = c("setosa", "versicolor"))
+
+	# ran <- sample(1:100,50)
+
+	# fit <- dalr(formula = Species ~ ., data = iris, k = 50, subset = ran)  
+  	# predict(fit, newdata= iris[-ran,])
+  	
+  	# # missing classes
+	# fit <- dalr(Species ~ ., data = iris, k = 50, subset = 1:50) ## warning
+	# p <- predict(fit, newdata = iris[-ran,])
+	# nlevels(p$class) == 2
+	# ncol(p$posterior) == 1
+	# ## levels verschwunden???
+
+  	
+  	  
+  	# # one predictor variable
+	# fit <- dalr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = ran)
+	# predict(fit, newdata = iris[-ran,])
+	
+	# # one predictor variable and one test observation
+	# fit <- dalr(Species ~ Petal.Width, data = iris, wf = "gaussian", bw = 1, subset = ran)
+	# predict(fit, newdata = iris[5,])
+	
+    # # one test observation
+  	# predict(fit, newdata = iris[5,])
+  	# predict(fit, newdata = iris[58,])
+  
+  	# # errors in newdata
+  	# checkException(predict(fit, newdata = TRUE))
+  	# checkException(predict(fit, newdata = -50:50)) 
+  
+    # # try se.fit and dispersion          
+	# fit <- dalr(formula = Species ~ ., data = iris, wf = "gaussian", bw = 50, subset = ran)  
+	# predict(fit, newdata = iris[10,], se.fit = TRUE)
+    # predict(fit, newdata = iris[10,], se.fit = TRUE, dispersion = 20)
+
+	# ## todo: test further arguments to predict
+	
+	# # NA in newdata
+	# irisna <- iris
+	# irisna[1:17,c(1,3)] <- NA
+  	# fit <- dalr(Species ~ ., data = iris, wf = "gaussian", bw = 50, subset = ran)
+	# predict(fit, newdata = irisna)  ### todo: warning if NAs in newdata
+# }
