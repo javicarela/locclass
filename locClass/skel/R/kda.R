@@ -187,6 +187,8 @@ kda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "ep
         stop("infinite, NA or NaN values in 'x'")
     if (nrow(x) != length(grouping)) 
         stop("nrow(x) and length(grouping) are different")
+    if (!is.factor(grouping))
+    	warning("'grouping' was coerced to a factor")
     g <- as.factor(grouping)
     lev <- lev1 <- levels(g)
     counts <- as.vector(table(g))
@@ -200,6 +202,8 @@ kda.default <- function (x, grouping, wf = c("biweight", "cauchy", "cosine", "ep
         counts <- as.vector(table(g))
     }
 	names(counts) <- lev1
+    if (length(lev1) == 1L)
+    	stop("training data from only one group given")
 	## checks on k and bw
     if (is.character(wf)) {
     	m <- match.call(expand.dots = FALSE)
@@ -380,6 +384,12 @@ predict.kda <- function(object, newdata, ...) {
     	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), new.env())
 	lev1 <- levels(object$grouping)
     gr <- factor(lev1[max.col(posterior)], levels = object$lev)
+    names(gr) <- rn <- rownames(x)
+    if (is.null(rn)) {
+		rn <- seq_along(gr)
+		names(gr) <- rn
+		rownames(posterior) <- rn    	
+    }
     posterior <- posterior/rowSums(posterior)
-    return(list(class = gr, posterior = posterior))   
+    return(list(class = gr, posterior = posterior))  
 }
