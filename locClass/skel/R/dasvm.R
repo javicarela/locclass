@@ -379,12 +379,12 @@ function (x,
 
 	if (is.null(y))
 		stop("y is missing")
-	else {
-		if (!is.factor(y)) {
-			y <- as.factor(y)
-			warning("'y' was coerced to a factor")
-		}
-	}	
+	# else {
+		# if (!is.factor(y)) {
+			# y <- as.factor(y)
+			# warning("'y' was coerced to a factor")
+		# }
+	# }	
 	
     x.scale <- y.scale <- NULL
     formula <- !is.null(attr(x, "assign"))
