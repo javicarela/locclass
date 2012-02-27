@@ -497,9 +497,9 @@ function (x,
             		"groups %s are empty"), paste(empty, collapse = ", ")), 
             		domain = NA)
         		lev1 <- lev[counts > 0]
-    			if (length(lev1) == 1L)
-    				stop("training data from only one class")
     		}
+			if (length(lev1) == 1L)
+				stop("training data from only one class")
 ###            
             y <- as.integer(y)
             if (!is.null(class.weights)) {
