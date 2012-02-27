@@ -82,7 +82,7 @@
 #' @param censored Logical. If the response is a matrix with \eqn{K > 2} classes, interpret the entries as one for possible classes, zero 
 #'   for impossible classes. Defaults to \code{FALSE}.
 #' @param model Logical. If \code{TRUE}, the model frame is saved as component \code{model} of the returned object.???
-#' @param \dots Additional arguments for \code{\link{dannet}}, including the window function and bandwidth
+#' @param \dots Additional arguments for \code{\link{osnnet}}, including the window function and bandwidth
 #'  parameters used to generate observation weights:
 #' \describe{
 #' 	\item{\code{wf}}{A window function which is used to calculate weights that are introduced into 
@@ -181,20 +181,20 @@ osmultinom <- function (formula, data, subset, na.action, contrasts = NULL, cens
     #    if (is.matrix(Y)) 
     #        w <- rep(1, dim(Y)[1L])
     #    else w <- rep(1, length(Y))
-    lev <- levels(Y)
+    lev <- lev1 <- levels(Y)
     if (is.factor(Y)) {
         counts <- table(Y)
         if (any(counts == 0L)) {
             empty <- lev[counts == 0L]
             warning(sprintf(ngettext(length(empty), "group %s is empty", 
-                "groups %s are empty"), paste(sQuote(empty), 
+                "groups %s are empty"), paste(empty, 
                 collapse = " ")), domain = NA)
-            Y <- factor(Y, levels = lev[counts > 0L])
-            lev <- lev[counts > 0L]
+            lev1 <- lev[counts > 0L]
+            Y <- factor(Y, levels = lev1)
         }
-        if (length(lev) < 2L) 
+        if (length(lev1) < 2L) 
             stop("need two or more classes to fit a multinom model")
-        if (length(lev) == 2L) 
+        if (length(lev1) == 2L) 
             Y <- as.vector(unclass(Y)) - 1
         else Y <- class.ind(Y)
     }
@@ -286,9 +286,10 @@ osmultinom <- function (formula, data, subset, na.action, contrasts = NULL, cens
     net$call <- call
     #net$weights <- w
     net$lev <- lev
+    net$lev1 <- lev1
     #net$deviance <- 2 * fit$value
     net$rank <- Xr
-    edf <- ifelse(length(lev) == 2L, 1, length(lev) - 1) * Xr
+    edf <- ifelse(length(lev1) == 2L, 1, length(lev1) - 1) * Xr
     if (is.matrix(Y)) {
         edf <- (ncol(Y) - 1) * Xr
         if (length(dn <- colnames(Y)) > 0) 
@@ -423,10 +424,10 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
 	if (!inherits(object, "osmultinom")) 
         stop("object not of class \"osmultinom\"")
     type <- match.arg(type)
-    ###??? trainngsdaten sind doch sowieso gespeichert???
-    if (missing(newdata)) { ## testen, evtl. abfragen tauschen und kürzen
+    if (missing(newdata)) {
 		x <- object$x
 		rn <- rownames(x)
+		keep <- seq_along(rn)
    		# if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "osnnet.formula")?
    			# newdata <- model.frame(object)
         	# x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
@@ -445,8 +446,8 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
    		# }
     } else {
         newdata <- as.data.frame(newdata)
-        rn <- row.names(newdata)
         Terms <- delete.response(object$terms)
+        rn <- row.names(newdata)
         m <- model.frame(Terms, newdata, na.action = na.omit, 
             xlev = object$xlevels)
         if (!is.null(cl <- attr(Terms, "dataClasses"))) 
@@ -465,7 +466,7 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
     ntest <- nrow(x)
     nout <- object$n[3L]
 	Z <- as.double(cbind(object$x, object$y))
-	print(head(Z))
+#	print(head(Z))
 #    if (!is.null(Terms <- object$terms)) {
 #        if (missing(newdata)) 
 #            newdata <- model.frame(object)
@@ -502,7 +503,7 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
 		object$wf <- paste(object$wf, object$variant, sep = "")
 		object$wf <- match(object$wf, wfs)
 	}
-	z <- .Call("predosnnet", 
+	res <- .Call("predosnnet", 
 		as.integer(object$n),
 		as.integer(object$nconn),
 		as.integer(object$conn),
@@ -534,23 +535,23 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
 		ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0),
 		ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L),
 		new.env())
-	dimnames(z) <- list(rn, object$lev)
-print(z)
+	#dimnames(res) <- list(rn, colnames(object$y))
    	
-   	# Y1 <- predict.nnet(object, X)
-    # Y <- matrix(NA, nrow(newdata), ncol(Y1), dimnames = list(rn, 
-    	# colnames(Y1)))
-    # Y[keep, ] <- Y1
+# print(keep)
+    z <- matrix(NA, length(rn), ncol(res), dimnames = list(rn, colnames(object$y)))
+    z[keep, ] <- res
+    
     switch(type, class = {
-        if (length(object$lev) > 2L) z <- factor(max.col(z), 
-            levels = seq_along(object$lev), labels = object$lev)
-        if (length(object$lev) == 2L) z <- factor(1 + (z > 0.5), 
-            levels = 1L:2L, labels = object$lev)
-        if (length(object$lev) == 0L) z <- factor(max.col(z), 
+        if (length(object$lev1) > 2L) z <- factor(object$lev1[max.col(z)], levels = object$lev)
+        if (length(object$lev1) == 2L) z <- factor(object$lev1[1 + (z > 0.5)], levels = object$lev)###
+        if (length(object$lev1) == 0L) z <- factor(max.col(z), 
             levels = seq_along(object$lab), labels = object$lab)
+        names(z) <- rn
+        z
     }, probs = {
     })
-    drop(z)
+    #drop(z) ###?
+    z
     # switch(type, raw = z,
            # class = {
                # if(is.null(object$lev)) stop("inappropriate fit for class")
