@@ -59,6 +59,8 @@ SEXP predkda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, S
 	PROTECT(s_weights = allocVector(REALSXP, N_learn));
 	double *weights = REAL(s_weights);
 	
+	int nas = 0;
+	
 	int i, j, l, n;								// indices
 		
 	// select weight function
@@ -78,41 +80,54 @@ SEXP predkda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, S
 	// loop over all test observations
 	for(n = 0; n < N_test; n++) {
 			
-		// 1. calculate distances to n-th test observation
-		for (i = 0; i < N_learn; i++) {
-			dist[i] = 0;
-			for (j = 0; j < p; j++) {
-				dist[i] += pow(learn[i + N_learn * j] - test[n + N_test * j], 2);
-			}
-			dist[i] = sqrt(dist[i]);
-			weights[i] = 0;				// important because some weights are 0
-			//Rprintf("dist %f\n", dist[i]);
+		// 0. check for NAs in test
+		nas = 0;
+		for (j = 0; j < p; j++) {
+			nas += ISNA(test[n + N_test * j]);
 		}
-			
-		// 2. calculate observation weights
-		if (isInteger(s_wf)) {
-			// case 1: wf is integer
-			// calculate weights by reading number and calling corresponding C function
-			wf(weights, dist, N_learn, bw, k);
-		} else if (isFunction(s_wf)) {
-			// case 2: wf is R function
-			// calculate weights by calling R function
-			SEXP R_fcall;
-			PROTECT(R_fcall = lang2(s_wf, R_NilValue)); //R_NilValue = NULL??? NILSXP = NULL
-			SETCADR(R_fcall, s_dist); // SETCADR: cadr list = (car (cdr list))
-			weights = REAL(eval(R_fcall, s_env));
-			UNPROTECT(1);	// R_fcall
-		}
-		/*for(i = 0; i < N_learn; i++) {
-			Rprintf("weights %f\n", weights[i]);
-		}*/
-			
-		// 3. calculate posterior probabilities as class wise sum of weights
-		for (l = 0; l < K; l++) {
-			posterior[n + N_test * l] = 0;
+		if (nas > 0) { // NAs in n-th test observation
+			warning("NAs in test observation %u", n+1);
+			// set posterior to NA
+			for (l = 0; l < K; l++) {
+				posterior[n + N_test * l] = NA_REAL;
+			}			
+		} else {
+			// 1. calculate distances to n-th test observation
 			for (i = 0; i < N_learn; i++) {
-				if (g[i] == l + 1) {
-					posterior[n + N_test * l] += weights[i];
+				dist[i] = 0;
+				for (j = 0; j < p; j++) {
+					dist[i] += pow(learn[i + N_learn * j] - test[n + N_test * j], 2);
+				}
+				dist[i] = sqrt(dist[i]);
+				weights[i] = 0;				// important because some weights are 0
+				//Rprintf("dist %f\n", dist[i]);
+			}
+				
+			// 2. calculate observation weights
+			if (isInteger(s_wf)) {
+				// case 1: wf is integer
+				// calculate weights by reading number and calling corresponding C function
+				wf(weights, dist, N_learn, bw, k);
+			} else if (isFunction(s_wf)) {
+				// case 2: wf is R function
+				// calculate weights by calling R function
+				SEXP R_fcall;
+				PROTECT(R_fcall = lang2(s_wf, R_NilValue)); //R_NilValue = NULL??? NILSXP = NULL
+				SETCADR(R_fcall, s_dist); // SETCADR: cadr list = (car (cdr list))
+				weights = REAL(eval(R_fcall, s_env));
+				UNPROTECT(1);	// R_fcall
+			}
+			/*for(i = 0; i < N_learn; i++) {
+				Rprintf("weights %f\n", weights[i]);
+			}*/
+				
+			// 3. calculate posterior probabilities as class wise sum of weights
+			for (l = 0; l < K; l++) {
+				posterior[n + N_test * l] = 0;
+				for (i = 0; i < N_learn; i++) {
+					if (g[i] == l + 1) {
+						posterior[n + N_test * l] += weights[i];
+					}
 				}
 			}
 		}
