@@ -128,8 +128,6 @@
 #'  infinite support and if \code{k} is specified.) Should
 #'  only the \code{k} nearest neighbors or all observations receive positive weights? 
 #'  (See \code{\link[=biweight]{wfs}}.)
-#' @param method Method for scaling the pooled weighted covariance matrix, either \code{"unbiased"} 
-#'  or maximum-likelihood (\code{"ML"}). Defaults to \code{"unbiased"}.
 #'
 #' @return An object of class \code{"ossvm"}, a \code{list} containing all information about 
 #'   the SVM model to be fitted, mainly for internal use:
@@ -199,9 +197,7 @@ ossvm <- function(x, ...)
 #'
 #' @S3method ossvm formula
 
-ossvm.formula <-
-function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE)
-{
+ossvm.formula <- function (formula, data = NULL, ..., subset, na.action = na.omit, scale = TRUE) {
     call <- match.call()
     if (!inherits(formula, "formula"))
         stop("method is only for formula objects")
@@ -288,6 +284,9 @@ ossvm.default <- function (x,
     if (sparse <- inherits(x, "matrix.csr"))
         library("SparseM")
 
+	formula <- !is.null(attr(x, "assign"))
+	#print(formula)
+
     ## NULL parameters?
     if(is.null(degree)) stop(sQuote("degree"), " must not be NULL!")
     if(is.null(gamma)) stop(sQuote("gamma"), " must not be NULL!")
@@ -299,7 +298,6 @@ ossvm.default <- function (x,
 
     #xhold   <- if (fitted) x else NA
     x.scale <- y.scale <- NULL
-    formula <- inherits(x, "wsvm.formula")
     
     ## determine model type
     if (is.null(type)) type <-
@@ -343,9 +341,10 @@ ossvm.default <- function (x,
             	#cw <- df[,1])##
             	#x <- as.matrix(df[,-1], rownames.force = TRUE)##
             } else {
-                df <- na.action(data.frame(y, x))
-                y <- df[,1]
-                x <- as.matrix(df[,-1], rownames.force = TRUE)
+                # df <- na.action(data.frame(y, x))
+                df <- na.action(structure(list(y = y, x = x), class = "data.frame", row.names = rownames(x)))
+                y <- df$y #[,1]
+                x <- df$x #as.matrix(df[,-1], rownames.force = TRUE)
                 nac <-
                     attr(x, "na.action") <-
                         attr(y, "na.action") <-
@@ -394,7 +393,7 @@ ossvm.default <- function (x,
     if (type > 2 && !is.numeric(y))
         stop("Need numeric dependent variable for regression.")
 
-    lev <- NULL
+    lev <- lev1 <- NULL
     weightlabels <- NULL
     
     ## in case of classification: transform factors into integers
@@ -402,7 +401,19 @@ ossvm.default <- function (x,
         y <- rep(1, nr)
     else
         if (is.factor(y)) {
-            lev <- levels(y)
+            lev <- lev1 <- levels(y)
+###
+       		counts <- as.vector(table(y))
+    		if (any(counts == 0)) {
+        		empty <- lev[counts == 0]
+        		warning(sprintf(ngettext(length(empty), "group %s is empty", 
+            		"groups %s are empty"), paste(empty, collapse = ", ")), 
+            		domain = NA)
+        		lev1 <- lev[counts > 0]
+    		}
+			if (length(lev1) == 1L)
+				stop("training data from only one class")
+###            
             y <- as.integer(y)
             if (!is.null(class.weights)) {
                 if (is.null(names(class.weights)))
@@ -417,15 +428,19 @@ ossvm.default <- function (x,
                     stop("dependent variable has to be of factor or integer type for classification mode.")
                 y <- as.factor(y)
                 lev <- levels(y)
+###
+    			if (length(lev) == 1L)
+    				stop("training data from only one class")
+###            
                 y <- as.integer(y)
             } else lev <- unique(y)
         }
 
     nclass <- 2
-    labels <- rep(0, 2) ####?????
+    labels <- rep(0, 2)
     if (type < 2) {
-    	nclass <- length(lev)
-    	labels <- seq_len(nclass) #####??????
+    	nclass <- ifelse(is.null(lev1), length(lev), length(lev1))
+    	labels <- unique(y)
     }
 
     if (type > 1 && length(class.weights) > 0) {
@@ -442,7 +457,10 @@ ossvm.default <- function (x,
     	#m$subset <- m$na.action <- NULL
     	m$n <- nr
     	m[[1L]] <- as.name("checkwf")
-    	check <- eval.parent(m)
+   		if (formula)
+    		check <- eval.parent(m)
+    	else		
+    		check <- eval.parent(m, n = 0)
     	cl <- match.call()
     	cl[[1]] <- as.name("ossvm")
     	return(structure(list (
@@ -494,10 +512,6 @@ ossvm.default <- function (x,
     					variant <- 3
     				else						# all observations
     					variant <- 4
-#    				if (attr(wf, "name") == "rectangular" && attr(wf, "k") == nr) { # todo
-#    					warning("nonlocal solution")
-#    					variant <- 0
-#					}   					
     		} else {							# fixed bandwidth
     			if (!is.null(attr(wf, "k"))) {
     				if (attr(wf, "k") > nr)
@@ -608,52 +622,35 @@ function (object, newdata,
           ...,
           na.action = na.omit)
 {
-
-    # if (!is.null(Terms <- object$terms)) {
-        # Terms <- delete.response(Terms)
-        # if (missing(newdata))
-            # newdata <- model.frame(object)
-        # else {
-            # newdata <- model.frame(Terms, newdata, na.action = na.pass,
-                # xlev = object$xlevels)
-            # if (!is.null(cl <- attr(Terms, "dataClasses")))
-                # .checkMFClasses(cl, newdata)
-        # }
-        # x <- model.matrix(Terms, newdata, contrasts = object$contrasts)
-        # xint <- match("(Intercept)", colnames(x), nomatch = 0L)
-        # if (xint > 0)
-            # x <- x[, -xint, drop = FALSE]
-    # }
-    # else {
-        # if (missing(newdata)) {
-            # if (!is.null(sub <- object$call$subset))
-                # newdata <- eval.parent(parse(text = paste(deparse(object$call$x,
-                  # backtick = TRUE), "[", deparse(sub, backtick = TRUE),
-                  # ",]")))
-            # else newdata <- eval.parent(object$call$x)
-            # if (!is.null(nas <- object$call$na.action))
-                # newdata <- eval(call(nas, newdata))
-        # }
-        # if (is.null(dim(newdata)))
-            # dim(newdata) <- c(1, length(newdata))
-        # x <- as.matrix(newdata)
-    # }
 	
-	if (missing(newdata)) { ## test
-   		if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "ossvm.formula")?
-   			newdata <- model.frame(object)
-        	#x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-       		#xint <- match("(Intercept)", colnames(x), nomatch = 0L)
-        	#if (xint > 0L) 
-            #	x <- x[, -xint, drop = FALSE]
-   		} else {
-            newdata <- eval.parent(object$call$x)
-        	#if (is.null(dim(newdata))) 
-            #	dim(newdata) <- c(1L, length(newdata))
-        	#x <- as.matrix(newdata)
-            #if (any(is.na(x))) 
-            #    stop("missing values in 'x'")
-   		}
+	if (missing(newdata)) {
+		newdata <- object$x
+		
+		sparse <- object$sparse
+    	if (sparse)
+       		library("SparseM")
+
+		act <- attr(newdata, "na.action")
+    	
+    	rowns <- if (!is.null(rownames(newdata)))
+        	rownames(newdata)
+    	else
+        	1:nrow(newdata)
+		
+   		# if (!is.null(Terms <- object$terms)) { ## same as inherits(object, "ossvm.formula")?
+   			# newdata <- model.frame(object)
+        	# #x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
+       		# #xint <- match("(Intercept)", colnames(x), nomatch = 0L)
+        	# #if (xint > 0L) 
+            # #	x <- x[, -xint, drop = FALSE]
+   		# } else {
+            # newdata <- eval.parent(object$call$x)
+        	# #if (is.null(dim(newdata))) 
+            # #	dim(newdata) <- c(1L, length(newdata))
+        	# #x <- as.matrix(newdata)
+            # #if (any(is.na(x))) 
+            # #    stop("missing values in 'x'")
+   		# }
     } else {
     	if (inherits(newdata, "Matrix")) {
         	library("SparseM")
@@ -670,46 +667,47 @@ function (object, newdata,
                       		dimension = c(newdata$nrow, newdata$ncol))
    		}
 
+    	sparse <- inherits(newdata, "matrix.csr")
+    	if (object$sparse || sparse)
+       		library("SparseM")
+    
+    	act <- NULL
+    	if ((is.vector(newdata) && is.atomic(newdata)))
+        	newdata <- t(t(newdata))
+    	if (sparse)
+        	newdata <- SparseM::t(SparseM::t(newdata))
+    	preprocessed <- !is.null(attr(newdata, "na.action"))
+    
+    	rowns <- if (!is.null(rownames(newdata)))
+        	rownames(newdata)
+    	else
+        	1:nrow(newdata)
+    	if (!object$sparse) {
+        	if (inherits(object, "ossvm.formula")) {
+            	if(is.null(colnames(newdata)))
+                	colnames(newdata) <- colnames(object$SV)
+            	newdata <- na.action(newdata)
+            	act <- attr(newdata, "na.action")
+            	newdata <- model.matrix(delete.response(terms(object)),
+                	                    as.data.frame(newdata))
+        	} else {
+            	newdata <- na.action(as.matrix(newdata))
+            	act <- attr(newdata, "na.action")
+        	}
+    	}
+
+    	if (!is.null(act) && !preprocessed)
+        	rowns <- rowns[-act]
+
+    	if (any(object$scaled))
+        	newdata[,object$scaled] <-
+            	scale(newdata[,object$scaled, drop = FALSE],
+                	center = object$x.scale$"scaled:center",
+                  	scale  = object$x.scale$"scaled:scale"
+                  	)
+
 	}
 
-    sparse <- inherits(newdata, "matrix.csr")
-    if (object$sparse || sparse)
-       	library("SparseM")
-    
-    act <- NULL
-    if ((is.vector(newdata) && is.atomic(newdata)))
-        newdata <- t(t(newdata))
-    if (sparse)
-        newdata <- SparseM::t(SparseM::t(newdata))
-    preprocessed <- !is.null(attr(newdata, "na.action"))
-    
-    rowns <- if (!is.null(rownames(newdata)))
-        rownames(newdata)
-    else
-        1:nrow(newdata)
-    if (!object$sparse) {
-        if (inherits(object, "ossvm.formula")) {
-            if(is.null(colnames(newdata)))
-                colnames(newdata) <- colnames(object$SV)
-            newdata <- na.action(newdata)
-            act <- attr(newdata, "na.action")
-            newdata <- model.matrix(delete.response(terms(object)),
-                                    as.data.frame(newdata))
-        } else {
-            newdata <- na.action(as.matrix(newdata))
-            act <- attr(newdata, "na.action")
-        }
-    }
-
-    if (!is.null(act) && !preprocessed)
-        rowns <- rowns[-act]
-
-    if (any(object$scaled))
-        newdata[,object$scaled] <-
-            scale(newdata[,object$scaled, drop = FALSE],
-                  center = object$x.scale$"scaled:center",
-                  scale  = object$x.scale$"scaled:scale"
-                  )
 
 	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
 		"optcosine", "rectangular", "triangular")
@@ -723,7 +721,7 @@ function (object, newdata,
 	}
 # print(object$wf)
 # print(class(object$wf))
-
+#print(head(newdata))
 	ret <- 	.Call("predossvm", 
 		# train data
 		as.double	(object$y),
@@ -767,7 +765,8 @@ function (object, newdata,
         as.integer (if (sparse) newdata@ja else 0),
         as.integer (sparse))
 
-names(ret) <- c("error", "ret", "prob", "dec")
+	names(ret) <- c("error", "ret", "prob", "dec")
+#	names(ret) <- c("error", "ret", "prob", "dec", "dist", "weights")
 #print(ret)
 
     if (!is.null(ret$error))
@@ -790,8 +789,8 @@ names(ret) <- c("error", "ret", "prob", "dec")
         for (i in 1:(object$nclasses - 1))
             for (j in (i + 1):object$nclasses)
                 colns <- c(colns,
-                           paste(object$levels[object$labels[i]],
-                                 "/", object$levels[object$labels[j]],
+                           paste(object$levels[sort(object$labels)[i]],#object$levels[object$labels[i]],
+                                 "/", object$levels[sort(object$labels)[j]],#object$levels[object$labels[j]],
                                  sep = ""))
         attr(ret2, "decision.values") <-
             napredict(act,
@@ -805,76 +804,13 @@ names(ret) <- c("error", "ret", "prob", "dec")
         attr(ret2, "probabilities") <-
             napredict(act,
                       matrix(ret$prob, nrow = nrow(newdata), byrow = TRUE,
-                             dimnames = list(rowns, object$levels[object$labels])
+                             dimnames = list(rowns, object$levels[sort(object$labels)])#object$levels[object$labels])
                              )
                       )
 
     ret2
 }
 
-
-#predict.ossvm <- function(object, newdata, ...) {
-#    if (!inherits(object, "ossvm")) 
-#        stop("object not of class", " 'ossvm'")
-#    if (!is.null(Terms <- object$terms)) {
-#        if (missing(newdata)) 
-#            newdata <- model.frame(object)
-#        else {
-#            newdata <- model.frame(as.formula(delete.response(Terms)), 
-#                newdata, na.action = function(x) x, xlev = object$xlevels)
-#        }
-#        x <- model.matrix(delete.response(Terms), newdata, contrasts = object$contrasts)
-#        xint <- match("(Intercept)", colnames(x), nomatch = 0)
-#        if (xint > 0) 
-#            x <- x[, -xint, drop = FALSE]
-#    }
-#    else {
-#        if (missing(newdata)) {
-#            if (!is.null(sub <- object$call$subset)) 
-#                newdataa <- eval.parent(parse(text = paste(deparse(object$call$x, 
-#                  backtick = TRUE), "[", deparse(sub, backtick = TRUE), 
-#                  ",]")))
-#            else newdata <- eval.parent(object$call$x)
-#            if (!is.null(nas <- object$call$na.action)) 
-#                newdata <- eval(call(nas, newdata))
-#        }
-#        if (is.null(dim(newdata))) 
-#            dim(newdata) <- c(1, length(newdata))
-#        x <- as.matrix(newdata)
-#    }
-#    p <- factor(,levels = object$lev)
-#    for (i in 1:nrow(x)) {
-#    	d <- sqrt(colSums((x[i,] - t(object$x))^2))
-#    	case.weights <- object$wf(d)
-#    	mod <- wsvm(x = object$x, y = object$y, case.weights = case.weights)
-#    	p[i] <- predict(mod, newdata = x[i,,drop = FALSE])
-#   	}
-#    
-#    
-#    
-#    
-#    
-#    
-#    methods <- c("unbiased", "ML")
-#    object$method <- match(object$method, methods)
-#	wfs <- c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian",
-#		"optcosine", "rectangular", "triangular")
-#	if (is.function(object$wf) && !is.null(attr(object$wf,"name")) && attr(object$wf, "name") %in% wfs)
-#		object$wf <- attr(object$wf, "name")	
-#    if (is.character(object$wf)) {
-#		wfs <- paste(wfs, rep(1:3, each = length(wfs)), sep = "")
-#		wfs <- c(wfs, "cauchy4", "exponential4", "gaussian4")
-#		object$wf <- paste(object$wf, object$variant, sep = "")
-#		object$wf <- match(object$wf, wfs)
-#	}
-#    posterior <- .Call("predossvm", x, object$x, object$grouping, object$wf, ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0), 
-#    	ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L), object$method, new.env())
-#	lev1 <- levels(object$grouping)	# class labels that are in training data
-#    gr <- factor(lev1[max.col(posterior)], levels = object$lev)
-#    posterior <- exp(posterior)
-#    posterior <- posterior/rowSums(posterior)
-#    return(list(class = gr, posterior = posterior))
-#}
 
 
 # @param x An \code{ossvm} object.
@@ -933,5 +869,3 @@ print.ossvm <- function (x, ...) {
         cat("Adaptive bandwidth: ", x$adaptive, "\n")
 	invisible(x)
 }
-
-
