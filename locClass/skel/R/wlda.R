@@ -60,7 +60,8 @@
 #'   \item{cov}{Weighted estimate of the pooled class covariance matrix.}
 #'   \item{lev}{The class labels (levels of \code{grouping}).}  
 #'   \item{N}{The number of observations.}
-#'   \item{weights}{The observation weights used in the fitting process.}  
+#'   \item{weights}{The observation weights used in the fitting process.}
+#' 	 \item{method}{The method used for scaling the pooled weighted covariance matrix.}
 #'   \item{call}{The (matched) function call.}
 #'
 #' @seealso \code{\link{predict.wlda}} and \code{\link{dalda}} which is based on \code{\link{wlda}}.
@@ -237,7 +238,7 @@ wlda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
     cl <- match.call()
     cl[[1L]] <- as.name("wlda")
     return(structure(list(prior = prior, counts = counts, means = center, 
-        cov = cov, lev = lev, N = n, weights = weights, call = cl), class = "wlda"))
+        cov = cov, lev = lev, N = n, weights = weights, method = method, call = cl), class = "wlda"))
 }
 
 

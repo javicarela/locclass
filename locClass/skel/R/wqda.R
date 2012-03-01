@@ -60,6 +60,7 @@
 #'   \item{lev}{The class labels (levels of \code{grouping}).}  
 #'   \item{N}{The number of observations.}
 #'   \item{weights}{The observation weights used in the fitting process.}  
+#' 	 \item{method}{The method used for scaling the pooled weighted covariance matrix.}
 #'   \item{call}{The (matched) function call.}
 #'
 #' @seealso \code{\link{predict.wqda}}, \code{\link{wlda}}.
@@ -230,7 +231,7 @@ wqda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
     cl <- match.call()
     cl[[1L]] <- as.name("wqda")
     return(structure(list(prior = prior, counts = counts, means = center, 
-        covs = covs, lev = lev, N = n, weights = weights, call = cl), class = "wqda"))
+        covs = covs, lev = lev, N = n, weights = weights, method = method, call = cl), class = "wqda"))
 }
 
 
