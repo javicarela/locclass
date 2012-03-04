@@ -13,6 +13,7 @@ usage:
 	echo " package  - build source package"
 	echo " help     - shows all available targets"
 	echo " test	- run tests"
+	echo " rforge 	- prepare package for R-forge"
 
 help: usage
 	echo " clean    - clean up package cruft"
@@ -39,6 +40,12 @@ clean:
 package: pkg
 	echo "Building package file ..."
 	${R} CMD build ../pkg/biVar/ > package.log 2>&1
+
+rforge: package
+	echo "Deleting unused files ..."
+	${DELETE} ../pkg/biVar/.svn
+	${DELETE} ../pkg/biVar/R/.Rapp.history
+	${DELETE} ../pkg/biVar/R/.svn
 
 pkg: clean
 	echo "Roxygenizing package ..."
