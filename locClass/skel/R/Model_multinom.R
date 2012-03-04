@@ -394,7 +394,7 @@ predict.multinomModel <- function(object, out = c("class", "posterior"), ...) {
 			if (!is.matrix(post))
 				post = cbind(1 - post, post)
 			colnames(post) <- object$lev
-			lapply(seq_len(nrow(post)), function(i) post[i,])
+			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		})
 	return(pred)
 }

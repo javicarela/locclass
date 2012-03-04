@@ -94,7 +94,7 @@ setMethod(
 				colnames(p) = lev
 				rownames(p) = rownames(.newdata)
 				for (i in seq_along(pred)) {
-					p[i, names(pred[[i]])] = pred[[i]]
+					p[i, colnames(pred[[i]])] = pred[[i]]
 				}
 			}
 		return(p)

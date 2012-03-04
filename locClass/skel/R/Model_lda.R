@@ -271,7 +271,7 @@ predict.ldaModel <- function(object, out = c("class", "posterior"), ...) {
 		class = pred$class,
 		posterior = {
 			post <- pred$posterior
-			lapply(seq_len(nrow(post)), function(i) post[i,])
+			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		})
 	return(pred)
 }

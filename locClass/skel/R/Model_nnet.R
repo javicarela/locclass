@@ -264,7 +264,7 @@ predict.nnetModel <- function(object, out = c("class", "posterior"), ...) {
 			#print(str(post))
 			#print(object$lev)
 			colnames(post) <- object$lev
-			lapply(seq_len(nrow(post)), function(i) post[i,])
+			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		})
 	return(pred)
 }

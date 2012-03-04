@@ -337,12 +337,12 @@ predict.svmModel <- function(object, out = c("class", "posterior", "decision"), 
 			pred <- NextMethod(object, probability = TRUE, ...)
 #print(pred)
 			post <- attr(pred, "probabilities")
-			lapply(seq_len(nrow(post)), function(i) post[i,])
+			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		},
 		decision = {
 			pred <- NextMethod(object, decision.values = TRUE, ...)			
 			decision <- attr(pred, "decision.values")
-			lapply(seq_len(nrow(decision)), function(i) decision[i,])
+			lapply(seq_len(nrow(decision)), function(i) decision[i,, drop = FALSE])
 		})
 	return(pred)
 }
