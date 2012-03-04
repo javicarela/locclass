@@ -4,6 +4,7 @@ context("mobLdaModel: mlr interface code")
 test_that("mobLdaModel: mlr interface code works", {
 	library(locClassData)
 	library(party)
+	library(mlr)
 	source("../../../../mlr/classif.mobLdaModel.R")
 
 	## generate data
@@ -12,8 +13,8 @@ test_that("mobLdaModel: mlr interface code works", {
 	task <- makeClassifTask(data = d, target = "y")
 
 	## predict.type = "response"
-	ldaLearner <- makeLearner("classif.mobLdaModel", minsplit = 200)
-	tr1 <- train(ldaLearner, task = task)
+	lrn <- makeLearner("classif.mobLdaModel", minsplit = 200)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = ldaModel,
 		control = mob_control(objfun = deviance, minsplit = 200))
@@ -23,8 +24,8 @@ test_that("mobLdaModel: mlr interface code works", {
 	# predictNode(tr1)
 
 	## predict.type = "prob"
-	ldaLearner <- makeLearner("classif.mobLdaModel", predict.type = "prob", minsplit = 200)
-	tr1 <- train(ldaLearner, task = task)
+	lrn <- makeLearner("classif.mobLdaModel", predict.type = "prob", minsplit = 200)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = ldaModel,
 		control = mob_control(objfun = deviance, minsplit = 200))

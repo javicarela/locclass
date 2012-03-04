@@ -4,6 +4,7 @@ context("mobMultinomModel: mlr interface code")
 test_that("mobMultinomModel: mlr interface code works", {
 	library(locClassData)
 	library(party)
+	library(mlr)
 	source("../../../../mlr/classif.mobMultinomModel.R")
 
 	## generate data
@@ -12,8 +13,8 @@ test_that("mobMultinomModel: mlr interface code works", {
 	task <- makeClassifTask(data = d, target = "y")
 
 	## predict.type = "response"
-	multinomLearner <- makeLearner("classif.mobMultinomModel", minsplit = 200, trace = FALSE)
-	tr1 <- train(multinomLearner, task = task)
+	lrn <- makeLearner("classif.mobMultinomModel", minsplit = 200, trace = FALSE)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = multinomModel,
 		control = mob_control(objfun = deviance, minsplit = 200), trace = FALSE)
@@ -23,8 +24,8 @@ test_that("mobMultinomModel: mlr interface code works", {
 	# predictNode(tr1)
 
 	## predict.type = "prob"
-	multinomLearner <- makeLearner("classif.mobMultinomModel", predict.type = "prob", minsplit = 200, trace = FALSE)
-	tr1 <- train(multinomLearner, task = task)
+	lrn <- makeLearner("classif.mobMultinomModel", predict.type = "prob", minsplit = 200, trace = FALSE)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = multinomModel,
 		control = mob_control(objfun = deviance, minsplit = 200), trace = FALSE)

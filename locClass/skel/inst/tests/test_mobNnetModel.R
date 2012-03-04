@@ -4,6 +4,7 @@ context("mobNnetModel: mlr interface code")
 test_that("mobNnetModel: mlr interface code works", {
 	library(locClassData)
 	library(party)
+	library(mlr)
 	source("../../../../mlr/classif.mobNnetModel.R")
 
 	## generate data
@@ -14,8 +15,8 @@ test_that("mobNnetModel: mlr interface code works", {
 	Wts <- runif(5, -0.5, 0.5) 
 	
 	## predict.type = "response"
-	nnetLearner <- makeLearner("classif.mobNnetModel", size = 1, minsplit = 200, trace = FALSE, Wts = Wts)
-	tr1 <- train(nnetLearner, task = task)
+	lrn <- makeLearner("classif.mobNnetModel", size = 1, minsplit = 200, trace = FALSE, Wts = Wts)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = nnetModel, size = 1,
 		control = mob_control(objfun = deviance, minsplit = 200), trace = FALSE, Wts = Wts)
@@ -25,8 +26,8 @@ test_that("mobNnetModel: mlr interface code works", {
 	# predictNode(tr1)
 
 	## predict.type = "prob"
-	nnetLearner <- makeLearner("classif.mobNnetModel", predict.type = "prob", size = 1, minsplit = 200, trace = FALSE, Wts = Wts)
-	tr1 <- train(nnetLearner, task = task)
+	lrn <- makeLearner("classif.mobNnetModel", predict.type = "prob", size = 1, minsplit = 200, trace = FALSE, Wts = Wts)
+	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
 	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = nnetModel, size = 1,
 		control = mob_control(objfun = deviance, minsplit = 200), trace = FALSE, Wts = Wts)
