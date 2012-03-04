@@ -1,4 +1,12 @@
 #!/usr/bin/env Rscript
 
-require("roxygen")
-roxygenize("skel", "../pkg/biVar", use.Rd2=TRUE, unlink.target=TRUE)
+require(utils)
+require(methods)
+require("roxygen2")
+roxygenize("skel", "../pkg/biVar", unlink.target=TRUE)
+
+warn <- warnings()
+if (!is.null(warn)) {
+	cat("Warnings?\n")
+	print(warn)
+}
