@@ -72,12 +72,17 @@ FLXMCLmultinom <- function(formula = . ~ ., ...) {
 		logLik <- function(x, y, ...) {
 # cat("y\n", y, "\n")
 			post <- fitted(fit)
+			n <- nrow(post)
+# print(head(post))
+# print(head(y))
 			if (ncol(post) == 1) {
     			post <- cbind(1-post, post)	# post second level
-    			return(post[as.logical(cbind(1-y,y))]) # y in {0,1}; y == 1 iff second level, 0 otherwise; 1-y == 1 iff first level	
+    			ll <- post[cbind(1:n, y + 1)] # y in {0,1}; y == 1 iff second level, 0 otherwise
 			} else {
-    			return(post[as.logical(y)])				
+    			ll <- t(post)[as.logical(t(y))]
 			}
+# print(head(ll))
+			return(ll)
   		}
 		new("FLXcomponent", parameters = list(wts = fit$wts), 
 			logLik = logLik, predict = predict, df = fit$df)

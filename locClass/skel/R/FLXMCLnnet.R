@@ -67,15 +67,16 @@ FLXMCLnnet <- function(formula = . ~ ., ...) {
 		logLik <- function(x, y, ...) {
     		# post <- getS3method("predict", "nnet")(fit, newdata = x, type = "raw", ...)
     		post <- fitted(fit)
-#cat("ncol(post)")
-#print(ncol(post))
-# print(y)
-# print(post)
+# print(head(post))
+# print(head(y))
+			n <- nrow(post)
 			if (ncol(post) == 1) {
 				post <- cbind(1-post, post)
-				return(post[as.logical(cbind(1-y,y))])
-			} else
-    			return(post[as.logical(y)])
+    			ll <- post[cbind(1:n, y + 1)] # y in {0,1}; y == 1 iff second level, 0 otherwise
+			} else {
+    			ll <- t(post)[as.logical(t(y))]
+			}
+			return(ll)
 		}
 		new("FLXcomponent", parameters = list(wts = fit$wts), 
 			logLik = logLik, predict = predict, df = fit$df)
