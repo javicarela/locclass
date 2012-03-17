@@ -96,7 +96,7 @@ constant.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., s
     res <- constant.default(x, grouping, weights = weights, ...)
     res$terms <- Terms
     cl <- match.call()
-    cl[[1L]] <- as.name("wlda")
+    cl[[1L]] <- as.name("constant")
     res$call <- cl
     res$contrasts <- attr(x, "contrasts")
     res$xlevels <- .getXlevels(Terms, m)
@@ -114,7 +114,7 @@ constant.formula <- function(formula, data, weights = rep(1, nrow(data)), ..., s
 constant.data.frame <- function (x, ...) {
     res <- constant(structure(data.matrix(x, rownames.force = TRUE), class = "matrix"), ...)
     cl <- match.call()
-    cl[[1L]] <- as.name("wlda")
+    cl[[1L]] <- as.name("constant")
     res$call <- cl
     res
 }
@@ -147,7 +147,7 @@ constant.matrix <- function (x, grouping, weights = rep(1, nrow(x)), ..., subset
     weights <- dfr$w
     res <- constant.default(x, grouping, weights, ...)
     cl <- match.call()
-    cl[[1L]] <- as.name("wlda")
+    cl[[1L]] <- as.name("constant")
     res$call <- cl
 	res$na.action <- na.action
 	res
@@ -236,7 +236,7 @@ print.constant <- function(x, ...) {
 #'	This function is a method for the generic function \code{predict()} for class 
 #'	\code{"constant"}. 
 #'	It can be invoked by calling \code{predict(x)} for an object \code{x} of the 
-#'	appropriate class, or directly by calling \code{predict.wlda(x)} regardless of 
+#'	appropriate class, or directly by calling \code{predict.constant(x)} regardless of 
 #'	the class of the object.
 #'
 #' @title Classify Multivariate Observations Based on the Constant Classifier
@@ -246,7 +246,7 @@ print.constant <- function(x, ...) {
 #'          \code{formula}, a \code{data.frame} with columns of the same names as the
 #'          variables used.  A vector will be interpreted as a row
 #'          vector.  If \code{newdata} is missing, an attempt will be made to
-#'          retrieve the data used to fit the \code{wlda} object.
+#'          retrieve the data used to fit the \code{constant} object.
 #' @param \dots Further arguments.
 #'
 #' @return A list with components:
