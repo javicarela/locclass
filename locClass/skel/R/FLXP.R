@@ -116,11 +116,18 @@ FLXPwlda <- function (formula = ~.) {
 	z@fit <- function(x, y, w, ...) {
        if (missing(w) || is.null(w)) 
             w <- rep(1, nrow(y))
- 		y <- factor(max.col(y))
+        nc <- ncol(y)
+ 		y <- factor(max.col(y), levels = seq_len(nc))
         fit <- wlda(x, y, w, ...)
-        pred <- predict(fit)$posterior 
-#print(pred)
-        return(pred)
+        pred <- predict(fit)
+        if (nc > ncol(pred$posterior)) {
+        	posterior <- matrix(0, nrow(pred$posterior), nc)
+        	rownames(posterior) <- rownames(pred$posterior)
+        	colnames(posterior) <- seq_len(nc)
+        	posterior[,colnames(pred$posterior)] <- pred$posterior
+        } else
+        	posterior <- pred$posterior
+        return(posterior)
 	}
     z@refit <- function(x, y, w, ...) {
         if (missing(w) || is.null(w)) 

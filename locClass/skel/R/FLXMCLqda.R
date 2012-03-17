@@ -60,13 +60,33 @@ FLXMCLqda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
 		name = "Mixture of QDA models")
 	z@defineComponent <- expression({
 		predict <- function(x, ...) {
-			getS3method("predict", "wqda")(fit, newdata = x, ...)$posterior
+			pred <- getS3method("predict", "wqda")(fit, newdata = x, ...)
+			lev <- levels(pred$class)
+			ng <- length(lev)
+			if (ng > ncol(pred$posterior)) {
+	        	posterior <- matrix(0, nrow(pred$posterior), ng)
+	        	rownames(posterior) <- rownames(pred$posterior)
+	        	colnames(posterior) <- lev
+	        	posterior[,colnames(pred$posterior)] <- pred$posterior
+			} else
+        		posterior <- pred$posterior
+        	return(posterior)
 		}
 		logLik <- function(x, y, ...) {
     		post <- getS3method("predict", "wqda")(fit, newdata = x, ...)$posterior
-    		n <- nrow(post)
-    		return(post[cbind(1:n, as.character(y))])
-#print(post)
+    		ng <- length(attr(y, "lev"))
+print(head(post))
+print(head(y))
+    		if (ng > ncol(post)) {
+    			ll <- rep(0, n)
+    			col.index <- match(y, colnames(post), 0)
+    			row.index <- which(col.index > 0)
+    			ll[row.index] <- post[cbind(row.index, col.index[row.index])]
+    		} else {
+	    		ll <- post[cbind(rownames(post), as.character(y))]
+	    	}
+print(head(ll))
+	    	return(ll)
 		}
 		new("FLXcomponent", parameters = list(prior = fit$prior, means = fit$means, cov = fit$cov), 
 			logLik = logLik, predict = predict, df = fit$df)

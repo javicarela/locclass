@@ -51,12 +51,33 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 		name = "Mixture of Constant Classifiers")
 	z@defineComponent <- expression({
 		predict <- function(x, ...) {
-			getS3method("predict", "constant")(fit, newdata = x, ...)$posterior
+			pred <- getS3method("predict", "constant")(fit, newdata = x, ...)
+			lev <- levels(pred$class)
+			ng <- length(lev)
+			if (ng > ncol(pred$posterior)) {
+	        	posterior <- matrix(0, nrow(pred$posterior), ng)
+	        	rownames(posterior) <- rownames(pred$posterior)
+	        	colnames(posterior) <- lev
+	        	posterior[,colnames(pred$posterior)] <- pred$posterior
+			} else
+        		posterior <- pred$posterior
+        	return(posterior)
 		}
 		logLik <- function(x, y, ...) {
     		post <- getS3method("predict", "constant")(fit, newdata = x, ...)$posterior
-    		n <- nrow(post)
-    		return(post[cbind(1:n, as.character(y))])
+    		ng <- length(attr(y, "lev"))
+print(head(post))
+print(head(y))
+    		if (ng > ncol(post)) {
+    			ll <- rep(0, n)
+    			col.index <- match(y, colnames(post), 0)
+    			row.index <- which(col.index > 0)
+    			ll[row.index] <- post[cbind(row.index, col.index[row.index])]
+    		} else {
+	    		ll <- post[cbind(rownames(post), as.character(y))]
+	    	}
+print(head(ll))
+	    	return(ll)
 		}
 		new("FLXcomponent", parameters = list(prior = fit$prior), 
 			logLik = logLik, predict = predict, df = fit$df)
@@ -72,7 +93,6 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 	}
 	z@fit <- function(x, y, w) {
 		lev <- attr(y, "lev")
-#print(lev)
 		fit <- constant(x, factor(y, levels = lev), weights = w, method = method)
 		fit$df <- length(lev)
 		with(fit, eval(z@defineComponent))
