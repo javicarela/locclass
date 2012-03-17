@@ -29,7 +29,7 @@
 #' @param ybayes (Optional.) Bayes prediction. Not used if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
 #' @param posterior (Optional.) Matrix of posterior probabilities, either known or estimated. It is assumed that the columns are ordered according
 #'  to the factor levels of \code{grouping}.
-# @param ybest Prediction best fitting model on whole population?
+#' @param ybest Prediction from best fitting model on the whole population. Used for calculation of model bias.
 #'
 #' @return A \code{data.frame} containing the following columns:
 #' \item{error}{Estimated misclassification probability.}
@@ -61,23 +61,20 @@
 # methods for other input structures for y:
 # 1. mlr results / "long format", i.e. a data.frame with all predictions and ids of test observations
 # 2. list of data.frames as long as number of training data sets / resampling iterations containing response, truth and ids of test observations
-# noise estimation via knn
-# model/estimation bias
+# noise estimation (via knn or other methods)
 # further decomposition for local?
 # extensibility for other loss functions
-# noise estimation
 
-#bivar <- function(y, grouping, ybayes, posterior, ybest = NULL) {
-bivar <- function(y, grouping, ybayes, posterior) {
+bivar <- function(y, grouping, ybayes, posterior, ybest = NULL) {
     lev <- levels(grouping)
     n <- length(grouping)
     if (length(y) != n)
     	stop("'length(y)' must equal 'length(grouping)'")
-    pred <- as.data.frame(t(sapply(y, table)))         # names?                         # distribution of hat Y
+    pred <- as.data.frame(t(sapply(y, table)))         # names?                         # distribution of y
     p <- rowSums(pred)
     k <- length(lev)
 #    p <- ncol(y)
-#    pred <- as.data.frame(sapply(lev, function(x) rowSums(y == x)))             		# distribution of hat y
+#    pred <- as.data.frame(sapply(lev, function(x) rowSums(y == x)))             		# distribution of y
     ymain <- factor(max.col(pred, ties.method = "random"), levels= 1:k, labels = lev) 	# main prediction
 #print(ymain)
 	#ymain <- factor(lev[max.col(pred)], levels = lev)    
@@ -86,9 +83,9 @@ bivar <- function(y, grouping, ybayes, posterior) {
 #print(ymain)
     if(any(names(pred) != lev)) 
     	cat("Warnung: Probleme bei Faktorlevels", "\n", "names(pred): ", names(pred), "\n", "lev: ", lev)#?
-	if (missing(posterior)) { ## use empirical distribution of Y
+	if (missing(posterior)) {		## use empirical distribution of y
         V <- error <- numeric(n)
-    	for (i in 1:n) { #evtl. sapply?
+    	for (i in 1:n) {
             V[i] <- mean(y[[i]] != ymain[i])                                        # variance
             error[i] <- mean(y[[i]] != grouping[i])                             	# expected error
         }
@@ -99,9 +96,27 @@ bivar <- function(y, grouping, ybayes, posterior) {
             Vb <- B * V
             Vn <- Vu - Vb
             VE <- error - SE                                                        # variance effect (decomposition of James), = Vn?
-            return(data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-                biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p))
-		} else {  ## estimate noise
+            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+                biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
+            if (!is.null(ybest)) {
+				if (length(ybest) != n)
+					stop("'length(ybest)' must equal 'length(grouping)")
+	   			MB <- SEM <- as.numeric(ybayes != ybest)							# model bias under the assumption noise = 0, systematic model effect
+   				EB <- as.numeric(ybest != ymain)									# estimation bias
+				h3 <- numeric(n)
+    			for (i in 1:n) {
+        			h3[i] <- mean(y[[i]] != ybest[i])                                  	
+    			}
+            	SEE <- h3 - V
+            	SEE.SEM.corr <- SE - SEE - SEM
+	            res <- data.frame(main = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
+    	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
+    	            corr = SEE.SEM.corr, variance.effect = VE, size = p)
+			} else {
+	            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+    	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
+			}		
+		} else {					## estimate noise
 			if (length(ybayes) != n)
 				stop("'length(ybayes)' must equal 'length(grouping)")
             N <- as.numeric(grouping != ybayes)                               		# noise
@@ -114,11 +129,28 @@ bivar <- function(y, grouping, ybayes, posterior) {
             SE <- h2 - N
             VE <- error - h2                                                       	# variance effect
             #VE <- error - N - SE                                                    # variance effect
-            return(data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-                biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
-                noise = N, ybayes = ybayes, size = p))
+            if (!is.null(ybest)) {
+				if (length(ybest) != n)
+					stop("'length(ybest)' must equal 'length(grouping)")
+	   			MB <- as.numeric(ybayes != ybest)									# model bias
+   				EB <- as.numeric(ybest != ymain)									# estimation bias
+            	SEM <- as.numeric(grouping != ybest) - N
+				h3 <- numeric(n)
+    			for (i in 1:n) {
+        			h3[i] <- mean(y[[i]] != ybest[i])                                  	
+    			}
+            	SEE <- h3 - V
+            	SEE.SEM.corr <- SE - SEE - SEM
+	            res <- data.frame(main = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
+    	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
+    	            corr = SEE.SEM.corr, variance.effect = VE, noise = N, ybayes = ybayes, size = p)
+            } else {
+	            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+    	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
+        	        noise = N, ybayes = ybayes, size = p)
+			}
 		}
-	} else { ## use posteriors
+	} else {						## use posteriors
 		if (nrow(posterior) != n)
 			stop("'nrow(posterior)' must equal 'length(grouping)'")
 		if (ncol(posterior) != length(lev))
@@ -129,7 +161,7 @@ bivar <- function(y, grouping, ybayes, posterior) {
     	for (i in 1:n) {
         	V[i] <- mean(y[[i]] != ymain[i])                                     	# variance
     	}
-    	ybayes <- factor(max.col(posterior, ties.method = "random"), levels = 1:k, labels = lev)  # Bayes prediction lev[max.col()]
+    	ybayes <- factor(max.col(posterior, ties.method = "random"), levels = 1:k, labels = lev)  # Bayes prediction lev[max.col()] # muss nach faktorleveln geordnet sein!!!
     	h1 <- posterior[cbind(1:n,ybayes)]
     	N <- 1 - h1 
 	    error <- rowSums(posterior * (1 - pred/p))                                 	# expected error
@@ -140,20 +172,26 @@ bivar <- function(y, grouping, ybayes, posterior) {
     	h2 <- posterior[cbind(1:n,ymain)]
 	    SE <- h1 - h2                                                              	# systematic effect
 	    VE <- error - 1 + h2                                                     	# variance effect
-    	return(data.frame(ymain = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-        	biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
-        	noise = N, ybayes = ybayes, size = p))
+       	if (!is.null(ybest)) {
+			if (length(ybest) != n)
+				stop("'length(ybest)' must equal 'length(grouping)")
+   			MB <- as.numeric(ybayes != ybest)										# model bias
+   			EB <- as.numeric(ybest != ymain)										# estimation bias
+			h3 <- numeric(n)
+    		for (i in 1:n) {
+        		h3[i] <- mean(y[[i]] != ybest[i])                                  	
+    		}
+			SEM <- h1 - posterior[cbind(1:n, ybest)]
+			SEE <- h3 - V
+            SEE.SEM.corr <- SE - SEE - SEM
+	    	res <- data.frame(ymain = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
+    	    	biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
+    	    	corr = SEE.SEM.corr, variance.effect = VE, noise = N, ybayes = ybayes, size = p)
+       	} else {
+    		res <- data.frame(ymain = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+        		biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
+        		noise = N, ybayes = ybayes, size = p)
+       	}
 	}
-## model and estimation bias:
-#    if(!is.null(ybest)) {
-#    	MB <- as.numeric(ybayes != ybest)
-#    	EB <- as.numeric(ybest != ymain)	
-#    	return(data.frame(main = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
-#        	biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
-#        	noise = N, Bayes = ybayes))
-#    } else {
-#    	return(data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-#        	biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
-#        	noise = N, Bayes = ybayes))
-#	}
+	return(res)
 }
