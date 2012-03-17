@@ -28,7 +28,8 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 	wf <- match.arg(wf)
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")		
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
         		stop("'k' must be numeric of length > 0")
@@ -47,39 +48,39 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 			wfunc <- switch(wf,
         		biweight = function(x) {
             		ax <- abs(x)
-            		bw <- sort(ax)[k+1]
+            		bw <- sort(ax)[k+1] + .Machine$double.eps
         			ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
         		},
         		cauchy = if (nn.only) {
         			function(x) {
         				ax <- abs(x)
             			ord <- order(ax)
-            			bw <- ax[ord[k+1]]
+            			bw <- ax[ord[k+1]] + .Machine$double.eps
             			weights <- numeric(length(ord))
     	        		weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
         	    		weights
         			}
         		} else {
         			function(x) {
-        				bw <- sort(abs(x))[k+1]
+        				bw <- sort(abs(x))[k+1] + .Machine$double.eps
         				1/(pi * (1 + (x/bw)^2) * bw)
         			}
         		},
       		  	cosine = function(x) {
       		  		ax <- abs(x)
-            		bw <- sort(ax)[k+1]
+            		bw <- sort(ax)[k+1] + .Machine$double.eps
             		ifelse(ax < bw, (1 + cos(pi * x/bw))/(2 * bw), 0)
             	},
        		 	epanechnikov = function(x) {
             		ax <- abs(x)
-            		bw <- sort(ax)[k+1]
+            		bw <- sort(ax)[k+1] + .Machine$double.eps
             		ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
         		},
         		exponential = if (nn.only) {
         			function(x) {
         				ax <- abs(x)
         				ord <- order(ax)
-        				bw <- ax[ord[k+1]]
+        				bw <- ax[ord[k+1]] + .Machine$double.eps
         				weights <- numeric(length(ord))
         				weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
         				weights
@@ -87,7 +88,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
         		} else {
         			function(x) {
             			ax <- abs(x)
-            			bw <- sort(ax)[k+1]
+            			bw <- sort(ax)[k+1] + .Machine$double.eps
         				0.5 * exp(-ax/bw)/bw
         			}
         		},
@@ -95,30 +96,30 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
         			function(x) {
         				ax <- abs(x)
         				ord <- order(ax)
-        				bw <- ax[ord[k+1]]
+        				bw <- ax[ord[k+1]] + .Machine$double.eps
             			weights <- numeric(length(ord))
     	        		weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
         	    		weights
         			}
         		} else {
         			function(x) {
-        				bw <- sort(abs(x))[k+1]
+        				bw <- sort(abs(x))[k+1] + .Machine$double.eps
         				dnorm(x, sd = bw)
         			}
         		},
         		optcosine = function(x) {
         			ax <- abs(x)
-        			bw <- sort(ax)[k+1]
+        			bw <- sort(ax)[k+1] + .Machine$double.eps
          	  	 	ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
          	  	},
         		rectangular = function(x) {
         			ax <- abs(x)
-        			bw <- sort(ax)[k+1]
+        			bw <- sort(ax)[k+1] + .Machine$double.eps
             		ifelse(ax < bw, 0.5/bw, 0)
             	},
        		 	triangular = function(x) {
             		ax <- abs(x)
-        			bw <- sort(ax)[k+1]
+        			bw <- sort(ax)[k+1] + .Machine$double.eps
            		 	ifelse(ax < bw, (1 - ax/bw)/bw, 0)
         		})
         	if (wf %in% c("exponential", "gaussian"))
@@ -321,7 +322,8 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 biweight <- function(bw, k) { ## nn.only überhaupt als argument zulassen
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")		
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -336,7 +338,7 @@ biweight <- function(bw, k) { ## nn.only überhaupt als argument zulassen
 			## window functions with adaptive bandwidth
       		bi <- function(x) {
        			ax <- abs(x)
-       			bw <- sort(ax)[k+1]
+       			bw <- sort(ax)[k+1] + .Machine$double.eps
    				ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)  
    			}
 		    attributes(bi) <- list(name = "biweight", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -392,7 +394,8 @@ biweight <- function(bw, k) { ## nn.only überhaupt als argument zulassen
 cauchy <- function(bw, k, nn.only = TRUE) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")		
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -410,7 +413,7 @@ cauchy <- function(bw, k, nn.only = TRUE) {
         		cau <- function(x) {
         			ax <- abs(x)
         			ord <- order(ax)
-        			bw <- ax[ord[k+1]]
+        			bw <- ax[ord[k+1]] + .Machine$double.eps
         			weights <- numeric(length(ord))
         			weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
         			weights
@@ -418,7 +421,7 @@ cauchy <- function(bw, k, nn.only = TRUE) {
         	} else {
         		cau <- function(x) {
 					ax <- abs(x)
-       				bw <- sort(ax)[k+1]
+       				bw <- sort(ax)[k+1] + .Machine$double.eps
 					1/(pi * (1 + (ax/bw)^2) * bw)
         		}
         	}
@@ -474,7 +477,8 @@ cauchy <- function(bw, k, nn.only = TRUE) {
 cosine <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")	
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -489,7 +493,7 @@ cosine <- function(bw, k) {
 			## window functions with adaptive bandwidth
     		cosi <- function(x) {
 				ax <- abs(x)
-       			bw <- sort(ax)[k+1]
+       			bw <- sort(ax)[k+1] + .Machine$double.eps
         		ifelse(ax < bw, (1 + cos(pi * x/bw))/(2 * bw), 0)
     		}    
     		attributes(cosi) <- list(name = "cosine", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -544,7 +548,8 @@ cosine <- function(bw, k) {
 epanechnikov <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")	
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -559,7 +564,7 @@ epanechnikov <- function(bw, k) {
 			## window functions with adaptive bandwidth
     		epan <- function(x) {
         		ax <- abs(x)
-       			bw <- sort(ax)[k+1]
+       			bw <- sort(ax)[k+1] + .Machine$double.eps
         		ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
     		}
     		attributes(epan) <- list(name = "epanechnikov", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -615,7 +620,8 @@ epanechnikov <- function(bw, k) {
 exponential <- function(bw, k, nn.only = TRUE) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")	
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -633,7 +639,7 @@ exponential <- function(bw, k, nn.only = TRUE) {
         		expo <- function(x) {
         			ax <- abs(x)
         			ord <- order(ax)
-        			bw <- ax[ord[k+1]]
+        			bw <- ax[ord[k+1]] + .Machine$double.eps
         			weights <- numeric(length(ord))
         			weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
         			weights
@@ -641,7 +647,7 @@ exponential <- function(bw, k, nn.only = TRUE) {
         	} else {
         		expo <- function(x) {
             		ax <- abs(x)
-            		bw <- sort(ax)[k+1]
+            		bw <- sort(ax)[k+1] + .Machine$double.eps
         			0.5 * exp(-ax/bw)/bw
         		}
         	}
@@ -703,7 +709,8 @@ exponential <- function(bw, k, nn.only = TRUE) {
 gaussian <- function(bw, k, nn.only = TRUE) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")	
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -721,7 +728,7 @@ gaussian <- function(bw, k, nn.only = TRUE) {
         		gauss <- function(x) {
         			ax <- abs(x)
         			ord <- order(ax)
-        			bw <- ax[ord[k+1]]
+        			bw <- ax[ord[k+1]] + .Machine$double.eps
             		weights <- numeric(length(ord))
     	        	weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
         	    	weights
@@ -788,7 +795,8 @@ gaussian <- function(bw, k, nn.only = TRUE) {
 optcosine <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")	
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -803,7 +811,7 @@ optcosine <- function(bw, k) {
 			## window functions with adaptive bandwidth
 		    optcos <- function(x) {
 		    	ax <- abs(x)
-		    	bw <- sort(ax)[k+1]
+		    	bw <- sort(ax)[k+1] + .Machine$double.eps
         		ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
     		}    
     		attributes(optcos) <- list(name = "optcosine", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -858,7 +866,8 @@ optcosine <- function(bw, k) {
 rectangular <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")		
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -873,7 +882,7 @@ rectangular <- function(bw, k) {
 			## window functions with adaptive bandwidth
     		rect <- function(x) {
 		    	ax <- abs(x)
-		    	bw <- sort(ax)[k+1]
+		    	bw <- sort(ax)[k+1] + .Machine$double.eps
         		ifelse(ax < bw, 0.5/bw, 0)
     		}    
     		attributes(rect) <- list(name = "rectangular", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -928,7 +937,8 @@ rectangular <- function(bw, k) {
 triangular <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
-			stop("either 'bw' or 'k' have to be specified")		else {				# only k given -> adaptive bandwidth
+			stop("either 'bw' or 'k' have to be specified")		
+		else {				# only k given -> adaptive bandwidth
 			# checks on k
 			if ((!is.numeric(k)) || !length(k))
        			stop("'k' must be numeric of length > 0")
@@ -943,7 +953,7 @@ triangular <- function(bw, k) {
 			## window functions with adaptive bandwidth
 		    triangle <- function(x) {
        			ax <- abs(x)
-		    	bw <- sort(ax)[k+1]
+		    	bw <- sort(ax)[k+1] + .Machine$double.eps
         		ifelse(ax < bw, (1 - ax/bw)/bw, 0)
     		}
     		attributes(triangle) <- list(name = "triangular", k = k, nn.only = TRUE, adaptive = TRUE)
