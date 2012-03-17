@@ -238,8 +238,18 @@ deviance.nnet <- function (object, ...) {
 #' @S3method estfun nnet
 
 estfun.nnet <- function(x, ...) {
-	#print(x$gradient)
-	#print(colSums(x$gradient))
+	# print(rowSums(x$gradient[,29:33]))
+	# print(x$gradient)
+	# print(colSums(x$gradient))
+	# print(str(x))
+	# print(x$weights)
+	# n <- sum(x$weights)
+	# print(n)
+	# print(cp <- crossprod((x$gradient[x$weights > 0,])/sqrt(n)))
+	# print(solve(cp))
+	# e <- eigen(crossprod((x$gradient[x$weights > 0,])/sqrt(n)), only.values = TRUE)$values
+	# print(e)
+	# print(eigen(cov(x$gradient[x$weights > 0,]), only.values = TRUE))
 	return(x$gradient)
 }
 
@@ -432,6 +442,7 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
     net$call <- match.call()
     if (Hess) 
         net$Hessian <- nnetHess(net, x, y, weights)
+    net$weights <- weights
     class(net) <- "nnet"
     net
 }
@@ -440,3 +451,20 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
 #' @import nnet
 
 norm.net <- nnet:::norm.net
+
+
+
+# root.matrix <- function (X) {
+    # if ((ncol(X) == 1) && (nrow(X) == 1)) 
+        # return(sqrt(X))
+    # else {
+        # X.eigen <- eigen(X, symmetric = TRUE)
+		# zero.values <- sapply(X.eigen$values, all.equal, current = 0)
+		# X.eigen$values[zero.values == "TRUE" & X.eigen$values < 0] <- 0
+        # if (any(X.eigen$values < 0)) 
+            # stop("matrix is not positive semidefinite")
+        # sqomega <- sqrt(diag(X.eigen$values))
+        # V <- X.eigen$vectors
+        # return(V %*% sqomega %*% t(V))
+    # }
+# }
