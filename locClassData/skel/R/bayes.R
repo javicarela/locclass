@@ -41,6 +41,19 @@ bayes <- function(object, ...)
 
 
 #' @rdname bayes
+#' @method bayes locClass.flashData
+#'
+#' @S3method bayes locClass.flashData
+
+bayes.locClass.flashData <- function(object, ...) {
+	if (!inherits(object, "locClass.flashData"))
+		stop("object not of class \"locClass.flashData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
 #' @method bayes locClass.hvData
 #'
 #' @S3method bayes locClass.hvData
@@ -51,10 +64,31 @@ bayes.locClass.hvData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
-	posterior.2 <- k*x[,d]/t(c(rep(1,d-1),k) %*% t(x))
-    posterior.1 <- 1 - posterior.2
-    posterior <- cbind(posterior.1, posterior.2)
-    ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
+	posterior <- k*x[,d]/t(c(rep(1,d-1),k) %*% t(x))
+    posterior <- cbind(1 - posterior, posterior)
+    colnames(posterior) <- paste("posterior", 1:2, sep = ".")
+	ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
+    return(list(ybayes = ybayes, posterior = posterior))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.hvQuadraticData
+#'
+#' @S3method bayes locClass.hvQuadraticData
+
+bayes.locClass.hvQuadraticData <- function(object, ...) {
+	if (!inherits(object, "locClass.hvQuadraticData"))
+		stop("'object' not of class \"locClass.hvQuadraticData\"")
+    x <- object$x
+    k <- attr(object, "k")
+    d <- ncol(x)
+    x[,d] <- x[,d]^2
+	posterior <- k*x[,d]/t(rep(k,d) %*% t(x))
+    posterior <- cbind(1 - posterior, posterior)
+    colnames(posterior) <- paste("posterior", 1:2, sep = ".")
+	ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
     return(list(ybayes = ybayes, posterior = posterior))
 }
 
@@ -125,58 +159,6 @@ bayes.locClass.mixtureData <- function(object, ...) {
 
 
 #' @rdname bayes
-#' @method bayes locClass.twonormLinearData
-#'
-#' @S3method bayes locClass.twonormLinearData
-
-bayes.locClass.twonormLinearData <- function(object, ...) {
-	if (!inherits(object, "locClass.twonormLinearData"))
-		stop("object not of class \"locClass.twonormLinearData\"")
-	return(NextMethod(object, ...))
-}
-
-
-
-#' @rdname bayes
-#' @method bayes locClass.twonormQuadraticData
-#'
-#' @S3method bayes locClass.twonormQuadraticData
-
-bayes.locClass.twonormQuadraticData <- function(object, ...) {
-	if (!inherits(object, "locClass.twonormQuadraticData"))
-		stop("object not of class \"locClass.twonormQuadraticData\"")
-	return(NextMethod(object, ...))
-}
-
-
-
-#' @rdname bayes
-#' @method bayes locClass.ringData
-#'
-#' @S3method bayes locClass.ringData
-
-bayes.locClass.ringData <- function(object, ...) {
-	if (!inherits(object, "locClass.ringData"))
-		stop("object not of class \"locClass.ringData\"")
-	return(NextMethod(object, ...))
-}
-
-
-
-#' @rdname bayes
-#' @method bayes locClass.xorData
-#'
-#' @S3method bayes locClass.xorData
-
-bayes.locClass.xorData <- function(object, ...) {
-	if (!inherits(object, "locClass.xorData"))
-		stop("object not of class \"locClass.xorData\"")
-	return(NextMethod(object, ...))
-}
-
-
-
-#' @rdname bayes
 #' @method bayes locClass.outlierCorrectData
 #'
 #' @S3method bayes locClass.outlierCorrectData
@@ -203,6 +185,69 @@ bayes.locClass.outlierWrongData <- function(object, ...) {
 
 
 #' @rdname bayes
+#' @method bayes locClass.ringData
+#'
+#' @S3method bayes locClass.ringData
+
+bayes.locClass.ringData <- function(object, ...) {
+	if (!inherits(object, "locClass.ringData"))
+		stop("object not of class \"locClass.ringData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.spiralData
+#'
+#' @S3method bayes locClass.spiralData
+
+bayes.locClass.spiralData <- function(object, ...) {
+	if (!inherits(object, "locClass.spiralData"))
+		stop("'object' not of class \"locClass.spiralData\"")
+    x <- object$x
+    cycles <- attr(object, "cycles")
+	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
+	posterior <- apply(x, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
+	posterior[posterior > 1/3] <- 1/3
+	posterior.min <- min(posterior)
+	posterior.max <- max(posterior)
+	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+    posterior <- cbind(1 - posterior, posterior)
+    colnames(posterior) <- paste("posterior", 1:2, sep = ".")
+    ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
+    return(list(ybayes = ybayes, posterior = posterior))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.twonormLinearData
+#'
+#' @S3method bayes locClass.twonormLinearData
+
+bayes.locClass.twonormLinearData <- function(object, ...) {
+	if (!inherits(object, "locClass.twonormLinearData"))
+		stop("object not of class \"locClass.twonormLinearData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.twonormQuadraticData
+#'
+#' @S3method bayes locClass.twonormQuadraticData
+
+bayes.locClass.twonormQuadraticData <- function(object, ...) {
+	if (!inherits(object, "locClass.twonormQuadraticData"))
+		stop("object not of class \"locClass.twonormQuadraticData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
 #' @method bayes locClass.vData
 #'
 #' @S3method bayes locClass.vData
@@ -213,7 +258,55 @@ bayes.locClass.vData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
-	posterior.2 <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - 0.5))
+	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - 0.5))
+	posterior[posterior < 0] <- 0 
+	posterior[posterior > 1] <- 1 
+    posterior <- cbind(1 - posterior, posterior)
+    colnames(posterior) <- paste("posterior", 1:2, sep = ".")
+    ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
+    return(list(ybayes = ybayes, posterior = posterior))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.vNormalLinearData
+#'
+#' @S3method bayes locClass.vNormalLinearData
+
+bayes.locClass.vNormalLinearData <- function(object, ...) {
+	if (!inherits(object, "locClass.vNormalLinearData"))
+		stop("object not of class \"locClass.vNormalLinearData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.vNormalQuadraticData
+#'
+#' @S3method bayes locClass.vNormalQuadraticData
+
+bayes.locClass.vNormalQuadraticData <- function(object, ...) {
+	if (!inherits(object, "locClass.vNormalQuadraticData"))
+		stop("object not of class \"locClass.vNormalQuadraticData\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.wData
+#'
+#' @S3method bayes locClass.wData
+
+bayes.locClass.wData <- function(object, ...) {
+	if (!inherits(object, "locClass.wData"))
+		stop("object not of class \"locClass.wData\"")
+    x <- object$x
+    k <- attr(object, "k")
+    d <- ncol(x)
+	posterior.2 <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - x[,1] %/% 1 - 0.5))
 	posterior.2[posterior.2 < 0] <- 0 
 	posterior.2[posterior.2 > 1] <- 1 
     posterior.1 <- 1 - posterior.2
@@ -225,12 +318,25 @@ bayes.locClass.vData <- function(object, ...) {
 
 
 #' @rdname bayes
-#' @method bayes locClass.vNormalData
+#' @method bayes locClass.xor3Data
 #'
-#' @S3method bayes locClass.vNormalData
+#' @S3method bayes locClass.xor3Data
 
-bayes.locClass.vNormalData <- function(object, ...) {
-	if (!inherits(object, "locClass.vNormalData"))
-		stop("object not of class \"locClass.vNormalData\"")
+bayes.locClass.xor3Data <- function(object, ...) {
+	if (!inherits(object, "locClass.xor3Data"))
+		stop("object not of class \"locClass.xor3Data\"")
+	return(NextMethod(object, ...))
+}
+
+
+
+#' @rdname bayes
+#' @method bayes locClass.xorData
+#'
+#' @S3method bayes locClass.xorData
+
+bayes.locClass.xorData <- function(object, ...) {
+	if (!inherits(object, "locClass.xorData"))
+		stop("object not of class \"locClass.xorData\"")
 	return(NextMethod(object, ...))
 }
