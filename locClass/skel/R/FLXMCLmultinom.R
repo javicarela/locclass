@@ -1,4 +1,23 @@
-#' @rdname FLXMCLmultinom
+# Copyright (C) 2011-2012 Julia Schiffner
+# Copyright (C) 2004-2011 Friedrich Leisch and Bettina Gruen
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 or 3 of the License
+#  (at your option).
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+#
+
+
+
+#' @rdname FLXMCL
 #' @aliases FLXMCLmultinom-class
 #'
 #' @import flexmix
@@ -18,7 +37,7 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' @return Returns an object of class \code{FLXMCLmultinom} inheriting from \code{FLXMCL}.
 #'
 #' @rdname FLXMCLmultinom
-# @aliases FLXMCLmultinom
+#' @aliases FLXMCLmultinom
 #'
 #' @import flexmix nnet
 #' @export
@@ -43,13 +62,13 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## prediction with aggregation depending on membership in mixture components
-#' pred.grid <- predict(fit, newdata = grid, local.aggregate = TRUE)
+#' pred.grid <- mypredict(fit, newdata = grid, aggregate = TRUE)
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add  = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## local memberhsip
-#' loc.grid <- predict(fit@@concomitant, newdata = grid)
+#' loc.grid <- prior(fit, newdata = grid)
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 
 FLXMCLmultinom <- function(formula = . ~ ., ...) {
@@ -125,7 +144,6 @@ FLXMCLmultinom <- function(formula = . ~ ., ...) {
 	 	return(Y)
     }
     z@fit <- function(x, y, w, ...) {
-        require("nnet")
 # cat("y\n")
 # print(y)
 # cat("attr(y, lev)\n")
