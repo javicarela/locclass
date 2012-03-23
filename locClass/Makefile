@@ -55,4 +55,3 @@ rforge: package
 pkg: clean
 	echo "Roxygenizing package ..."
 	${RSCRIPT} ./tools/roxygenize > roxygen.log 2>&1
-	${RSCRIPT} ./tools/set-version > version.log 2>&1
