@@ -253,10 +253,10 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 	return(wfunc)
 }
 
-#' The window function generating functions that can are used in various local classification methods.
+#' The window function generating functions that are used in various local classification methods.
 #'
 #' The window function generating functions are used to initialize a window function. These functions can be passed as
-#' \code{wf} argument to \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{kmc}} or \code{\link{oslda}}.
+#' \code{wf} argument to various local classification methods.
 #'
 #' If only \code{bw} is given a window function with fixed bandwidth is returned.
 #'
@@ -290,7 +290,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #'	}
 #'
 #'
-#' @seealso \code{\link{dalda}}, \code{\link{dalr}}, \code{\link{kmc}}, \code{\link{oslda}}, \link[stats]{density}.
+#' @seealso Documentation for various local classification methods, e.g. \code{\link{dalda}} or \code{\link{oslda}}, and \link[stats]{density}.
 #'
 #' @examples
 #' ## fixed bandwidth
@@ -302,12 +302,12 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #' gwf
 #' gwf(1:150)
 #'
-#' ## adaptive bandwidth, all observations receive positive weights
+#' ## adaptive bandwidth, all observations have positive weights
 #' gwf <- gaussian(k = 100, nn.only = FALSE)
 #' gwf
 #' gwf(1:150)
 #' 
-#' ## fixed bandwidth, only the 100 nearest neighbors receive positive weights
+#' ## fixed bandwidth, only the 100 nearest neighbors get positive weights
 #' gwf <- gaussian(k = 100, bw = 1)
 #' gwf
 #' gwf(1:150)
@@ -319,7 +319,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #' @export biweight cauchy cosine epanechnikov exponential gaussian optcosine rectangular triangular
 #'
 
-biweight <- function(bw, k) { ## nn.only überhaupt als argument zulassen
+biweight <- function(bw, k) {
 	if (missing(bw)) {		# bw missing
 		if (missing(k))		# bw and k missing
 			stop("either 'bw' or 'k' have to be specified")		
