@@ -80,8 +80,10 @@
 #'	  An integer indicating which weighting scheme is implied by \code{bw}, \code{k} and \code{nn.only}.}
 #'  \item{call}{The (matched) function call.}
 #'
+#' @encoding latin1
+#'
 #' @references 
-#' Devroye, L., Gy\"{o}rfi, L. and Lugosi, A. (1996), A Probabilistic Theory of Pattern Recognition. 
+#' Devroye, L., \enc{Györfi}{Gyoerfi}, L. and Lugosi, A. (1996), A Probabilistic Theory of Pattern Recognition. 
 #' Springer, New York.
 #'
 #' @seealso \code{\link{predict.kda}}.

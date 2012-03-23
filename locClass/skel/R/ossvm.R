@@ -53,7 +53,7 @@
 #' @title Observation Specific Support Vector Machines
 #' 
 #' @param formula A symbolic description of the model to be fit.
-#' @param data An optional data frame containing the variables in the model. By default fi
+#' @param data An optional data frame containing the variables in the model. By default
 #'   the variables are taken from the environment which \code{ossvm} is called from.
 #' @param x (Required if no \code{formula} is given as principal argument.) A data matrix, a 
 #'   vector, or a sparse matrix (object of class \code{\link[Matrix]{Matrix}} provided by the 
