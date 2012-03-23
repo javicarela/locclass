@@ -1,4 +1,23 @@
-#' @rdname FLXMCLlda
+# Copyright (C) 2011-2012 Julia Schiffner
+# Copyright (C) 2004-2011 Friedrich Leisch and Bettina Gruen
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 or 3 of the License
+#  (at your option).
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+#
+
+
+
+#' @rdname FLXMCL
 #' @aliases FLXMCLlda-class
 #'
 #' @import flexmix
@@ -21,7 +40,7 @@ setClass("FLXMCLlda", contains = "FLXMCL")
 #' @return Returns an object of class \code{FLXMCLlda} inheriting from \code{FLXMCL}.
 #'
 #' @rdname FLXMCLlda
-# @aliases FLXMCLlda
+#' @aliases FLXMCLlda
 #'
 #' @import flexmix
 #' @export
@@ -46,13 +65,13 @@ setClass("FLXMCLlda", contains = "FLXMCL")
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## prediction with aggregation depending on membership in mixture components
-#' pred.grid <- predict(fit, newdata = grid, local.aggregate = TRUE)
+#' pred.grid <- mypredict(fit, newdata = grid, aggregate = TRUE)
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add  = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## local memberhsip
-#' loc.grid <- predict(fit@@concomitant, newdata = grid)
+#' loc.grid <- prior(fit, newdata = grid)
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 
 FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
@@ -76,17 +95,17 @@ FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
 		logLik <- function(x, y, ...) {
     		post <- getS3method("predict", "wlda")(fit, newdata = x, ...)$posterior
     		ng <- length(attr(y, "lev"))
-print(head(post))
-print(head(y))
+# print(head(post))
+# print(head(y))
     		if (ng > ncol(post)) {
-    			ll <- rep(0, n)
+    			ll <- rep(0, nrow(post))
     			col.index <- match(y, colnames(post), 0)
     			row.index <- which(col.index > 0)
     			ll[row.index] <- post[cbind(row.index, col.index[row.index])]
     		} else {
 	    		ll <- post[cbind(rownames(post), as.character(y))]
 	    	}
-print(head(ll))
+# print(head(ll))
 	    	return(ll)
 		}
 		new("FLXcomponent", parameters = list(prior = fit$prior, means = fit$means, cov = fit$cov), 
