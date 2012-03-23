@@ -49,7 +49,7 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 #' 
 #' cluster <- kmeans(data$x, center = 2)$cluster
 #' model <- FLXMCLsvm(kernel = "linear")
-#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = model, cluster = cluster)
+#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = model, cluster = cluster, control = list(classify = "hard"))
 #' 
 #' ## prediction for single component models without aggregation
 #' pred.grid <- predict(fit, newdata = grid)
