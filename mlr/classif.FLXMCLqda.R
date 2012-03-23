@@ -86,7 +86,7 @@ setMethod(
 		),
 		def = function(.learner, .model, .newdata, ...) {
 			lev = attr(.model@learner.model@model[[1]]@y, "lev")
-			p = predict(.model@learner.model, newdata = .newdata, local.aggregate = TRUE, ...)[[1]]
+			p = mypredict(.model@learner.model, newdata = .newdata, aggregate = TRUE, ...)[[1]]
 			if (.learner@predict.type == "response") {
 				p = factor(colnames(p)[max.col(p)], levels = lev) ## does this always work?
 			}
