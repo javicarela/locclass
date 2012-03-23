@@ -1,49 +1,69 @@
+# Copyright (C) 2011-2012 Julia Schiffner
+# Copyright (C) 2004-2011 Friedrich Leisch and Bettina Gruen
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 or 3 of the License
+#  (at your option).
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+#
+
+
 ## FLXPmultinom
 
-#' Predict local membership, predict method for FLXPmultinom
-#'
-#' @param object An object of class "FLXPmultinom".
-#' @param newdata Dataframe containing new data.
-#' @param \dots ...
-#'
-#' @import flexmix
-#' @export
-#' 
-#' @rdname FLXPmultinom-methods
-#' @aliases predict,FLXPmultinom-method
-#'
-#' @docType methods
+# Methods for Class FLXPmultinom
+#
+# @param object An object of class "FLXPmultinom".
+# @param newdata Dataframe containing new data.
+# @param \dots ...
+#
+# @import flexmix
+# @export
+# 
+# @rdname FLXPmultinom-methods
+# @aliases predict,FLXPmultinom-method
+#
+# @docType methods
+#
+# @usage \S4method{predict}{object = "FLXPmultinom"}(object, newdata, ...)
 
-setMethod("predict", signature(object = "FLXPmultinom"), function(object, newdata, ...) {
-	# model <- FLXgetModelmatrix(object, newdata, ...)
-	mf <- model.frame(object@formula, data = newdata, na.action = NULL)
-	terms <- attr(mf, "terms")
-	x <- model.matrix(terms, data = mf)
-	coefx <- apply(object@coef, 2, function(z) x %*% z)
-	probs <- exp(coefx)/rowSums(exp(coefx))
-	probs
-})
+# setMethod("predict", signature(object = "FLXPmultinom"), function(object, newdata, ...) {
+	# # model <- FLXgetModelmatrix(object, newdata, ...)
+	# mf <- model.frame(object@formula, data = newdata, na.action = NULL)
+	# terms <- attr(mf, "terms")
+	# x <- model.matrix(terms, data = mf)
+	# coefx <- apply(object@coef, 2, function(z) x %*% z)
+	# probs <- exp(coefx)/rowSums(exp(coefx))
+	# probs
+# })
 
 
 
-#' Get local membership, fitted method for FLXPmultinom
-#'
 # @param object An object of class "FLXPmultinom".
 # @param \dots ...
-#'
-#' @import flexmix
-#' @export
-#' 
-#' @rdname FLXPmultinom-methods
-#' @aliases fitted,FLXPmultinom-method
-#'
-#' @docType methods
+#
+# @import flexmix
+# @export
+# 
+# @rdname FLXPmultinom-methods
+# @aliases fitted,FLXPmultinom-method
+#
+# @docType methods
+#
+# @usage \S4method{fitted}{object = "FLXPmultinom"}(object, ...)
 
-setMethod("fitted", signature(object = "FLXPmultinom"), function(object, ...) {
-	coefx <- apply(object@coef, 2, function(z) object@x %*% z)
-	probs <- exp(coefx)/rowSums(exp(coefx))
-	probs
-})
+# setMethod("fitted", signature(object = "FLXPmultinom"), function(object, ...) {
+	# coefx <- apply(object@coef, 2, function(z) object@x %*% z)
+	# probs <- exp(coefx)/rowSums(exp(coefx))
+	# probs
+# })
 
 
 # pr <- predict(res@concomitant, newdata = as.data.frame(d))
@@ -54,11 +74,33 @@ setMethod("fitted", signature(object = "FLXPmultinom"), function(object, ...) {
 #================================================================
 ## FLXPwlda
 
-#' @rdname FLXPwlda
+#' Concomitant model class.
+#'
+#' @title Class "FLXPwlda"
+#'
+#' @section Slots:
+#'  \describe{
+#'    \item{\code{name}:}{Character string used in print methods.}
+#'    \item{\code{formula}:}{Formula describing the model.}
+#'    \item{\code{x}:}{Model matrix.}
+#'    \item{\code{fit}:}{Function returning the fitted prior probabilities.}
+#'    \item{\code{refit}:}{Function returning the fitted concomitant model.}
+#'    \item{\code{coef}:}{Matrix containing the fitted parameters.}
+#'    \item{\code{df}:}{Function for determining the number of degrees of
+#'      freedom used.}
+#'  }
+#'
+#' @rdname FLXPwlda-class
 #' @aliases FLXPwlda-class
 #'
 #' @import flexmix
 #' @export
+#'
+#' @docType class
+#'
+#' @keywords class
+#'
+#' @seealso \code{\link[flexmix]{FLXP-class}}.
 
 setClass("FLXPwlda", contains = "FLXP")
 
@@ -67,6 +109,7 @@ setClass("FLXPwlda", contains = "FLXP")
 #' Creator function for the concomitant variable model. Priors are modeled by Linear Discriminant Analysis.
 #'
 #' @title Creator Function for the Concomitant Variable Model based on Linear Discriminant Analysis
+#'
 #' @param formula A formula for determining the model matrix of the concomitant variables.
 #'
 #' @return Object of class \code{FLXPwlda} which extends class \code{FLXP} directly and is used for method dispatching.
@@ -77,13 +120,13 @@ setClass("FLXPwlda", contains = "FLXP")
 #' @rdname FLXPwlda
 #' @aliases FLXPwlda
 #'
+#' @seealso \code{\link[flexmix]{FLXPmultinom}}.
+#'
 #' @examples
 #' library(locClassData)
 #' data <- flashData(1000)
 #' grid <- expand.grid(x.1=seq(-6,6,0.2), x.2=seq(-4,4,0.2))
 #' 
-## svm label switching!!!
-## was ist beim zusamensetzen der posteriors mit fehlenden klassen???
 #' cluster <- kmeans(data$x, center = 2)$cluster
 #' model <- FLXMCLlda()
 #' fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = model, cluster = cluster) 
@@ -93,22 +136,19 @@ setClass("FLXPwlda", contains = "FLXP")
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add = TRUE)
 #' points(data$x, pch = as.character(data$y))
-#loc <- predict(fit@concomitant, newdata = data)
-#points(data$x, pch = as.character(data$y), cex = loc[,1])
 #' 
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]][,1], length(seq(-6,6,0.2))), add = TRUE)
 #' points(data$x, pch = as.character(data$y))
-#points(data$x, col = data$y, pch = 19, cex = loc[,2])
 #' 
 #' ## prediction with aggregation depending on membership in mixture components
-#' pred.grid <- predict(fit, newdata = grid, local.aggregate = TRUE)
+#' pred.grid <- mypredict(fit, newdata = grid, aggregate = TRUE)
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add  = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #' 
 #' ## local membership
-#' loc.grid <- predict(fit@@concomitant, newdata = grid)
+#' loc.grid <- prior(fit, newdata = grid)
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 
 FLXPwlda <- function (formula = ~.) {
@@ -134,15 +174,7 @@ FLXPwlda <- function (formula = ~.) {
             w <- rep(1, nrow(y))
  		y <- factor(max.col(y))
         fit <- wlda(x, y, w, ...)
-        #fit$coefnames <- colnames(x)
         fit$weights <- w
-        #fit$vcoefnames <- fit$coefnames[seq_len(ncol(x))]
-        #fit$lab <- seq_len(ncol(y))
-        #class(fit) <- c("multinom", "nnet")
-        #fit$Hessian <- nnet:::multinomHess(fit, x)
-        #Xr <- qr(x)$rank
-        #edf <- (ncol(y) - 1) * Xr
-        #fit$df.residual <- sum(w) - edf
         class(fit) <- NULL
         as.matrix(fit)
     }
@@ -151,19 +183,48 @@ FLXPwlda <- function (formula = ~.) {
 
 
 
-# Get modelmatrix
+#' @noRd
+determinePrior <- flexmix:::determinePrior
+
+
+
+#' @noRd
+setMethod("determinePrior", signature(concomitant="FLXPwlda"), function(prior, concomitant, group) {
+	fit <- concomitant@coef
+	listnames <- rownames(fit)
+	attr(fit, "dim") <- NULL	
+	names(fit) <- listnames
+	class(fit) <- "wlda"
+	probs <- getS3method("predict", "wlda")(fit, newdata = concomitant@x)$posterior
+	probs
+})
+
+
+
+# Methods for Class FLXPwlda
 #
-#' @param model An object of class "FLXPwlda".
-#' @param data ...
-#' @param groups ...
-#' @param lhs ...
+# @param model An object of class "FLXPwlda".
+# @param data ...
+# @param groups ...
+# @param lhs ...
 # @param \dots ...
+#
+# @import flexmix
+# @export
+# 
+# @rdname FLXPwlda-methods
+# @aliases FLXgetModelmatrix,FLXPwlda-method
+#
+# @docType methods
+#
+# @usage \S4method{FLXgetModelmatrix}{object = "FLXPwlda"}(model, data, groups, lhs, ...)
+
+
+#' @rdname FLXPwlda
+#' @aliases FLXgetModelmatrix,FLXPwlda-method
 #'
 #' @import flexmix
 #' @export
-#' 
-#' @rdname FLXPwlda
-#' @aliases FLXgetModelmatrix,FLXPwlda-method
 #'
 #' @docType methods
 
@@ -184,62 +245,65 @@ setMethod("FLXgetModelmatrix", signature(model = "FLXPwlda"), function (model, d
 
 
 
-# Predict local membership, predict method for FLXPwlda
-#
-#' @param object An object of class "FLXPwlda".
-#' @param newdata Dataframe containing new data.
+# @param object An object of class "FLXPwlda".
+# @param newdata Dataframe containing new data.
 # @param \dots ...
-#'
-#' @import flexmix
-#' @export
-#' 
-#' @rdname FLXPwlda
-#' @aliases predict,FLXPwlda-method
-#'
-#' @docType methods
-
-setMethod("predict", signature(object = "FLXPwlda"), function(object, newdata, ...) {
-	# model <- FLXgetModelmatrix(object, newdata, ...)
-	mf <- model.frame(object@formula, data = newdata, na.action = NULL)
-	terms <- attr(mf, "terms")
-	attr(terms, "intercept") <- 0	# important: delete intercept
-	x <- model.matrix(terms, data = mf)
-	fit <- object@coef
-	listnames <- rownames(fit)
-#print(attributes(fit))	
-	attr(fit, "dim") <- NULL	
-#print(attributes(fit))
-	names(fit) <- listnames
-	class(fit) <- "wlda"
-#print(class(fit))
-	probs <- getS3method("predict", "wlda")(fit, newdata = x)$posterior
-	probs
-})
-
-
-
-# Get local membership, predict method for FLXPwla
 #
+# @import flexmix
+# @export
+# 
+# @rdname FLXPwlda-methods
+# @aliases predict,FLXPwlda-method
+#
+# @docType methods
+#
+# @usage \S4method{predict}{object = "FLXPwlda"}(object, newdata, ...)
+
+# setMethod("predict", signature(object="FLXdist"),
+# function(object, newdata=list(), aggregate=FALSE, ...){
+    # if (missing(newdata)) return(fitted(object, aggregate=aggregate, drop=FALSE))
+    # x = list()
+    # for(m in seq_along(object@model)) {
+      # comp <- lapply(object@components, "[[", m)
+      # x[[m]] <- predict(object@model[[m]], newdata, comp, ...)
+    # }
+    # if (aggregate) {
+      # prior_weights <- prior(object, newdata)
+      # z <- lapply(x, function(z) matrix(rowSums(do.call("cbind", z) * prior_weights), nrow = nrow(z[[1]])))
+    # }
+    # else {
+      # z <- list()
+      # for (k in seq_len(object@k)) {
+        # z[[k]] <- do.call("cbind", lapply(x, "[[", k))
+      # }
+      # names(z) <- paste("Comp", seq_len(object@k), sep=".")
+    # }
+    # z
+# })
+
+
 # @param object An object of class "FLXPwlda".
 # @param \dots ...
-#'
-#' @import flexmix
-#' @export
-#' 
-#' @rdname FLXPwlda
-#' @aliases fitted,FLXPwlda-method
-#'
-#' @docType methods
+#
+# @import flexmix
+# @export
+# 
+# @rdname FLXPwlda-methods
+# @aliases fitted,FLXPwlda-method
+#
+# @docType methods
+#
+# @usage \S4method{fitted}{object = "FLXPwlda"}(object, ...)
 
-setMethod("fitted", signature(object = "FLXPwlda"), function(object, ...) {
-	fit <- object@coef
-	listnames <- rownames(fit)
-#print(attributes(fit))	
-	attr(fit, "dim") <- NULL	
-#print(attributes(fit))
-	names(fit) <- listnames
-	class(fit) <- "wlda"
-#print(class(fit))
-	probs <- getS3method("predict", "wlda")(fit, newdata = object@x)$posterior
-	probs
-})
+# setMethod("fitted", signature(object = "FLXPwlda"), function(object, ...) {
+	# fit <- object@coef
+	# listnames <- rownames(fit)
+# #print(attributes(fit))	
+	# attr(fit, "dim") <- NULL	
+# #print(attributes(fit))
+	# names(fit) <- listnames
+	# class(fit) <- "wlda"
+# #print(class(fit))
+	# probs <- getS3method("predict", "wlda")(fit, newdata = object@x)$posterior
+	# probs
+# })
