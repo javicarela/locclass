@@ -63,7 +63,7 @@ test_that("dalda: initial weighting works correctly", {
 	## check if weighted solution with initial weights = 1 equals unweighted solution
 	fit1 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 2)
 	fit2 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 2, weights = rep(1,150))
-	expect_equal(fit1[-8],fit2[-8])
+	expect_equal(fit1[-9],fit2[-9])
 	## returned weights	
 	a <- rep(1,150)
 	names(a) <- 1:150
@@ -118,14 +118,14 @@ test_that("dalda: subsetting works", {
 	# formula, data
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8],fit2[-8])
+	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(1,80)
 	names(a) <- 1:80
 	expect_equal(fit1$weights[[1]], a)
 	# formula, data, weights
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, weights = rep(1:3, each = 50), wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris[1:80,], weights = rep(1:3, each = 50)[1:80], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8],fit2[-8])
+	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(80, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -136,14 +136,14 @@ test_that("dalda: subsetting works", {
 	# x, grouping
 	expect_that(fit1 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8],fit2[-8])
+	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(1,80)
 	names(a) <- 1:80
 	expect_equal(fit1$weights[[1]], a)
 	# x, grouping, weights
 	expect_that(fit1 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50), subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50)[1:80]), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8],fit2[-8])
+	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(80, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -170,7 +170,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -180,7 +180,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -191,7 +191,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -201,7 +201,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -215,7 +215,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -225,7 +225,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -235,7 +235,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -245,7 +245,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -259,7 +259,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -269,7 +269,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -283,7 +283,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -293,7 +293,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-c(8, 17)], fit2[-8])
+	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -303,7 +303,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -313,7 +313,7 @@ test_that("dalda: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -325,17 +325,17 @@ test_that("dalda: try all weight functions", {
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(0.5))    
 	fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 0.5)    
 	fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = gaussian(0.5))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	
 	expect_that(fit1 <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 30), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5, k = 30)), gives_warning("group setosa is empty or weights in this group are all zero"))   
 	expect_that(fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 0.5, k = 30), gives_warning("group setosa is empty or weights in this group are all zero"))    
 	expect_that(fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = gaussian(0.5, 30)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(30, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -344,9 +344,9 @@ test_that("dalda: try all weight functions", {
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = epanechnikov(bw = 5))
 	fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "epanechnikov", bw = 5)
 	fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = epanechnikov(5))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(150, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -355,9 +355,9 @@ test_that("dalda: try all weight functions", {
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 30)), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "rectangular", bw = 5, k = 30), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = rectangular(5, 30)), gives_warning("group setosa is empty or weights in this group are all zero"))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(30, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -366,9 +366,9 @@ test_that("dalda: try all weight functions", {
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = triangular(5))
 	fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "triangular", bw = 5)
 	fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = triangular(5))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(150, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -377,9 +377,9 @@ test_that("dalda: try all weight functions", {
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = biweight(5, k = 30)), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "biweight", bw = 5, k = 30), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = biweight(5, 30)), gives_warning("group setosa is empty or weights in this group are all zero"))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(30, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -388,9 +388,9 @@ test_that("dalda: try all weight functions", {
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = optcosine(5))
 	fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "optcosine", bw = 5)
 	fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = optcosine(5))    
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(150, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -399,9 +399,9 @@ test_that("dalda: try all weight functions", {
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = cosine(5, k = 30)), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit3 <- dalda(x = iris[,-5], grouping = iris$Species, wf = "cosine", bw = 5, k = 30), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit4 <- dalda(x = iris[,-5], grouping = iris$Species, wf = cosine(5, 30)), gives_warning("group setosa is empty or weights in this group are all zero"))   
-	expect_equal(fit1[-8], fit2[-8])
-	expect_equal(fit3[-8], fit4[-8])
-	expect_equal(fit2[c(1:7,9:14)], fit4[c(1:7,9:14)])
+	expect_equal(fit1[-9], fit2[-9])
+	expect_equal(fit3[-9], fit4[-9])
+	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	a <- rep(30, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -411,7 +411,7 @@ test_that("dalda: try all weight functions", {
 test_that("dalda: local solution with rectangular window function and large bw and global solution coincide", {
 	fit1 <- wlda(formula = Species ~ ., data = iris)
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = rectangular(20))
-	expect_equal(fit1[-c(7:8)], fit2[-c(7:14)])
+	expect_equal(fit1[-c(7,9)], fit2[-c(7,9:15)])
 	expect_equal(fit1$weights, fit2$weights[[1]])
 })
 
@@ -420,11 +420,11 @@ test_that("dalda: arguments related to weighting misspecified", {
 	# bw, k not required
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = gaussian(0.5), k = 30, bw = 0.5), gives_warning(c("argument 'k' is ignored", "argument 'bw' is ignored")))
 	fit2 <- dalda(Species ~ ., data = iris, wf = gaussian(0.5))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = gaussian(0.5), bw = 0.5), gives_warning("argument 'bw' is ignored"))	
 	fit2 <- dalda(Species ~ ., data = iris, wf = gaussian(0.5))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, 0.5)	
@@ -432,7 +432,7 @@ test_that("dalda: arguments related to weighting misspecified", {
 
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5, k = 30), gives_warning(c("argument 'k' is ignored", "argument 'bw' is ignored")))
 	expect_that(fit2 <- dalda(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30), gives_warning("argument 'k' is ignored"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, NULL)	
@@ -440,7 +440,7 @@ test_that("dalda: arguments related to weighting misspecified", {
 
 	expect_that(fit1 <- dalda(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5), gives_warning("argument 'bw' is ignored"))
 	fit2 <- dalda(Species ~ ., data = iris, wf = function(x) exp(-x))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, NULL)	
@@ -480,7 +480,7 @@ test_that("dalda: weighting schemes work", {
 	# fixed bw
 	fit1 <- dalda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5)
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 5)
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)
@@ -489,20 +489,20 @@ test_that("dalda: weighting schemes work", {
 	# adaptive bw, only knn 
 	expect_that(fit1 <- dalda(formula = Species ~ ., data = iris, wf = "rectangular", k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = rectangular(k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$bw, NULL)
 	expect_true(fit1$nn.only)
 	expect_true(fit1$adaptive)
-	a <- rep(50, 3)
+	a <- rep(51, 3) ###
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 
 	# fixed bw, only knn
 	fit1 <- dalda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 50)
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 50))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 5)
 	expect_equal(fit1$k, 50)
 	expect_true(fit1$nn.only)
@@ -521,7 +521,7 @@ test_that("dalda: weighting schemes work", {
 	# fixed bw
 	fit1 <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5)
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 0.5)
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)
@@ -533,7 +533,7 @@ test_that("dalda: weighting schemes work", {
 	# adaptive bw, only knn
 	expect_that(fit1 <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, TRUE)
@@ -545,7 +545,7 @@ test_that("dalda: weighting schemes work", {
 	# adaptive bw, all obs
 	fit1 <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", k = 50, nn.only = FALSE)
 	fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(k = 50, nn.only = FALSE))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, FALSE)
@@ -557,7 +557,7 @@ test_that("dalda: weighting schemes work", {
 	# fixed bw, only knn
 	expect_that(fit1 <- dalda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 1, k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_that(fit2 <- dalda(formula = Species ~ ., data = iris, wf = gaussian(bw = 1, k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_equal(fit1[-8], fit2[-8])
+	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 1)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, TRUE)

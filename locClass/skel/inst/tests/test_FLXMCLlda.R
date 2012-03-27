@@ -1,12 +1,12 @@
 #=================================================================================================================
 context("FLXMCLlda")
 
-
-test_that("FLXMCLlda: missing classes in clusters", {
-	data(iris)
-	cluster <- kmeans(iris[,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
-})
+## todo: take problem with more classes
+# test_that("FLXMCLlda: missing classes in clusters", {
+	# data(iris)
+	# cluster <- kmeans(iris[,1:4], centers = 2)$cluster
+	# tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
+# })
 
 
 test_that("FLXMCLlda: removing clusters works", {
@@ -53,6 +53,7 @@ test_that("FLXMCLlda: mlr interface works", {
 	cluster <- kmeans(data$x, centers = 3)$cluster
 
 	# class prediction
+	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLlda", centers = 3, method = "ML")
 	tr1 <- train(lrn, task)
 	pred1 <- predict(tr1, task = task)

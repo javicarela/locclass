@@ -57,7 +57,7 @@ test_that("FLXMCLnnet: mlr interface works", {
 
 	# class prediction
 	set.seed(120)
-	lrn <- makeLearner("classif.FLXMCLnnet", centers = 3, Wts = Wts, size = 1, trace = TRUE)
+	lrn <- makeLearner("classif.FLXMCLnnet", centers = 3, Wts = Wts, size = 1, trace = FALSE)
 	tr1 <- train(lrn, task)
 	pred1 <- predict(tr1, task = task)
 	
@@ -79,13 +79,13 @@ test_that("FLXMCLnnet: mlr interface works", {
 	
 	# class prediction
 	set.seed(120)
-	lrn <- makeLearner("classif.FLXMCLnnet", centers = 3, Wts = Wts, size = 1, trace = TRUE, classify = "hard")
+	lrn <- makeLearner("classif.FLXMCLnnet", centers = 3, Wts = Wts, size = 1, trace = FALSE, classify = "hard")
 	tr1 <- train(lrn, task)
 	pred1 <- predict(tr1, task = task)
 
 	# posterior prediction
 	set.seed(120)
-	lrn <- makeLearner("classif.FLXMCLnnet", par.vals = list(Wts = Wts, size = 1, trace = TRUE, centers = 3, iter.max = 200, classify = "hard"), predict.type = "prob")
+	lrn <- makeLearner("classif.FLXMCLnnet", par.vals = list(Wts = Wts, size = 1, trace = FALSE, centers = 3, iter.max = 200, classify = "hard"), predict.type = "prob")
 	tr2 <- train(lrn, task)
 	pred2 <- predict(tr2, task = task)
 

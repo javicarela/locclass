@@ -277,13 +277,13 @@ test_that("osnnet: local solution with rectangular window function and large bw 
 	## formula
 	fit1 <- nnet(formula = Species ~ ., data = iris, Wts = Wts, size = 2, trace = FALSE)
 	pred1 <- predict(fit1)
-	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(10), Wts = Wts, size = 2, trace = FALSE)
+	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(8), Wts = Wts, size = 2, trace = FALSE)
 	pred2 <- predict(fit2)
 	expect_equal(pred1, pred2)
 	## matrix
 	fit3 <- nnet(y = class.ind(iris$Species), x = iris[,-5], softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	pred3 <- predict(fit3)
-	fit4 <- osnnet(y = class.ind(iris$Species), x = iris[,-5], wf = rectangular(10), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
+	fit4 <- osnnet(y = class.ind(iris$Species), x = iris[,-5], wf = rectangular(8), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	pred4 <- predict(fit4)
 	expect_equivalent(pred3, pred4)
 })

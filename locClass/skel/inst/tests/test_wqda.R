@@ -46,7 +46,7 @@ test_that("wqda: weighting works correctly", {
 	## check if weighted solution with all weights = 1 equals unweighted solution
 	fit1 <- wqda(Species ~ ., data = iris)
 	fit2 <- wqda(Species ~ ., data = iris, weights = rep(1,150))
-	expect_equal(fit1[c(1:7,9:10)],fit2[c(1:7,9:10)])
+	expect_equal(fit1[-9],fit2[-9])
 	## returned weights	
 	a <- rep(1,150)
 	names(a) <- 1:150
@@ -85,20 +85,20 @@ test_that("wqda: subsetting works", {
 	# formula, data
 	fit1 <- wqda(Species ~ ., data = iris, subset = 1:80)
 	fit2 <- wqda(Species ~ ., data = iris[1:80,])
-	expect_equal(fit1[c(1:7,9:10)],fit2[c(1:7,9:10)])
+	expect_equal(fit1[-9],fit2[-9])
 	# formula, data, weights
 	fit1 <- wqda(Species ~ ., data = iris, weights = rep(1:3, each = 50), subset = 1:80)
 	fit2 <- wqda(Species ~ ., data = iris[1:80,], weights = rep(1:3, each = 50)[1:80])
-	expect_equal(fit1[c(1:7,9:10)],fit2[c(1:7,9:10)])
+	expect_equal(fit1[-9],fit2[-9])
 	expect_equal(length(fit1$weights), 80)
 	# x, grouping
 	fit1 <- wqda(grouping = iris$Species, x = iris[,-5], subset = 1:80)
 	fit2 <- wqda(grouping = iris$Species[1:80], x = iris[1:80,-5])
-	expect_equal(fit1[c(1:7)],fit2[c(1:7)])
+	expect_equal(fit1[c(1:8)],fit2[c(1:8)])
 	# x, grouping, weights
 	fit1 <- wqda(grouping = iris$Species, x = iris[,-5], weights = rep(1:3, each = 50), subset = 1:80)
 	fit2 <- wqda(grouping = iris$Species[1:80], x = iris[1:80,-5], weights = rep(1:3, each = 50)[1:80])
-	expect_equal(fit1[c(1:7)],fit2[c(1:7)])
+	expect_equal(fit1[c(1:8)],fit2[c(1:8)])
 	expect_equal(length(fit1$weights), 80)
 	# wrong specification of subset argument
 	expect_error(wqda(Species ~ ., data = iris, subset = iris[1:10,]))
@@ -119,7 +119,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = irisna, subset = 6:60, na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = irisna, subset = 11:60)
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## formula, data, weights
 	# na.fail
@@ -127,7 +127,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = irisna, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = irisna, subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping
 	# na.fail
@@ -135,7 +135,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.omit)
 	fit2 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 11:60)
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping, weights
 	# na.fail
@@ -143,7 +143,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 6:60, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 	
 	### NA in grouping
@@ -155,7 +155,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = irisna, subset = 6:60, na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = irisna, subset = 11:60)
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## formula, data, weights
 	# na.fail
@@ -163,7 +163,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = irisna, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = irisna, subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping
 	# na.fail
@@ -171,7 +171,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 6:60, na.action = na.omit)
 	fit2 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 11:60)
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping, weights
 	# na.fail
@@ -179,7 +179,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 6:60, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(grouping = irisna$Species, x = irisna[,-5], subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 
 	### NA in weights
@@ -191,7 +191,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = iris, subset = 6:60, weights = weights, na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = iris, subset = 11:60, weights = weights)
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping, weights
 	# na.fail
@@ -199,7 +199,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = iris$Species, x = iris[,-5], subset = 6:60, weights = weights, na.action = na.omit)
 	fit2 <- wqda(grouping = iris$Species, x = iris[,-5], subset = 11:60, weights = weights)
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 
 	### NA in subset
@@ -211,7 +211,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = iris, subset = subset, na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = iris, subset = 11:60)
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## formula, data, weights
 	# na.fail
@@ -219,7 +219,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(Species ~ ., data = iris, subset = subset, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(Species ~ ., data = iris, subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[-c(8, 11)], fit2[-8])
+	expect_equal(fit1[-c(9, 12)], fit2[-9])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping
 	# na.fail
@@ -227,7 +227,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = iris$Species, x = iris[,-5], subset = subset, na.action = na.omit)
 	fit2 <- wqda(grouping = iris$Species, x = iris[,-5], subset = 11:60)
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 	## x, grouping, weights
 	# na.fail
@@ -235,7 +235,7 @@ test_that("wqda: NA handling works correctly", {
 	# check if na.omit works correctly
 	fit1 <- wqda(grouping = iris$Species, x = iris[,-5], subset = subset, weights = rep(1:3, 50), na.action = na.omit)
 	fit2 <- wqda(grouping = iris$Species, x = iris[,-5], subset = 11:60, weights = rep(1:3, 50))
-	expect_equal(fit1[1:7], fit2[1:7])
+	expect_equal(fit1[1:8], fit2[1:8])
 	expect_equal(length(fit1$weights), 50)
 })
 

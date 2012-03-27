@@ -5,7 +5,7 @@ context("FLXMCLmultinom")
 test_that("FLXMCLmultinom: missing classes in clusters", {
 	data(iris)
 	cluster <- kmeans(iris[,1:4], centers = 3)$cluster
-	tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLmultinom(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
+	tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLmultinom(trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
 	pred2 <- mypredict(tr2, aggregate = TRUE)
 })
 # no problem
@@ -15,7 +15,7 @@ test_that("FLXMCLmultinom: removing clusters works", {
 	library(locClassData)
 	data <- flashData(500)
 	cluster <- kmeans(data$x, centers = 12)$cluster
-	tr2 <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLmultinom(), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLmultinom(trace = FALSE), cluster = cluster, control = list(iter.max = 200))
 	expect_equal(length(tr2@components), 8)
 	expect_equal(ncol(tr2@posterior$scaled), 8)
 })
