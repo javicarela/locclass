@@ -78,8 +78,13 @@ setMethod(
 		def = function(.learner, .model, .newdata, ...) {
 			if (.learner@predict.type == "response")
 				p = predict(.model@learner.model, newdata = .newdata, type = "class", ...)
-			else
+			else {
 				p = predict(.model@learner.model, newdata = .newdata, type = "probs", ...)
+				if (length(.model@task.desc@class.levels) == 2) {
+          			p <- cbind(1-p, p) 
+					colnames(p) = .model@task.desc@class.levels
+				}
+			}
 			return(p)
 		}
 )
