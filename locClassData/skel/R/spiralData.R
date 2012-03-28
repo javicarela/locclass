@@ -96,9 +96,7 @@
 # post <- apply(grid, 1, function(z) min(sqrt(colSums((t(p) - z)^2))))
 # ## distance between 2 arms of spiral is sqrt(2)*2/3
 # post[post > 1/3] <-  1/3
-# p.min <- min(post)
-# p.max <- max(post)
-# post <- (post - p.min)/(p.max - p.min)
+# post <- 3*post
 # image(x,x,matrix(post, length(x)))
 # contour(x,x,matrix(post, length(x)), add = TRUE)
 # points(p)
@@ -107,13 +105,12 @@
 
 spiralData <- function(n = 100, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
-	r <- max(abs(range(sp[,1])))
+	r <- (cycles + 0.5) * 2/3
+	# r <- max(abs(range(sp[,1])))
 	data <- matrix(rnorm(2 * n, sd = sqrt(r)), ncol = 2)
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
-	posterior.min <- min(posterior)
-	posterior.max <- max(posterior)
-	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+	posterior <- 3 * posterior
 	y <- as.factor(sapply(posterior, function(x) sample(1:2, size = 1, prob = c(1-x,x))))
 	data <- list(x = data, y = y)
 	class(data) <- c("locClass.spiralData", "locClass")
@@ -133,9 +130,7 @@ spiralLabels <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
-	posterior.min <- min(posterior)
-	posterior.max <- max(posterior)
-	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+	posterior <- 3 * posterior
 	classes <- as.factor(sapply(posterior, function(x) sample(1:2, size = 1, prob = c(1-x,x))))
 	return(classes)
 }	
@@ -152,9 +147,7 @@ spiralPosterior <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
-	posterior.min <- min(posterior)
-	posterior.max <- max(posterior)
-	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+	posterior <- 3 * posterior
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
 	return(posterior)	
@@ -172,9 +165,7 @@ spiralBayesClass <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
-	posterior.min <- min(posterior)
-	posterior.max <- max(posterior)
-	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+	posterior <- 3 * posterior
 	bayesclass <- as.factor(round(posterior) + 1)
 	return(bayesclass)
 }

@@ -210,9 +210,7 @@ bayes.locClass.spiralData <- function(object, ...) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
 	posterior <- apply(x, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
-	posterior.min <- min(posterior)
-	posterior.max <- max(posterior)
-	posterior <- (posterior - posterior.min)/(posterior.max - posterior.min)
+	posterior <- 3 * posterior
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
     ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
@@ -306,7 +304,7 @@ bayes.locClass.wData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
-	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - floor(x[,1]) - 0.5))
+	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] %% 1 - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
     posterior <- cbind(1 - posterior, posterior)
