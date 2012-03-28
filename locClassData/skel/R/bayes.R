@@ -306,11 +306,10 @@ bayes.locClass.wData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
-	posterior.2 <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - x[,1] %/% 1 - 0.5))
-	posterior.2[posterior.2 < 0] <- 0 
-	posterior.2[posterior.2 > 1] <- 1 
-    posterior.1 <- 1 - posterior.2
-    posterior <- cbind(posterior.1, posterior.2)
+	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - floor(x[,1]) - 0.5))
+	posterior[posterior < 0] <- 0 
+	posterior[posterior > 1] <- 1 
+    posterior <- cbind(1 - posterior, posterior)
     ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
     return(list(ybayes = ybayes, posterior = posterior))
 }

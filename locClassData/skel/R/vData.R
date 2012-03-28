@@ -22,7 +22,7 @@
 #'
 #' @param n Number of observations.
 #' @param d The dimensionality.
-#' @param k Parameter to adjust .
+#' @param k Parameter to adjust the noise level.
 #' @param data A \code{data.frame}.
 #'
 #' @return
@@ -92,7 +92,7 @@ vData <- function (n, d = 2, k = 1) {
 #'
 #' @export
 
-vLabels <- function(data, k = 2) {
+vLabels <- function(data, k = 1) {
 	d <- ncol(data)
 	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - 0.5))
 	posterior[posterior < 0] <- 0 
@@ -109,7 +109,7 @@ vLabels <- function(data, k = 2) {
 #'
 #' @export
 
-vPosterior <- function(data, k = 2) {
+vPosterior <- function(data, k = 1) {
 	d <- ncol(data)
 	posterior.2 <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - 0.5))
 	posterior.2[posterior.2 < 0] <- 0 
@@ -128,7 +128,7 @@ vPosterior <- function(data, k = 2) {
 #'
 #' @export
 
-vBayesClass <- function(data, k = 2) {
+vBayesClass <- function(data, k = 1) {
 	d <- ncol(data)
 	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - 0.5))
 	posterior[posterior < 0] <- 0 

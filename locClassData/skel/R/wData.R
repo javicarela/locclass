@@ -22,7 +22,7 @@
 #'
 #' @param n Number of observations.
 #' @param d The dimensionality.
-#' @param k Parameter to adjust .
+#' @param k Parameter to adjust the noise level.
 #' @param data A \code{data.frame}.
 #'
 #' @return
@@ -73,7 +73,7 @@
 wData <- function (n, d = 2, k = 1) {
     data <- matrix(runif(d * n), nrow = n)
     data[,1] <- data[,1] * 3
-	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - data[,1] %/% 1 - 0.5))
+	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - floor(data[,1]) - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
     y <- as.factor(sapply(posterior, function(x) sample(1:2, 
@@ -93,9 +93,9 @@ wData <- function (n, d = 2, k = 1) {
 #'
 #' @export
 
-wLabels <- function(data, k = 2) {
+wLabels <- function(data, k = 1) {
 	d <- ncol(data)
-	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - data[,1] %/% 1 - 0.5))
+	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - floor(data[,1]) - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
 	classes <- as.factor(sapply(posterior, function(x) sample(1:2, size = 1, prob = c(1-x,x))))
@@ -110,9 +110,9 @@ wLabels <- function(data, k = 2) {
 #'
 #' @export
 
-wPosterior <- function(data, k = 2) {
+wPosterior <- function(data, k = 1) {
 	d <- ncol(data)
-	posterior.2 <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - data[,1] %/% 1 - 0.5))
+	posterior.2 <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - floor(data[,1]) - 0.5))
 	posterior.2[posterior.2 < 0] <- 0 
 	posterior.2[posterior.2 > 1] <- 1 
     posterior.1 <- 1 - posterior.2
@@ -129,9 +129,9 @@ wPosterior <- function(data, k = 2) {
 #'
 #' @export
 
-wBayesClass <- function(data, k = 2) {
+wBayesClass <- function(data, k = 1) {
 	d <- ncol(data)
-	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - data[,1] %/% 1 - 0.5))
+	posterior <- 0.5 + k * (data[,2] - 2 * abs(data[,1] - floor(data[,1]) - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
 	bayesclass <- as.factor(round(posterior) + 1)
