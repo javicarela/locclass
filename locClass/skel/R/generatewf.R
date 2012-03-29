@@ -735,7 +735,7 @@ gaussian <- function(bw, k, nn.only = TRUE) {
         		}
         	} else {
         		gauss <- function(x) {
-        			bw <- sort(abs(x))[k+1]
+        			bw <- sort(abs(x))[k+1] + .Machine$double.eps
         			dnorm(x, sd = bw)
         		}
         	}
