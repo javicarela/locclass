@@ -132,7 +132,7 @@ SEXP predossvm (SEXP s_y,
 	/* initialization */
     struct svm_parameter par;
     struct svm_problem problem;
-	struct svm_model model;
+	struct svm_model * model = NULL;
     struct svm_node	** train;
 	
 	SEXP s_dist;								// distances to test observation
@@ -237,6 +237,7 @@ SEXP predossvm (SEXP s_y,
 	/* check parameters & copy error message */
 	s = svm_check_parameter(&problem, &par);
 	if (s) {
+		//error(s);
 		//strcpy(*error, s);
 		SEXP s_error;
 		PROTECT(s_error = mkChar(s));
@@ -311,40 +312,42 @@ SEXP predossvm (SEXP s_y,
 			//Rprintf("seed %u\n", INTEGER(s_seed)[0]);
 			//Rprintf ("random number: %u\n", rand());			
 			/* call svm_train */
-			model = *svm_train(&problem, &par);
+			model = svm_train(&problem, &par);
 			
-			nr_class = svm_get_nr_class(&model);
+			//Rprintf("problem.l %u\n", problem.l);
+			
+			nr_class = svm_get_nr_class(model);
 			//Rprintf("nr_class %u\n", nr_class);
-			svm_get_labels(&model, labels);
+			svm_get_labels(model, labels);
 			/*for (i = 0; i < nr_class; i++) {
 				Rprintf("labels %u\n", labels[i]);
 			}*/
-			//Rprintf("model.l %u\n", model.l);
+			//Rprintf("model->l %u\n", model->l);
 			/*for(i = 0;i < nr_class * (nr_class - 1) / 2; i++) {
-				Rprintf("model.rho %f\n", model.rho[i]);
+				Rprintf("model->rho %f\n", model->rho[i]);
 			}*/
 			/*for(i = 0;i < nr_class; i++) {
-				Rprintf("model.nSV %u\n", model.nSV[i]);
+				Rprintf("model->nSV %u\n", model->nSV[i]);
 			}*/
 			
 			/* call svm_predict */
-			if (INTEGER(s_probability) && svm_check_probability_model(&model)) {
+			if (INTEGER(s_probability) && svm_check_probability_model(model)) {
 				/*for(i = 0;i < nr_class * (nr_class - 1) / 2; i++) {
-					Rprintf("model.probA %f\n", model.probA[i]);
-					Rprintf("model.probB %f\n", model.probB[i]);
+					Rprintf("model->probA %f\n", model->probA[i]);
+					Rprintf("model->probB %f\n", model->probB[i]);
 				}*/
 				//Rprintf("prob calculated, test obs = %u\n", n+1);
 				//if (nr_class < *nclasses) {
-					ret[n] = svm_predict_probability(&model, train[n], prob_vector);
+					ret[n] = svm_predict_probability(model, train[n], prob_vector);
 					for (j = 0; j < nr_class; j++) {
 						//Rprintf("index prob %u\n", n * *nclasses + labels[j] - 1);
 						prob[n * *nclasses + labels[j] - 1] = prob_vector[j];
 					}
 				//} else {
-				//	ret[n] = svm_predict_probability(&model, train[n], prob + n * *nclasses);
+				//	ret[n] = svm_predict_probability(model, train[n], prob + n * *nclasses);
 				//}
 			} else {
-				ret[n] = svm_predict(&model, train[n]);
+				ret[n] = svm_predict(model, train[n]);
 			}			
 
 			/*Rprintf("ret %f\n", ret[n]);
@@ -356,14 +359,14 @@ SEXP predossvm (SEXP s_y,
 			if (INTEGER(s_decisionvalues)) {
 				/* test: dec_vector stays zero of nr_class == 1
 				if (nr_class == 1) {
-					svm_predict_values(&model, train[n], dec_vector);
+					svm_predict_values(model, train[n], dec_vector);
 					Rprintf("dec_vector[1] %f\n", dec_vector[1]);
 					Rprintf("dec_vector[2] %f\n", dec_vector[2]);
 					Rprintf("dec_vector[3] %f\n", dec_vector[3]);					
 				}*/
 				//if (nr_class > 1 && nr_class < *nclasses) {
 					p = 0;
-					svm_predict_values(&model, train[n], dec_vector);
+					svm_predict_values(model, train[n], dec_vector);
 					for (i = 0; i < nr_class; i++) {
 						for (j = i + 1; j < nr_class; j++) {
 							if (labels[i] < labels[j]) {
@@ -377,7 +380,7 @@ SEXP predossvm (SEXP s_y,
 						}
 					}
 				//} else {
-				//	svm_predict_values(&model, train[n], dec + n * *nclasses * (*nclasses - 1) / 2);
+				//	svm_predict_values(model, train[n], dec + n * *nclasses * (*nclasses - 1) / 2);
 				//}
 			}
 
@@ -395,7 +398,9 @@ SEXP predossvm (SEXP s_y,
 		//SET_VECTOR_ELT(s_res, 4, s_dist);
 		//SET_VECTOR_ELT(s_res, 5, s_caseweights);
 		
-
+		/* clean up memory */
+		svm_free_and_destroy_model(&model);
+		
 	}
 
 	/* clean up memory */
