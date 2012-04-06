@@ -132,7 +132,6 @@ SEXP predossvm (SEXP s_y,
 	/* initialization */
     struct svm_parameter par;
     struct svm_problem problem;
-	struct svm_model * model = NULL;
     struct svm_node	** train;
 	
 	SEXP s_dist;								// distances to test observation
@@ -251,6 +250,8 @@ SEXP predossvm (SEXP s_y,
 		/* loop over all test observations */
 		for (n = 0; n < ter; n++) {
 			
+			struct svm_model * model = NULL;
+			
 			/* initialization */
 			sum_weights = 0.0;
 			for (j = 0; j < *nclasses * (*nclasses - 1) / 2; j++) {
@@ -311,11 +312,10 @@ SEXP predossvm (SEXP s_y,
 			srand(INTEGER(s_seed)[0]);
 			//Rprintf("seed %u\n", INTEGER(s_seed)[0]);
 			//Rprintf ("random number: %u\n", rand());			
+			
 			/* call svm_train */
 			model = svm_train(&problem, &par);
-			
-			//Rprintf("problem.l %u\n", problem.l);
-			
+						
 			nr_class = svm_get_nr_class(model);
 			//Rprintf("nr_class %u\n", nr_class);
 			svm_get_labels(model, labels);
@@ -388,6 +388,8 @@ SEXP predossvm (SEXP s_y,
 			/*for (i = 0; i < *nclasses; i++) {
 				Rprintf("dec %f\n", dec[i + n * *nclasses * (*nclasses - 1) / 2]);
 			}*/
+			/* clean up memory */
+			svm_free_and_destroy_model(&model);
 
 		}
 		
@@ -397,9 +399,6 @@ SEXP predossvm (SEXP s_y,
 		
 		//SET_VECTOR_ELT(s_res, 4, s_dist);
 		//SET_VECTOR_ELT(s_res, 5, s_caseweights);
-		
-		/* clean up memory */
-		svm_free_and_destroy_model(&model);
 		
 	}
 
