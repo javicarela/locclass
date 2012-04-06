@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' Description
+#' Calculate posterior probabilities and Bayes predictions.
 #'
-#' Details
+# Details
 #'
-#' @title Calculate Posterior Probabilities and Bayes Predictions 
+#' @title Calculate Posterior Probabilities and Bayes Predictions
 #'
 #' @param object An object of class \code{"locClass"}.
 #' @param \dots Currently unused.

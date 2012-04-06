@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Create a binary classification problem with V-shaped decision boundary.
 #'
-#' details
+# details
 #'
-#' @title Create an Artificial Classification Problem with V-shaped decision boundary
+#' @title Create a Binary Classification Problem with V-shaped Decision Boundary
 #'
 #' @param n Number of observations.
 #' @param prior Vector of class prior probabilities.
@@ -33,7 +33,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{vNormalQuadraticData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -59,7 +59,7 @@
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     mean(pred$class != test$y)
@@ -85,7 +85,7 @@ vNormalQuadraticData <- function(n, prior = rep(0.5,2), lambda = rep(0.5,2), sig
 }
 
 
-#' @return returns a factor of class labels.
+#' @return \code{vNormalQuadraticLabels} returns a factor of class labels.
 #'
 #' @rdname vNormalQuadraticData
 #'
@@ -98,7 +98,7 @@ vNormalQuadraticLabels <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2)
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{vNormalQuadraticPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname vNormalQuadraticData
 #'
@@ -111,7 +111,7 @@ vNormalQuadraticPosterior <- function(data, prior = rep(0.5,2), lambda = rep(0.5
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{vNormalQuadraticBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname vNormalQuadraticData
 #'

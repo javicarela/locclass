@@ -14,9 +14,9 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Generation of Gaussian mixture data for classification.
 #'
-#' details
+# details
 #'
 #' @title Generation of Gaussian Mixture Data for Classification
 #' 
@@ -35,7 +35,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{mixtureData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -64,7 +64,7 @@
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     mean(pred$class != test$y)
@@ -179,7 +179,7 @@ mixtureDataHelper <- function(n_k, lambda_k, mu_k, sigma_k) {
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{mixtureLabels} returns a factor of class labels.
 #'
 #' @rdname mixtureData
 #'
@@ -194,7 +194,7 @@ mixtureLabels <- function(data, prior, lambda, mu, sigma) {
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{mixturePosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname mixtureData
 #'
@@ -270,7 +270,7 @@ mixturePosteriorHelper <- function(data, lambda_k, mu_k, sigma_k) {
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{mixtureBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname mixtureData
 #'

@@ -15,18 +15,18 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Create a binary classification problem with spiral-shaped decision boundary.
 #'
 #' These functions are based on the function \code{\link[mlbench]{mlbench.1spiral}} from package \pkg{mlbench}.
 #'
 #' @title Create Spiral Data
 #'
 #' @param n Number of observations.
-#' @param cycles Number of cycles the spirals make.
+#' @param cycles Number of cycles the spiral makes.
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{spiralData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -36,7 +36,7 @@
 #' test <- spiralData(1000)
 #'
 #' # Generate a grid of points
-#' x.1 <- x.2 <- seq(0.01,1,0.01)
+#' x.1 <- x.2 <- seq(-2,2,0.05)
 #' grid <- expand.grid(x.1 = x.1, x.2 = x.2)
 #'
 #' # Calculate the posterior probablities for all grid points
@@ -52,7 +52,7 @@
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     mean(pred$class != test$y)
@@ -131,7 +131,7 @@ spiralData <- function(n = 100, cycles = 1) {
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{spiralLabels} returns a factor of class labels.
 #'
 #' @rdname spiralData
 #'
@@ -151,7 +151,7 @@ spiralLabels <- function(data, cycles = 1) {
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{spiralPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname spiralData
 #'
@@ -172,7 +172,7 @@ spiralPosterior <- function(data, cycles = 1) {
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{spiralBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname spiralData
 #'

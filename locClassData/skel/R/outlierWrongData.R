@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Generation of a binary classification problem with outliers on the wrong side of the decision boundary.
 #'
-#' details
+# details
 #'
-#' @title Generation of a Classification Problem with Outliers From The Wrong Class
+#' @title Generation of a Binary Classification Problem with Outliers
 #' 
 #' @param n Number of observations.
 #' @param alpha Distance from class center to the outliers in the x-coordinate.
@@ -28,7 +28,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{outlierWrongData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -54,7 +54,7 @@
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     print(mean(pred$class != test$y))
@@ -81,7 +81,7 @@ outlierWrongData <- function(n, alpha = 5, beta = 5, prop = 0.05, prior = rep(0.
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{outlierWrongLabels} returns a factor of class labels.
 #'
 #' @rdname outlierWrongData
 #'
@@ -93,7 +93,7 @@ outlierWrongLabels <- function(data, alpha = 5, beta = 5, prop = 0.05, prior = r
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{outlierWrongPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname outlierWrongData
 #'
@@ -105,7 +105,7 @@ outlierWrongPosterior <- function(data, alpha = 5, beta = 5, prop = 0.05, prior 
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{outlierWrongBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname outlierWrongData
 #'

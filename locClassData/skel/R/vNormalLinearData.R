@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Create a binary classification problem with V-shaped decision boundary.
 #'
-#' details
+# details
 #'
-#' @title Create an Artificial Classification Problem with V-shaped decision boundary
+#' @title Create a Binary Classification Problem with V-shaped Decision Boundary
 #'
 #' @param n Number of observations.
 #' @param prior Vector of class prior probabilities.
@@ -33,33 +33,33 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{vNormalLinearData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
 #' @examples
 #' # Generate a training and a test set
-#' train <- vNormalData(1000)
-#' test <- vNormalData(1000)
+#' train <- vNormalLinearData(1000)
+#' test <- vNormalLinearData(1000)
 #'
 #' # Generate a grid of points
 #' x.1 <- x.2 <- seq(-5,5,0.1)
 #' grid <- expand.grid(x.1 = x.1, x.2 = x.2)
 #'
 #' # Calculate the posterior probablities for all grid points
-#' gridPosterior <- vNormalPosterior(grid)
+#' gridPosterior <- vNormalLinearPosterior(grid)
 #'
 #' # Draw contour lines of posterior probabilities and plot training observations
 #' contour(x.1, x.2, matrix(gridPosterior[,1], length(x.1)), col = "gray")
 #' points(train$x, col = train$y)
 #'
 #' # Calculate Bayes error
-#' ybayes <- vNormalBayesClass(test$x)
+#' ybayes <- vNormalLinearBayesClass(test$x)
 #' mean(ybayes != test$y)
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     mean(pred$class != test$y)
@@ -70,54 +70,54 @@
 #'
 #' }
 #'
-#' @aliases vNormalData vNormalLabels vNormalPosterior vNormalBayesClass
+#' @aliases vNormalLinearData vNormalLinearLabels vNormalLinearPosterior vNormalLinearBayesClass
 #'
-#' @rdname vNormalData
+#' @rdname vNormalLinearData
 #'
 #' @export
 #'
 
-vNormalData <- function(n, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
+vNormalLinearData <- function(n, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
 	mu <- list(rbind(c(-3,0), c(3,0)), rbind(c(-2,1), c(2,1)))
 	data <- mixtureData(n, prior, lambda, mu, sigma)
-	class(data) <- c("locClass.vNormalData", class(data))
+	class(data) <- c("locClass.vNormalLinearData", class(data))
 	return(data)
 }
 
 
-#' @return returns a factor of class labels.
+#' @return \code{vNormalLinearLabels} returns a factor of class labels.
 #'
-#' @rdname vNormalData
+#' @rdname vNormalLinearData
 #'
 #' @export
 
-vNormalLabels <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
+vNormalLinearLabels <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
 	mu <- list(rbind(c(-3,0), c(3,0)), rbind(c(-2,1), c(2,1)))
 	return(mixtureLabels(data, prior, lambda, mu, sigma))
 }	
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{vNormalLinearPosterior} returns a matrix of posterior probabilities.
 #'
-#' @rdname vNormalData
+#' @rdname vNormalLinearData
 #'
 #' @export
 
-vNormalPosterior <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
+vNormalLinearPosterior <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
 	mu <- list(rbind(c(-3,0), c(3,0)), rbind(c(-2,1), c(2,1)))
 	return(mixturePosterior(data, prior, lambda, mu, sigma))
 }
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{vNormalLinearBayesClass} returns a factor of Bayes predictions.
 #'
-#' @rdname vNormalData
+#' @rdname vNormalLinearData
 #'
 #' @export
 
-vNormalBayesClass <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
+vNormalLinearBayesClass <- function(data, prior = rep(0.5,2), lambda = rep(0.5,2), sigma = diag(2)) {
 	mu <- list(rbind(c(-3,0), c(3,0)), rbind(c(-2,1), c(2,1)))
 	return(mixtureBayesClass(data, prior, lambda, mu, sigma))
 }

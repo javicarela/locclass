@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Generate a binary classification problem with two Gaussian distributions with different means and covariance matrices.
 #'
-#' details
+# details
 #'
-#' @title Generation of Two-Class Classification Problem with two Gaussian distributions
+#' @title Generate a Binary Classification Problem with Two Gaussian Distributions
 #' 
 #' @param n Number of observations.
 #' @param prior Vector of class prior probabilities.
@@ -29,7 +29,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{twonormQuadraticData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -52,7 +52,7 @@ twonormQuadraticData <- function(n, prior = rep(0.5,2), mu1 = c(1,0), mu2 = c(0,
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{twonormQuadraticLabels} returns a factor of class labels.
 #'
 #' @rdname twonormQuadraticData
 #'
@@ -66,7 +66,7 @@ twonormQuadraticLabels <- function(data, prior = rep(0.5,2), mu1 = c(1,0), mu2 =
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{twonormQuadraticPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname twonormQuadraticData
 #'
@@ -80,7 +80,7 @@ twonormQuadraticPosterior <- function(data, prior = rep(0.5,2), mu1 = c(1,0), mu
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{twonormQuadraticBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname twonormQuadraticData
 #'

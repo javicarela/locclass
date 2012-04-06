@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Create an artificial classification problem with a W-shaped decision boundary.
 #'
-#' details
+# details
 #'
-#' @title Create an Artificial Classification Problem with W-shaped decision boundary
+#' @title Create an Artificial Classification Problem with a W-shaped Decision Boundary
 #'
 #' @param n Number of observations.
 #' @param d The dimensionality.
@@ -26,7 +26,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{wData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -52,7 +52,7 @@
 #'
 #' if (require(MASS)) {
 #'	
-#' 	   # Fit an LDA model and calculate misclassification rate on the test data set
+#'     # Fit an LDA model and calculate misclassification rate on the test data set
 #'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
 #'     mean(pred$class != test$y)
@@ -87,7 +87,7 @@ wData <- function (n, d = 2, k = 1) {
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{wLabels} returns a factor of class labels.
 #'
 #' @rdname wData
 #'
@@ -104,7 +104,7 @@ wLabels <- function(data, k = 1) {
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{wPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname wData
 #'
@@ -123,7 +123,7 @@ wPosterior <- function(data, k = 1) {
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{wBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname wData
 #'

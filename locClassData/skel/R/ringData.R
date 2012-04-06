@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Generation of a binary classification problem with two Gaussian distributions with euqal means and different covariance matrices.
 #'
-#' details
+# details
 #'
-#' @title Generation of Two-Class Classification Problem with two Gaussian distributions
+#' @title Generation of a Binary Classification Problem with Two Gaussian Distributions
 #' 
 #' @param n Number of observations.
 #' @param prior Vector of class prior probabilities.
@@ -27,7 +27,7 @@
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{ringData} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -49,7 +49,7 @@ ringData <- function(n, prior = rep(0.5,2), sigma1 = diag(2), sigma2 = 2*diag(2)
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{ringLabels} returns a factor of class labels.
 #'
 #' @rdname ringData
 #'
@@ -63,7 +63,7 @@ ringLabels <- function(data, prior = rep(0.5,2), sigma1 = diag(2), sigma2 = 2*di
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{ringPosterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname ringData
 #'
@@ -77,7 +77,7 @@ ringPosterior <- function(data, prior = rep(0.5,2), sigma1 = diag(2), sigma2 = 2
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{ringBayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname ringData
 #'
@@ -88,87 +88,3 @@ ringBayesClass <- function(data, prior = rep(0.5,2), sigma1 = diag(2), sigma2 = 
 	sigma <- list(sigma1, sigma2)
 	return(mixtureBayesClass(data, prior, lambda = list(1,1), mu, sigma))
 }
-
-
-
-
-
-
-
-# if(data == "ring") {
-    # # Training
-    # set.seed(112)
-    # library(mvtnorm)
-    # N.train <- 400
-    # V <- 2
-    # D <- 200
-    # mu.1 <- c(1,0)
-    # mu.2 <- c(0,0)
-    # Sigma.1 <- diag(V)
-    # Sigma.2 <- matrix(c(4,2,2,4), 2)
-    # f <- function(mu.1, mu.2, Sigma.1, Sigma.2, N.train, V) {
-        # y <- factor(sample(1:2, size = N.train, replace = TRUE), levels = c(1,2))
-        # N.1.2.train <- table(y)
-        # daten <- matrix(0, N.train, V, dimnames = list(NULL, c("x1","x2")))
-        # daten[y == 1,] <- rmvnorm(N.1.2.train[1], mu.1, Sigma.1)
-        # daten[y == 2,] <- rmvnorm(N.1.2.train[2], mu.2, Sigma.2)
-        # daten <- as.data.frame(cbind(daten, y))
-        # daten
-    # }
-    # train <- replicate(D, f(mu.1, mu.2, Sigma.1, Sigma.2, N.train, V), simplify = FALSE)
-    # save(train, file = "Daten/ring_train.RData")
-
-    # # Plot der Trainingsdaten
-    # tu.green <- rgb(0.518,0.722,0.094)
-    # farbe <- rep("black", N.train)
-    # farbe[train[[1]]$y == 2] <- tu.green
-    # pdf(file = "Grafiken/ring_train.pdf", title = "")
-        # plot(train[[1]][,1:2], col = farbe, pch = 19, main = "training data set", cex = 1.2, xlab = "", ylab = "", cex.main = 1.8)
-    # dev.off()
-
-    # # Test
-    # # Testgitter
-    # x1 <- seq(-4,6,0.2)
-    # x2 <- seq(-4,6,0.2)
-    # test <- expand.grid(x1 = x1, x2 = x2)
-    # N.test <- nrow(test)
-    # dichte.1 <- dmvnorm(test, mu.1, Sigma.1)
-    # dichte.2 <- dmvnorm(test, mu.2, Sigma.2)
-    # dichte <- cbind(dichte.1, dichte.2)
-    # posterior <- dichte/rowSums(dichte)
-    # y <- factor(apply(dichte, 1, function(x) sample(c(1,2), size = 1, prob = x)), levels = c(1,2))
-    # SY <- rep(1, N.test)
-    # SY[dichte.2 > dichte.1] <- 2
-    # SY <- factor(SY, levels = c(1,2))
-    # test <- cbind(test, y, SY, posterior)
-    # save(test, file = "Daten/ring_test.RData")
-
-    # # Plot der Testdaten
-    # farbe <- rep("black", N.test)
-    # farbe[test$y == 2] <- tu.green
-    # pdf(file = "Grafiken/ring_test.pdf", title = "")
-        # plot(test[,1:2], col = farbe, pch = 19, main = "test grid", cex = 1.2) # evtl. filled contour
-    # dev.off()
-
-    # # Plot der class posteriors
-    # pdf(file = "Grafiken/ring_test_posterior.pdf", title = "")
-        # filled.contour(x1, x2, matrix(posterior, length(x1), length(x2)), color.palette = colorRampPalette(c(tu.green, "black")))
-    # dev.off()
-
-
-    # filled.contour(x1, x2, matrix(test$y, length(x1), length(x2)), color.palette = colorRampPalette(c(tu.green, "black")))
-    # filled.contour(x1, x2, matrix(posterior, length(x1), length(x2)), color.palette = colorRampPalette(c(tu.green, "black")))
-    # plot(test[,1:2], col = y.stern, pch = 19)
-
-    # # Testdatensatz
-    # test2 <- f(mu.1, mu.2, Sigma.1, Sigma.2, N.train = 1000, V)
-    # dichte.1 <- dmvnorm(test2[,1:2], mu.1, Sigma.1)
-    # dichte.2 <- dmvnorm(test2[,1:2], mu.2, Sigma.2)
-    # dichte <- cbind(dichte.1, dichte.2)
-    # posterior <- dichte/rowSums(dichte)
-    # SY <- rep(1, 1000)
-    # SY[dichte.2 > dichte.1] <- 2
-    # SY <- factor(SY, levels = c(1,2))
-    # test2 <- cbind(test2, SY, posterior)
-    # save(test2, file = "Daten/ring_test2.RData")
-# } 

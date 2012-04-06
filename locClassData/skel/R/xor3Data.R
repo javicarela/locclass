@@ -14,11 +14,11 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' description
+#' Generation of a checkerboard like classification problem with 3 classes.
 #'
-#' details
+# details
 #'
-#' @title Generation of an xor like Classification Problem with 3 Classes
+#' @title Generation of a Checkerboard Like Classification Problem with 3 Classes
 #' 
 #' @param n Number of observations.
 #' @param prior Vector of class prior probabilities.
@@ -35,11 +35,11 @@
 #' @param mu31 Class center of second class, a vector.
 #' @param mu32 Class center of second class, a vector.
 #' @param mu33 Class center of second class, a vector.
-#' @param sigma Covariance matrices for class 1 and 2. 
+#' @param sigma Covariance matrix for classes 1, 2, and 3. 
 #' @param data A \code{data.frame}.
 #'
 #' @return
-#' returns an object of class \code{"locClass"}, a list with components:
+#' \code{xor3Data} returns an object of class \code{"locClass"}, a list with components:
 #' \item{x}{(A matrix.) The explanatory variables.}
 #' \item{y}{(A factor.) The class labels.}
 #'
@@ -63,7 +63,7 @@ xor3Data <- function(n, prior = rep(1/3,3), lambda = rep(1/3,3), mu11 = c(-4,4),
 
 
 
-#' @return returns a factor of class labels.
+#' @return \code{xor3Labels} returns a factor of class labels.
 #'
 #' @rdname xor3Data
 #'
@@ -78,7 +78,7 @@ xor3Labels <- function(data, prior = rep(1/3,3), lambda = rep(1/3,3), mu11 = c(-
 
 
 
-#' @return returns a matrix of posterior probabilities.
+#' @return \code{xor3Posterior} returns a matrix of posterior probabilities.
 #'
 #' @rdname xor3Data
 #'
@@ -93,7 +93,7 @@ xor3Posterior <- function(data, prior = rep(1/3,3), lambda = rep(1/3,3), mu11 = 
 
 
 
-#' @return returns a factor of Bayes predictions.
+#' @return \code{xor3BayesClass} returns a factor of Bayes predictions.
 #'
 #' @rdname xor3Data
 #'
