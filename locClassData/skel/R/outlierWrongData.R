@@ -21,7 +21,9 @@
 #' @title Generation of a Classification Problem with Outliers From The Wrong Class
 #' 
 #' @param n Number of observations.
-#' @param alpha Distance from class center to the outliers.
+#' @param alpha Distance from class center to the outliers in the x-coordinate.
+#' @param beta Distance from class center to the outliers in the y-coordinate.
+#' @param prop Proportion of outliers. Defaults to 0.05.
 #' @param prior Vector of class prior probabilities.
 #' @param data A \code{data.frame}.
 #'
@@ -32,30 +34,30 @@
 #'
 #' @examples
 #' # Generate a training and a test set
-#' train <- outlierWrongData(n = 1000, alpha = 20)
-#' test <- outlierWrongData(n = 1000, alpha = 20)
+#' train <- outlierWrongData(n = 1000, alpha = 10, beta = 10)
+#' test <- outlierWrongData(n = 1000, alpha = 10, beta = 10)
 #'  
 #' # Generate a grid of points
 #' x.1 <- x.2 <- seq(-7,15,0.1)
 #' grid <- expand.grid(x.1 = x.1, x.2 = x.2)
 #'
 #' # Calculate the posterior probablities for all grid points
-#' gridPosterior <- outlierWrongPosterior(grid, alpha = 20)
+#' gridPosterior <- outlierWrongPosterior(grid, alpha = 10, beta = 10)
 #'
 #' # Draw contour lines of posterior probabilities and plot training observations
 #' plot(train$x, col = train$y)
 #' contour(x.1, x.2, matrix(gridPosterior[,1], length(x.1)), col = "gray", add = TRUE, levels = 0.5)
 #'
 #' # Calculate Bayes error
-#' ybayes <- outlierWrongBayesClass(test$x, alpha = 20)
+#' ybayes <- outlierWrongBayesClass(test$x, alpha = 10, beta = 10)
 #' mean(ybayes != test$y)
 #'
 #' if (require(MASS)) {
 #'	
 #' 	   # Fit an LDA model and calculate misclassification rate on the test data set
-#'     tr <- qda(y ~ ., data = as.data.frame(train))	
+#'     tr <- lda(y ~ ., data = as.data.frame(train))	
 #'     pred <- predict(tr, as.data.frame(test))	
-#'     mean(pred$class != test$y)
+#'     print(mean(pred$class != test$y))
 #' 
 #'     # Draw decision boundary
 #'     gridPred <- predict(tr, grid)
@@ -71,8 +73,8 @@
 #'
 #' @export
 
-outlierWrongData <- function(n, alpha = 5, prior = rep(0.5,2)) {
-	data <- mixtureData(n, prior, lambda = list(1, c(0.95,0.05)), mu = list(matrix(c(0,0.5),1), matrix(c(0, 0, -0.5, 0.5 + alpha), 2)), sigma = matrix(c(3,0,0,1), 2))
+outlierWrongData <- function(n, alpha = 5, beta = 5, prop = 0.05, prior = rep(0.5,2)) {
+	data <- mixtureData(n, prior, lambda = list(1, c(1-prop, prop)), mu = list(matrix(c(0,1),1), matrix(c(0, alpha, -1, 1 + beta), 2)), sigma = matrix(c(3,0,0,1), 2))
 	class(data) <- c("locClass.outlierWrongData", class(data))
 	return(data)
 }
@@ -85,8 +87,8 @@ outlierWrongData <- function(n, alpha = 5, prior = rep(0.5,2)) {
 #'
 #' @export
 
-outlierWrongLabels <- function(data, alpha = 5, prior = rep(0.5,2)) {
-	return(mixtureLabels(data, prior, lambda = list(1, c(0.95,0.05)), mu = list(matrix(c(0,0.5),1), matrix(c(0, 0, -0.5, 0.5 + alpha), 2)), sigma = matrix(c(3,0,0,1), 2)))
+outlierWrongLabels <- function(data, alpha = 5, beta = 5, prop = 0.05, prior = rep(0.5,2)) {
+	return(mixtureLabels(data, prior, lambda = list(1, c(1-prop, prop)), mu = list(matrix(c(0,1),1), matrix(c(0, alpha, -1, 1 + beta), 2)), sigma = matrix(c(3,0,0,1), 2)))
 }	
 
 
@@ -97,8 +99,8 @@ outlierWrongLabels <- function(data, alpha = 5, prior = rep(0.5,2)) {
 #'
 #' @export
 
-outlierWrongPosterior <- function(data, alpha = 5, prior = rep(0.5,2)) {
-	return(mixturePosterior(data, prior, lambda = list(1, c(0.95,0.05)), mu = list(matrix(c(0,0.5),1), matrix(c(0, 0, -0.5, 0.5 + alpha), 2)), sigma = matrix(c(3,0,0,1), 2)))
+outlierWrongPosterior <- function(data, alpha = 5, beta = 5, prop = 0.05, prior = rep(0.5,2)) {
+	return(mixturePosterior(data, prior, lambda = list(1, c(1-prop, prop)), mu = list(matrix(c(0,1),1), matrix(c(0, alpha, -1, 1 + beta), 2)), sigma = matrix(c(3,0,0,1), 2)))
 }
 
 
@@ -109,7 +111,7 @@ outlierWrongPosterior <- function(data, alpha = 5, prior = rep(0.5,2)) {
 #'
 #' @export
 
-outlierWrongBayesClass <- function(data, alpha = 5, prior = rep(0.5,2)) {
-	return(mixtureBayesClass(data, prior, lambda = list(1, c(0.95,0.05)), mu = list(matrix(c(0,0.5),1), matrix(c(0, 0, -0.5, 0.5 + alpha), 2)), sigma = matrix(c(3,0,0,1), 2)))
+outlierWrongBayesClass <- function(data, alpha = 5, beta = 5, prop = 0.05, prior = rep(0.5,2)) {
+	return(mixtureBayesClass(data, prior, lambda = list(1, c(1-prop, prop)), mu = list(matrix(c(0,1),1), matrix(c(0, alpha, -1, 1 + beta), 2)), sigma = matrix(c(3,0,0,1), 2)))
 }
 
