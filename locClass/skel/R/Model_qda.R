@@ -57,7 +57,6 @@
 #' @rdname qdaModel
 #' 
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 qdaModel <- new("StatModel",
@@ -188,6 +187,7 @@ qdaModel <- new("StatModel",
 #'
 #' @method reweight qdaModel
 #' @S3method reweight qdaModel
+#' @import party
 	
 reweight.qdaModel <- function (object, weights, ...) {
     fit <- qdaModel@fit
@@ -200,6 +200,7 @@ reweight.qdaModel <- function (object, weights, ...) {
 #'
 #' @method model.matrix qdaModel
 #' @S3method model.matrix qdaModel
+#' @importFrom stats model.matrix
 
 model.matrix.qdaModel <- function (object, ...) 
 	object$ModelEnv@get("designMatrix")
@@ -217,6 +218,7 @@ model.response.qdaModel <- function (object, ...)
 #'
 #' @method deviance wqda
 #' @S3method deviance wqda
+#' @importFrom stats deviance
 
 ## negative log-likelihood for wqda
 ## wts is 0 or 1
@@ -244,6 +246,7 @@ deviance.wqda <- function (object, ...) {
 #'
 #' @method estfun wqda
 #' @S3method estfun wqda
+#' @importFrom sandwich estfun
 
 estfun.wqda <- function(x, ...) {
     wts <- weights(x)

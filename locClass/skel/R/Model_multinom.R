@@ -57,7 +57,6 @@
 #' @rdname multinomModel
 #' 
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 multinomModel <- new("StatModel",
@@ -320,6 +319,7 @@ multinomModel <- new("StatModel",
 #'
 #' @method reweight multinomModel
 #' @S3method reweight multinomModel
+#' @import party
 
 reweight.multinomModel <- function (object, weights, ...) {
     fit <- multinomModel@fit
@@ -332,6 +332,7 @@ reweight.multinomModel <- function (object, weights, ...) {
 #'
 #' @method model.matrix multinomModel
 #' @S3method model.matrix multinomModel
+#' @importFrom stats model.matrix
 
 model.matrix.multinomModel <- function (object, ...) 
 	object$ModelEnv@get("designMatrix")
@@ -349,6 +350,7 @@ model.response.multinomModel <- function (object, ...)
 #'
 #' @method deviance multinom
 #' @S3method deviance multinom
+#' @importFrom stats deviance
 
 deviance.multinom <- function (object, ...) {
 	return(object$deviance)
@@ -360,6 +362,7 @@ deviance.multinom <- function (object, ...) {
 #'
 #' @method estfun multinom
 #' @S3method estfun multinom
+#' @importFrom sandwich estfun
 
 estfun.multinom <- function(x, ...) {
 	#cat("gradient\n")

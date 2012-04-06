@@ -571,6 +571,7 @@ predict.dannet <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights dannet
+#' @importFrom stats weights
 
 weights.dannet <- function (object, ...) {
 	if (!inherits(object, "dannet"))

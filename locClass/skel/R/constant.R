@@ -329,6 +329,7 @@ predict.constant <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights constant
+#' @importFrom stats weights
 
 weights.constant <- function (object, ...) {
     if (is.null(object$weights)) 
@@ -342,6 +343,7 @@ weights.constant <- function (object, ...) {
 #' @noRd
 #'
 #' @S3method model.frame constant
+#' @importFrom stats model.frame
 
 model.frame.constant <- function (formula, ...) {
     oc <- formula$call

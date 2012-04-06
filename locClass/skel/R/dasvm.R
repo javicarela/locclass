@@ -710,6 +710,7 @@ predict.dasvm <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights dasvm
+#' @importFrom stats weights
 
 weights.dasvm <- function (object, ...) {
     if (!inherits(object, "dasvm")) 

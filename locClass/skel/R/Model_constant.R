@@ -60,7 +60,6 @@
 #' @rdname constantModel 
 #'
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 constantModel <- new("StatModel",
@@ -181,6 +180,7 @@ constantModel <- new("StatModel",
 #'
 #' @method reweight constantModel
 #' @S3method reweight constantModel
+#' @import party
 	
 reweight.constantModel <- function (object, weights, ...) {
     fit <- constantModel@fit
@@ -193,6 +193,7 @@ reweight.constantModel <- function (object, weights, ...) {
 #'
 #' @method model.matrix constantModel
 #' @S3method model.matrix constantModel
+#' @importFrom stats model.matrix
 
 model.matrix.constantModel <- function (object, ...) 
 	object$ModelEnv@get("designMatrix")
@@ -210,6 +211,7 @@ model.response.constantModel <- function (object, ...)
 #'
 #' @method deviance constant
 #' @S3method deviance constant
+#' @importFrom stats deviance
 
 ## negative log-likelihood for constant
 ## wts is 0 or 1
@@ -237,6 +239,7 @@ deviance.constant <- function (object, ...) {
 #'
 #' @method estfun constant
 #' @S3method estfun constant
+#' @importFrom sandwich estfun
 
 estfun.constant <- function(x, ...) {
     wts <- weights(x)

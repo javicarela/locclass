@@ -410,6 +410,7 @@ predict.dalda <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights dalda
+#' @importFrom stats weights
 
 weights.dalda <- function (object, ...) {
     if (!inherits(object, "dalda")) 

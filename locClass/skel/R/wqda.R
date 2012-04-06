@@ -379,6 +379,7 @@ predict.wqda <- function(object, newdata, prior = object$prior, ...) {
 #' @noRd
 #'
 #' @S3method weights wqda
+#' @importFrom stats weights
 
 weights.wqda <- function (object, ...) {
     if (is.null(object$weights)) 
@@ -392,6 +393,7 @@ weights.wqda <- function (object, ...) {
 #' @noRd
 #'
 #' @S3method model.frame wqda
+#' @importFrom stats model.frame
 
 model.frame.wqda <- function (formula, ...) {
     oc <- formula$call

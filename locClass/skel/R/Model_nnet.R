@@ -57,7 +57,6 @@
 #' @rdname nnetModel
 #'
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 nnetModel <- new("StatModel",
@@ -213,6 +212,7 @@ nnetModel <- new("StatModel",
 #'
 #' @method reweight nnetModel
 #' @S3method reweight nnetModel
+#' @import party
 	
 reweight.nnetModel <- function (object, weights, ...) {
     fit <- nnetModel@fit
@@ -225,6 +225,7 @@ reweight.nnetModel <- function (object, weights, ...) {
 #'
 #' @method deviance nnet
 #' @S3method deviance nnet
+#' @importFrom stats deviance
 
 deviance.nnet <- function (object, ...) {
 	return(object$value)
@@ -236,6 +237,7 @@ deviance.nnet <- function (object, ...) {
 #'
 #' @method estfun nnet
 #' @S3method estfun nnet
+#' @importFrom sandwich estfun
 
 estfun.nnet <- function(x, ...) {
 	# print(rowSums(x$gradient[,29:33]))

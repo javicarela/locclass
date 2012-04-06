@@ -57,7 +57,6 @@
 #' @rdname ldaModel 
 #'
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 ldaModel <- new("StatModel",
@@ -179,6 +178,7 @@ ldaModel <- new("StatModel",
 #'
 #' @method reweight ldaModel
 #' @S3method reweight ldaModel
+#' @import party
 	
 reweight.ldaModel <- function (object, weights, ...) {
     fit <- ldaModel@fit
@@ -191,6 +191,7 @@ reweight.ldaModel <- function (object, weights, ...) {
 #'
 #' @method model.matrix ldaModel
 #' @S3method model.matrix ldaModel
+#' @importFrom stats model.matrix
 
 model.matrix.ldaModel <- function (object, ...) 
 	object$ModelEnv@get("designMatrix")
@@ -208,6 +209,7 @@ model.response.ldaModel <- function (object, ...)
 #'
 #' @method deviance wlda
 #' @S3method deviance wlda
+#' @importFrom stats deviance
 
 ## negative log-likelihood for wlda
 ## wts is 0 or 1
@@ -231,6 +233,7 @@ deviance.wlda <- function (object, ...) {
 #'
 #' @method estfun wlda
 #' @S3method estfun wlda
+#' @importFrom sandwich estfun
 
 estfun.wlda <- function(x, ...) {
     wts <- weights(x)

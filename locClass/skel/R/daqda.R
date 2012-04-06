@@ -407,6 +407,7 @@ predict.daqda <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights daqda
+#' @importFrom stats weights
 
 weights.daqda <- function (object, ...) {
 	if (!inherits(object, "daqda"))

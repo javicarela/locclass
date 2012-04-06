@@ -384,6 +384,7 @@ predict.wlda <- function(object, newdata, prior = object$prior, ...) {
 #' @noRd
 #'
 #' @S3method weights wlda
+#' @importFrom stats weights
 
 weights.wlda <- function (object, ...) {
     if (is.null(object$weights)) 
@@ -397,6 +398,7 @@ weights.wlda <- function (object, ...) {
 #' @noRd
 #'
 #' @S3method model.frame wlda
+#' @importFrom stats model.frame
 
 model.frame.wlda <- function (formula, ...) {
     oc <- formula$call

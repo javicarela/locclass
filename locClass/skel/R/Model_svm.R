@@ -56,7 +56,6 @@
 #' @rdname svmModel 
 #'
 #' @import party
-#' @importFrom sandwich estfun
 #' @export
 
 svmModel <- new("StatModel",
@@ -226,6 +225,7 @@ svmModel <- new("StatModel",
 #'
 #' @method reweight svmModel
 #' @S3method reweight svmModel
+#' @import party
 	
 reweight.svmModel <- function (object, weights, ...) {
     fit <- svmModel@fit
@@ -238,6 +238,7 @@ reweight.svmModel <- function (object, weights, ...) {
 #'
 #' @method model.matrix svmModel
 #' @S3method model.matrix svmModel
+#' @importFrom stats model.matrix
 
 model.matrix.svmModel <- function (object, ...) 
 	object$ModelEnv@get("designMatrix")
@@ -255,6 +256,7 @@ model.response.svmModel <- function (object, ...)
 #'
 #' @method deviance wsvm
 #' @S3method deviance wsvm
+#' @importFrom stats deviance
 
 ## dual objective function for wsvm (to minimize)
 deviance.wsvm <- function (object, ...) {
@@ -267,6 +269,7 @@ deviance.wsvm <- function (object, ...) {
 #'
 #' @method estfun wsvm
 #' @S3method estfun wsvm
+#' @importFrom sandwich estfun
 
 estfun.wsvm <- function(x, ...) {
     wts <- weights(x)

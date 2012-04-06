@@ -407,6 +407,7 @@ predict.damultinom <- function(object, newdata, ...) {
 #' @noRd
 #'
 #' @S3method weights damultinom
+#' @importFrom stats weights
 
 weights.damultinom <- function (object, ...) {
     if (!inherits(object, "damultinom")) 

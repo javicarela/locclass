@@ -572,6 +572,7 @@ predict.dalr <- function(object, newdata = NULL, ...) {
 #' @noRd
 #'
 #' @S3method weights dalr
+#' @importFrom stats weights
 
 weights.dalr <- function (object, ...) {
 	object$prior.weights

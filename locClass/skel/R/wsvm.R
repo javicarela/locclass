@@ -938,6 +938,7 @@ function (object, newdata,
 #' @noRd
 #'
 #' @S3method weights wsvm
+#' @importFrom stats weights
 
 weights.wsvm <- function (object, ...) {
 	if (!inherits(object, "wsvm"))

@@ -344,6 +344,7 @@ print.kmc <- function(x, ...) {
 #' @method update kmc
 #'
 #' @S3method update kmc
+#' @importFrom stats update
 #'
 #' @param object An object of class \code{"kmc"}.
 # @param wf A window function which is used to calculate weights that are introduced into 
@@ -508,6 +509,7 @@ predict.kmc <- function(object, newdata = NULL, ...) {
 #' @noRd
 #'
 #' @S3method model.frame kmc
+#' @importFrom stats model.frame
 
 model.frame.kmc <- function (formula, ...) {
     oc <- formula$call
