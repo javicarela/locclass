@@ -86,7 +86,7 @@ test_that("FLXMCLsvm: mlr interface works", {
 	tr2 <- train(lrn, task)
 	pred2 <- predict(tr2, task = task)
 
-	expect_equal(pred1@df$response, pred2@df$response) ## Problem: Vorhersagen von mlr basierend auf Wsk.en sind Mist, weil Wsk.schätzer Mist sind
+	expect_equal(pred1@df$response, pred2@df$response) 
 	mean(pred1@df$response != pred1@df$truth)
 	mean(pred2@df$response != pred1@df$truth)
 	mean(pred2@df$response != pred2@df$truth)
