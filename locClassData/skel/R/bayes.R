@@ -208,6 +208,9 @@ bayes.locClass.spiralData <- function(object, ...) {
     x <- object$x
     cycles <- attr(object, "cycles")
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
+	# center spiral at 0
+	sp[,1] <- sp[,1] - 1/6
+	sp[,2] <- sp[,2] + 1/6
 	posterior <- apply(x, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
 	posterior <- 3 * posterior

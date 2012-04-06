@@ -102,12 +102,23 @@
 # points(p)
 
 
+## var = 1 -> qnorm(0.999) = 1.644854
+## var so wählen, dass 1/2 range das 0.999-quantil ist
+## 1/2 * range = 1/2 * (2*cycles + 0.5)*2/3 = (2*cycles + 0.5)*1/3
+## P(X < 0.5*range) = 0.999 mit E(X) = 0 und Var(X) = sigma, 
+## Z = X/sigma standard normal
+## P(Z < 0.5*range/sigma) = 0.999
+## 0.5*range/sigma = qnorm(0.999)
+## 0.5*range/qnorm(0.999) = sigma
 
 spiralData <- function(n = 100, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
-	r <- (cycles + 0.5) * 2/3
-	# r <- max(abs(range(sp[,1])))
-	data <- matrix(rnorm(2 * n, sd = sqrt(r)), ncol = 2)
+	# center spiral at 0
+	sp[,1] <- sp[,1] - 1/6
+	sp[,2] <- sp[,2] + 1/6
+	r <- (2*cycles + 0.5) * 1/3
+	sigma <- r/qnorm(0.999)
+	data <- matrix(rnorm(2 * n, sd = sqrt(sigma)), ncol = 2)
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
 	posterior <- 3 * posterior
@@ -128,6 +139,9 @@ spiralData <- function(n = 100, cycles = 1) {
 
 spiralLabels <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
+	# center spiral at 0
+	sp[,1] <- sp[,1] - 1/6
+	sp[,2] <- sp[,2] + 1/6
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
 	posterior <- 3 * posterior
@@ -145,6 +159,9 @@ spiralLabels <- function(data, cycles = 1) {
 
 spiralPosterior <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
+	# center spiral at 0
+	sp[,1] <- sp[,1] - 1/6
+	sp[,2] <- sp[,2] + 1/6
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
 	posterior <- 3 * posterior
@@ -163,6 +180,9 @@ spiralPosterior <- function(data, cycles = 1) {
 
 spiralBayesClass <- function(data, cycles = 1) {
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
+	# center spiral at 0
+	sp[,1] <- sp[,1] - 1/6
+	sp[,2] <- sp[,2] + 1/6
 	posterior <- apply(data, 1, function(z) min(sqrt(colSums((t(sp) - z)^2))))
 	posterior[posterior > 1/3] <- 1/3
 	posterior <- 3 * posterior
