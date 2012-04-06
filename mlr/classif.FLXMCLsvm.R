@@ -113,7 +113,7 @@ setMethod(
 				## are columns of decision == zero? NAs
 				## does voting work?
 				ng <- length(lev)
-				problems <- rbind(rep(lev, ng:1-1), rep(lev, 1:ng-1))
+				problems <- rbind(rep(lev, ng:1-1), unlist(sapply(2:ng, function(x) lev[x:ng])))
 # print(problems)
 				votes <- (pred$decision < 0) + 1
 				candidates <- sapply(1:length(lev), function(z) return(problems[votes[,z],z]))				
