@@ -99,7 +99,7 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 # print(diff(fit$labels))
 			if (any(diff(fit$labels) < 0)) { 	# order of levels and labels different
 				# binary classification problems
-				problems <- cbind(rep(fit$labels, nl:1-1), rep(fit$labels, 1:nl-1))
+				problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))
 # cat("problems\n")
 # print(problems)
 				# binary problems where first label is larger than second label
