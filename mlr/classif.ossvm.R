@@ -23,7 +23,6 @@ setMethod(
 					makeNumericLearnerParam(id = "tolerance", default = 0.001, lower = 0),
 					# epsilon not needed for classification			
 					makeLogicalLearnerParam(id = "shrinking", default = TRUE),
-					makeLogicalLearnerParam(id = "fitted", default = TRUE),
 					makeIntegerLearnerParam(id = "seed", default = 1L),
 					makeDiscreteLearnerParam(id = "wf", default = "biweight", values = c("biweight",
 						"cauchy", "cosine", "epanechnikov", "exponential", "gaussian", "optcosine",
