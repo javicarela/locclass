@@ -1,0 +1,18 @@
+\name{nnetGradient}
+\alias{nnetGradient}
+\title{Calculate value of objective function and gradient for a fitted neural network.}
+\usage{
+  nnetGradient(object)
+}
+\arguments{
+  \item{object}{Object inheriting from \code{"nnet"}.}
+}
+\value{
+  Value of objective function of a fitted neural network.
+  The attribute "gradient" contains the gradient vector.
+}
+\description{
+  Calculate value of objective function and gradient for a
+  fitted neural network.
+}
+
