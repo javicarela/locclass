@@ -74,14 +74,15 @@
 # @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
 # only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
-#' @param na.action A function to specify the action to be taken if NAs are found. The default action is first
-#'   the \code{na.action} setting of \code{\link{options}} and second \code{\link{na.fail}} if that is unset. 
+#' @param na.action A function to specify the action to be taken if \code{NA}s are found. The default action is for the
+#'   procedure to fail. 
 #'   An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
-#'   variable. (NOTE: If given, this argument must be named.)???
+#'   variable. (NOTE: If given, this argument must be named.)
 #' @param contrasts A list of contrasts to be used for some or all of the factors appearing as variables in the model formula.
 #' @param censored Logical. If the response is a matrix with \eqn{K > 2} classes, interpret the entries as one for possible classes, zero 
 #'   for impossible classes. Defaults to \code{FALSE}.
-#' @param model Logical. If \code{TRUE}, the model frame is saved as component \code{model} of the returned object.???
+#' @param model Logical. If \code{TRUE}, the model frame is saved as component \code{model} of the returned object.
+# is this necessary, since the model.matrix is returned as component X?
 #' @param \dots Additional arguments for \code{\link{osnnet}}, including the window function and bandwidth
 #'  parameters used to generate observation weights:
 #' \describe{
