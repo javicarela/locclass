@@ -90,8 +90,8 @@
 #'    \describe{
 #'      \item{linear:}{\eqn{u'v}{u'*v}}
 #'      \item{polynomial:}{\eqn{(\gamma u'v + coef0)^{degree}}{(gamma*u'*v + coef0)^degree}}
-#'      \item{radial basis:}{\eqn{e^(-\gamma |u-v|^2)}{exp(-gamma*|u-v|^2)}}
-#'      \item{sigmoid:}{\eqn{tanh(\gamma u'v + coef0)}{tanh(gamma*u'*v + coef0)}}
+#'      \item{radial basis:}{\eqn{\exp(-\gamma |u-v|^2)}{exp(-gamma*|u-v|^2)}}
+#'      \item{sigmoid:}{\eqn{\tanh(\gamma u'v + coef0)}{tanh(gamma*u'*v + coef0)}}
 #'    }
 #' @param degree Parameter needed for kernel of type \code{polynomial} (default: 3).
 #' @param gamma Parameter needed for all kernels except \code{linear} (default: 1/(data dimension)).
