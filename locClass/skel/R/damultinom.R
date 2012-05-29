@@ -44,7 +44,7 @@
 #' the formula should be roughly scaled to [0,1] or the fit will be slow
 #' or may not converge at all.
 #'
-#' Observations weights that reflect the importance of training observations for the fit
+#' Observation weights that reflect the importance of training observations for the fit
 #' at a particular test observation are calculated internally in \code{damultinom}.
 #' For this reason not all types of response in \code{formula} are allowed and \code{damultinom} does not take all arguments 
 #' that can be passed to \code{\link[nnet]{multinom}}.

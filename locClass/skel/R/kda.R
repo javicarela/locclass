@@ -83,7 +83,7 @@
 #' @encoding latin1
 #'
 #' @references 
-#' Devroye, L., \enc{Györfi}{Gyoerfi}, L. and Lugosi, A. (1996), A Probabilistic Theory of Pattern Recognition. 
+#' Devroye, L., Gyoerfi, L. and Lugosi, A. (1996), A Probabilistic Theory of Pattern Recognition. 
 #' Springer, New York.
 #'
 #' @seealso \code{\link{predict.kda}}.

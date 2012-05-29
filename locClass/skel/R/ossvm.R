@@ -84,8 +84,8 @@
 #'    \describe{
 #'      \item{linear:}{\eqn{u'v}{u'*v}}
 #'      \item{polynomial:}{\eqn{(\gamma u'v + coef0)^{degree}}{(gamma*u'*v + coef0)^degree}}
-#'      \item{radial basis:}{\eqn{e^(-\gamma |u-v|^2)}{exp(-gamma*|u-v|^2)}}
-#'      \item{sigmoid:}{\eqn{tanh(\gamma u'v + coef0)}{tanh(gamma*u'*v + coef0)}}
+#'      \item{radial basis:}{\eqn{\exp(-\gamma |u-v|^2)}{exp(-gamma*|u-v|^2)}}
+#'      \item{sigmoid:}{\eqn{\tanh(\gamma u'v + coef0)}{tanh(gamma*u'*v + coef0)}}
 #'      }
 #' @param degree Parameter needed for kernel of type \code{polynomial} (default: 3).
 #' @param gamma Parameter needed for all kernels except \code{linear} (default: 1/(data dimension)).
@@ -574,10 +574,10 @@ ossvm.default <- function (x,
 #'
 #' @param object Object of class \code{"ossvm"}.
 #' @param newdata An object containing the new input data: either a matrix or a sparse matrix 
-#' (object of class \code{\link[Matrix]{Matrix}} provided by the Matrix package, or of class 
-#' \code{\link[SparseM]{matrix.csr}} provided by the SparseM package, or of class 
-#' \code{\link[slam]{simple_triplet_matrix}} provided by the slam package). A vector will be 
-#' transformed to a n x 1 matrix.
+#' (object of class \code{\link[Matrix]{Matrix}} provided by the \pkg{Matrix} package, or of class 
+#' \code{\link[SparseM]{matrix.csr}} provided by the \pkg{SparseM} package, or of class 
+#' \code{\link[slam]{simple_triplet_matrix}} provided by the \pkg{slam} package). A vector will be 
+#' transformed to a (n x 1) matrix.
 #  A \code{data.frame} of cases to be classified or, if \code{object} has a
 # \code{formula}, a \code{data.frame} with columns of the same names as the
 # variables used. A vector will be interpreted as a row
@@ -599,8 +599,7 @@ ossvm.default <- function (x,
 #' classifiers' decision values. There are \eqn{k * (k - 1) / 2} classifiers (\eqn{k} number of classes). 
 #' The colnames of the matrix indicate the labels of the two classes. 
 #' If \code{probability} is \code{TRUE}, the vector gets a \code{"probabilities"} attribute 
-#' containing a \eqn{n * k} matrix (\eqn{n} number of predicted values, \eqn{k} number of 
-#' classes) of the class probabilities.
+#' containing a \eqn{n * k} matrix of the class probabilities.
 #'
 #' @seealso \code{\link{ossvm}}.
 #'

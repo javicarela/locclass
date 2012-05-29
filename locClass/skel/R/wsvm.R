@@ -699,8 +699,7 @@ function (x,
 #'  classifiers (\eqn{k} number of classes). The colnames of
 #'  the matrix indicate the labels of the two classes. If \code{probability} is
 #'  \code{TRUE}, the vector gets a \code{"probabilities"} attribute
-#'  containing a \eqn{n * k} matrix (\eqn{n} number of predicted values, \eqn{k} number of
-#'  classes) of the class probabilities.
+#'  containing a \eqn{n * k} matrix of the class probabilities.
 #'
 #' @note If the training set was scaled by \code{wsvm} (done by default), the
 #'  new data is scaled accordingly using scale and center of

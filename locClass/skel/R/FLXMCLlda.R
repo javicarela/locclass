@@ -70,7 +70,7 @@ setClass("FLXMCLlda", contains = "FLXMCL")
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add  = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
-#' ## local memberhsip
+#' ## local membership
 #' loc.grid <- prior(fit, newdata = grid)
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 

@@ -23,7 +23,7 @@
 #' \deqn{w_n^* = \frac{w_n}{\sum_{n:y_n=g} w_n}}{w_n* = w_n/sum_{n:y_n=g} w_n}
 #' Weighted class means:
 #' \deqn{\bar x_g = \sum_{n:y_n=g} w_n^* x_n}{bar x_g = sum_{n:y_n=g} w_n* x_i}
-#' Weighted class covariance matrices:
+#' Weighted class covariance matrices: \cr
 #' \code{method = "ML"}:
 #' \deqn{S_g = \sum_{n:y_n=g} w_n^* (x_n - \bar x_g)(x_n - \bar x_g)'}{S_g = sum_{n:y_n=g} w_n* (x_n - bar x_g)(x_n - bar x_g)'}
 #' \code{method = "unbiased"}:

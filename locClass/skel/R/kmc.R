@@ -37,7 +37,7 @@
 #' \code{"triangular"}.
 #'
 #' Moreover, it is possible to generate the window functions mentioned above in advance 
-#' (see \code{\link[=biweight]{wfs}}) and pass them to \code{dalda}. 
+#' (see \code{\link[=biweight]{wfs}}) and pass them to \code{kmc}. 
 #'
 #' Any other function implementing a window function can also be used as \code{wf} argument.
 #' This allows the user to try own window functions.

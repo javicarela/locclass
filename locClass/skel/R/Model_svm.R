@@ -15,7 +15,7 @@
 #' @param object An object of class "svmModel" and "wsvm", respectively.
 #' @param x An object of class "wsvm".
 #' @param weights A vector of observation weights.
-#' @param out Should class labels or posterior probabilities be returned?
+#' @param out Should class labels, posterior probabilities or decision values be returned?
 #' @param \dots Further arguments.
 #'
 #' @return 

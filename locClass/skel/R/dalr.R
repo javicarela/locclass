@@ -70,13 +70,13 @@
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
-#' @param intercept Should the model contain an intercept. passed to \code{\link{glm.fit}}, null.model.
+#' @param intercept Should the model contain an intercept? Passed to \code{\link{glm.fit}}, null.model.
 #' @param weights Initial observation weights (defaults to a vector of 1s).
 #' @param \dots Further arguments to \code{\link{glm}}. Currently "offset",
 #'  "control", model, x, y, contrasts, start, etastart, mustart are supported.
 #'  family is "binomial", method?. Note that some of theses arguments only make sense when using the formula method, namely: ...?
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.)
-#' @param na.action The default is first, any \code{na.action} attribute of data, second a \code{na.action} setting of options, and third \code{na.fail} if that is unset
+#' @param na.action The default is first, any \code{na.action} attribute of data, second a \code{na.action} setting of options, and third \code{na.fail} if that is unset.
 #'   The default is first, a \code{na.action} setting of options, and second \code{na.fail} if that is unset.
 #'
 #' @return An object of class \code{"dalr"} inheriting from class \code{"glm"}, a list containing at least the following components:
@@ -91,7 +91,7 @@
 #' \item{linear.predictor}{The linear fit on link scale.}
 #' \item{deviance}{Up to a constant, minus twice the maximized log-likelihood. Where sensible, the constant is chosen so that a saturated model has deviance zero.}
 #' \item{aic}{A version of Akaike's An Information Criterion, minus twice the maximized log-likelihood plus twice the number of parameters, 
-#'	computed by the aic component of the family. For binomial and Poison families the dispersion is fixed at one and the number of parameters 
+#'	computed by the aic component of the family. For binomial and poisson families the dispersion is fixed at one and the number of parameters 
 #' is the number of coefficients. For gaussian, Gamma and inverse gaussian families the dispersion is estimated from the residual deviance, 
 #' and the number of parameters is the number of coefficients plus one. For a gaussian family the MLE of the dispersion is used so this is a 
 #' valid value of AIC, but for Gamma and inverse gaussian families it is not. For families fitted by quasi-likelihood the value is NA.}
@@ -113,7 +113,7 @@
 #' \item{data}{The data argument.}
 #' \item{offset}{The offset vector used.}
 #' \item{control}{The value of the control argument used.}
-#' \item{method}{The name of the fitter function used, currently always ~code{"glm.fit"}.}
+#' \item{method}{The name of the fitter function used, currently always \code{"glm.fit"}.}
 #' \item{contrasts}{(Where relevant) the contrasts used.}
 #' \item{xlevels}{(Where relevant) a record of the levels of the factors used in fitting.}
 #' \item{na.action}{(Where relevant) information returned by \code{\link{model.frame}} on the special handling of NAs.}

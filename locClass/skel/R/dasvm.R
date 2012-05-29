@@ -64,7 +64,7 @@
 #' This allows the user to try own window functions.
 #' See help on \code{\link[=biweight]{wfs}} for details.
 #'
-#' \code{dasvm} calls \code{wsvm} internally which is a version of Support Vector Machines that
+#' \code{dasvm} calls \code{\link{wsvm}} internally which is a version of Support Vector Machines that
 #' can deal with case weights and which is a modified version of the \code{\link[e1071]{svm}} 
 #' function in package \pkg{e1071} written by David Meyer 
 #' (based on C/C++-code by Chih-Chung Chang and Chih-Jen Lin).
@@ -120,7 +120,7 @@
 #'   \item \code{C-classification}
 #'   \item \code{nu-classification}
 #'   }
-#'   \code{C-classification is the default}.
+#'   \code{C-classification} is default.
 #' @param \dots Further parameters that are passed to \code{wsvm.default}, e.g. \code{kernel}, \code{degree}, 
 #'   \code{gamma}, \code{coef0}, \code{cost}, \code{nu}, \code{class.weights}, \code{case.weights}, \code{cachesize}, 
 #'   \code{tolerance}, \code{shrinking}, \code{cross}, \code{probability}, \code{fitted}, and 
@@ -560,8 +560,7 @@ print.dasvm <- function (x, ...) {
 #'  \eqn{k * (k - 1) / 2} classifiers (\eqn{k} number of classes). The colnames of
 #'  the matrix indicate the labels of the two classes. If \code{probability} is
 #'  \code{TRUE}, the vector gets a \code{"probabilities"} attribute
-#'  containing a \eqn{n * k} matrix (\eqn{n} number of predicted values, \eqn{k} number of
-#'  classes) of the class probabilities.
+#'  containing a \eqn{n * k} matrix of the class probabilities.
 #'
 #' @references
 #' Hand, D. J., Vinciotti, V. (2003), Local versus global models for classification problems: 

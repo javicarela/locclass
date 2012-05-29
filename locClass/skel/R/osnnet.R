@@ -41,7 +41,7 @@
 #'
 #' @param formula A \code{formula} of the form \code{response ~ x1 + x2 + \dots}.  
 #' @param data A \code{data.frame} from which variables specified in \code{formula} are to be taken.
-#' @param x (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} or \code{Matrix}? containing the explanatory variables.
+#' @param x (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} or \code{Matrix} containing the explanatory variables.
 #' @param y (Required if no \code{formula} is given as principal argument.) A \code{matrix} or \code{data.frame} of target values for examples.
 #' @param size Number of units in the hidden layer. Can be zero if there are skip-layer units.
 #' @param contrasts A list of contrasts to be used for some or all of the factors appearing as variables in the model formula.

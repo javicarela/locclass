@@ -40,13 +40,13 @@
 #'
 #' In \code{osmultinom} no fitting is done. In the prediction step an individual model for every test
 #' observation is fitted.
-#' Observations weights that reflect the importance of training observations for the fit
+#' Observation weights that reflect the importance of training observations for the fit
 #' at a particular test observation are calculated internally in \code{\link{predict.osmultinom}}.
 #' For this reason not all types of response in \code{formula} are allowed and \code{osmultinom} does not take all arguments 
 #' that can be passed to \code{\link[nnet]{multinom}}.
 #' As response in \code{formula} factors and matrices are allowed. If \code{censored = FALSE} only zero-one class indicator matrices are 
 #' allowed.
-#' Argument \code{weights} is missing since observations weights are calculated internally in \code{\link{predict.osmultinom}}.
+#' Argument \code{weights} is missing since observation weights are calculated internally in \code{\link{predict.osmultinom}}.
 #' \code{summ} that specifies a method to summarize rows of the model matrix is missing since this requires adjustment of the case weights.
 #' Also \code{Hess} is not supported.
 #'
