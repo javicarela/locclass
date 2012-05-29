@@ -99,7 +99,7 @@
 #'	Note that this will be incorrect if the link function depends on the data other than through the fitted mean: specify a zero offset to force a correct calculation.}
 #' \item{iter}{The number of iterations of IWLS used.}
 #' \item{weights}{A list of length \code{itr + 1}. The working weights, that is the observation weights in the final iteration of the IWLS fit.}
-#' \item{prior.weights}{A list of length \code{itr + 1}. The observation weights initially supplied, the first list element is a vector of 1s if none were.}
+#' \item{prior.weights}{A list of length \code{itr + 1}. The observation weights initially supplied, the first list element is a vector of 1s if none were specified.}
 #' \item{df.residual}{The residual degrees of freedom.}
 #' \item{df.null}{The residual degrees of freedom for the null model.}
 #' \item{y}{If requested (the default) the y vector used. (It is a vector even for a binomial model.)}

@@ -253,9 +253,9 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 	return(wfunc)
 }
 
-#' The window function generating functions that are used in various local classification methods.
+#' The window function generates functions that are used in various local classification methods.
 #'
-#' The window function generating functions are used to initialize a window function. These functions can be passed as
+#' The window function generates functions are used to initialize a window function. These functions can be passed as
 #' \code{wf} argument to various local classification methods.
 #'
 #' If only \code{bw} is given a window function with fixed bandwidth is returned.
@@ -267,9 +267,9 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #' If \code{bw} and \code{k} are both specified, a window function with fixed bandwidth is generated and all weights are set to zero except for
 #' the \code{k} nearest neighbors.
 #' 
-#' Parts of the source code are based on the function \link[stats]{density} in package stats. Concerning the \code{"cosine"} and \code{"optcosine"} windows, it applies
+#' Parts of the source code are based on the function \link[stats]{density} in package \pkg{stats}. Concerning the \code{"cosine"} and \code{"optcosine"} windows, it applies
 #' what is said in the documentation of \link[stats]{density}: \code{"cosine"} is smoother than \code{"optcosine"}, which is the usual 'cosine' kernel in the literature.
-#' \code{"cosine"} is the version used by S.
+#' \code{"cosine"} is the version used by the S programming language.
 #'
 #' @title Generation of Window Functions
 #'
