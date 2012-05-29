@@ -72,9 +72,10 @@
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
 #' @param intercept Should the model contain an intercept? Passed to \code{\link{glm.fit}}, null.model.
 #' @param weights Initial observation weights (defaults to a vector of 1s).
-#' @param \dots Further arguments to \code{\link{glm}}. Currently "offset",
-#'  "control", model, x, y, contrasts, start, etastart, mustart are supported.
-#'  family is "binomial", method?. Note that some of theses arguments only make sense when using the formula method, namely: ...?
+#' @param \dots Further arguments to \code{\link{glm}}. Currently \code{offset},
+#'  \code{control}, \code{model}, \code{x}, \code{y}, \code{contrasts}, \code{start}, \code{etastart}, 
+#'  \code{mustart} are supported.
+#  family is "binomial", method?. Note that some of theses arguments only make sense when using the formula method, namely: ...?
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.)
 #' @param na.action The default is first, any \code{na.action} attribute of data, second a \code{na.action} setting of options, and third \code{na.fail} if that is unset.
 #'   The default is first, a \code{na.action} setting of options, and second \code{na.fail} if that is unset.
