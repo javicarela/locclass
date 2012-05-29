@@ -369,8 +369,9 @@ print.osmultinom <- function(x, ...) {
 #' @param type Type of output.
 #' @param \dots Arguments passed to or from other methods.
 #'
-#' @return If \code{type = "class"}, ;
-#'   if \code{type = "probs"}, .
+#' @return If \code{type = "class"}, a \code{factor} containing the predicted class labels;
+#'   if \code{type = "probs"}, a \code{matrix} of class posterior probabilities. In case of a binary classification
+#'	 problem the matrix contains only the posteriors for the second factor level.
 #'
 #' @seealso \code{\link{osmultinom}}, \code{\link{osnnet}}, \code{\link{predict.osnnet}}, \code{\link[nnet]{predict.nnet}}, \code{\link[nnet]{nnet}}.
 #'
@@ -383,7 +384,6 @@ print.osmultinom <- function(x, ...) {
 #' @S3method predict osmultinom
 #'
 #' @useDynLib locClass
-
 
 # function (object, newdata, type = c("class", "probs"), ...) 
 # {
