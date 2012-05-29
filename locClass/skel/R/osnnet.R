@@ -80,10 +80,10 @@
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param \dots Arguments passed to or from other methods.
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
-#' @param na.action A function to specify the action to be taken if NAs are found. The default action is first
-#'   the \code{na.action} setting of \code{\link{options}} and second \code{\link{na.fail}} if that is unset. 
+#' @param na.action A function to specify the action to be taken if \code{NA}s are found. The default action is for the
+#'   procedure to fail. 
 #'   An alternative is \code{\link{na.omit}}, which leads to rejection of cases with missing values on any required 
-#'   variable. (NOTE: If given, this argument must be named.)???
+#'   variable. (NOTE: If given, this argument must be named.)
 #'
 #' @return An object of class \code{"osnnet.formula"} or \code{"osnnet"}, a \code{list} containing the following components:
 #'   \item{x}{A \code{matrix} containing the explanatory variables.}
@@ -381,7 +381,7 @@ print.osnnet <- function(x, ...) {
     tconn <- diff(x$nconn)
     if (tconn[length(tconn)] > x$n[2L] + 1L) 
         cat(" skip-layer connections ")
-    if (x$nunits > x$net$nsunits && !x$softmax) 
+    if (x$nunits > x$nsunits && !x$softmax) 
         cat(" linear output units ")
     if (x$entropy) 
         cat(" entropy fitting ")
