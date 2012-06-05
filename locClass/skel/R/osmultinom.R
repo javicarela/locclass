@@ -133,6 +133,12 @@
 #'
 #' @seealso \code{\link{predict.osmultinom}}, \code{\link{osnnet}}, \code{\link[nnet]{nnet}}.
 #'
+#' @examples
+#'     fit <- osmultinom(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'                       wf = "gaussian", bw = 0.5)
+#'     pred <- predict(fit)
+#'     mean(pred$class != iris$Species)
+#'
 #' @keywords neural
 #'
 #' @aliases osmultinom

@@ -84,7 +84,12 @@
 #'
 #' @seealso \code{\link{predict.osqda}}.
 #'
-#'
+#' @examples
+#'        fit <- osqda(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'                     wf = "gaussian", bw = 0.5, method = "ML")
+#'       pred <- predict(fit)
+#'       mean(pred$class != iris$Species)
+#' 
 #' @keywords classif multivariate
 #'
 #' @aliases osqda osqda.data.frame osqda.default osqda.formula osqda.matrix
