@@ -87,6 +87,11 @@
 #'
 #' @seealso \code{\link{predict.oslda}}.
 #'
+#' @examples
+#'       fit <- oslda(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'                    wf = "gaussian", bw = 0.5, method = "ML")
+#'      pred <- predict(fit)
+#'      mean(pred$class != iris$Species)
 #'
 #' @keywords classif multivariate
 #'
@@ -314,6 +319,11 @@ print.oslda <- function(x, ...) {
 #'
 #' @seealso \code{\link{oslda}}.
 #'
+#' @examples
+#'       fit <- oslda(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'                    wf = "gaussian", bw = 0.5, method = "ML")
+#'      pred <- predict(fit)
+#'      mean(pred$class != iris$Species)
 #' 
 #' @keywords classif
 #' 

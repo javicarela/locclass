@@ -140,11 +140,10 @@
 #' @seealso \code{\link{predict.dannet}}, \code{\link[nnet]{nnet}} and 
 #' \code{\link{dalr}} for discriminant adaptive logistic regression.
 #'
-# @examples
-# fit <- dalda(Species ~ Sepal.Length + Sepal.Width, data = iris,
-#     wf = "gaussian", bw = 0.5)
-# pred <- predict(fit)
-# mean(pred$class != iris$Species)
+#' @examples
+#'  fit <- dannet(Species ~ Sepal.Length + Sepal.Width, data = iris, size = 2, rang = 0.1, maxit = 200, bw = 2)
+#'  pred <- predict(fit)
+#'  mean(pred$class != iris$Species)
 #
 #' @keywords classif multivariate
 #'
@@ -508,7 +507,7 @@ print.dannet <- function (x, ...) {
 #'
 #' @seealso \code{\link{dannet}}, \code{\link[nnet]{nnet}}.
 #'
-# @examples
+#' @examples
 #' fit <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, size = 2, rang = 0.1, decay = 5e-4, maxit = 200)
 #' pred <- predict(fit)
 #' mean(pred$class != iris$Species)

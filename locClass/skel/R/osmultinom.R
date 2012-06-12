@@ -382,6 +382,11 @@ print.osmultinom <- function(x, ...) {
 #'
 #' @seealso \code{\link{osmultinom}}, \code{\link{osnnet}}, \code{\link{predict.osnnet}}, \code{\link[nnet]{predict.nnet}}, \code{\link[nnet]{nnet}}.
 #'
+#' @examples
+#'     fit <- osmultinom(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'                       wf = "gaussian", bw = 0.5)
+#'     pred <- predict(fit)
+#'     mean(pred != iris$Species)
 #' 
 #' @keywords neural
 #' 
