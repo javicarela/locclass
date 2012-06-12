@@ -321,6 +321,11 @@ print.kda <- function(x, ...) {
 #'
 #' @seealso \code{\link{kda}}.
 #'
+#' @examples
+#'   fit <- kda(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'              wf = "gaussian", bw = 0.5)
+#'   pred <- predict(fit)
+#'   mean(pred$class != iris$Species)
 #' 
 #' @keywords classif
 #' 

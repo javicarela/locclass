@@ -433,7 +433,7 @@ update.kmc <- function(object, wf = c("biweight", "cauchy", "cosine", "epanechni
 #' pred <- predict(object, data.test[,-22])
 #' mean(pred$class != data.test$classes)
 #' 
-#' # prediction based on the 3 nearest prototpes with weighting
+#' # prediction based on the 3 nearest prototypes with weighting
 #' object <- kmc(classes ~ ., data = data.train, K = 3, wf = "gaussian", bw = 1, k = 3)
 #' pred <- predict(object, data.test[,-22])
 #' mean(pred$class != data.test$classes)

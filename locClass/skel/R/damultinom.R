@@ -374,6 +374,15 @@ print.damultinom <- function (x, ...) {
 #'
 #' @seealso \code{\link{damultinom}}, \code{\link{dannet}}, \code{\link[nnet]{multinom}}, \code{\link[nnet]{nnet}}.
 #'
+#' @examples
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, Hess=TRUE)
+#' pred <- predict(fit)
+#' mean(pred$class != iris$Species)
+#'
+#' fit <- damultinom(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5, weights=1:nrow(iris), trace=FALSE)
+#' pred <- predict(fit)
+#' mean(pred$class != iris$Species)
+#'
 #' @keywords classif neural model
 #' 
 #' @method predict damultinom
