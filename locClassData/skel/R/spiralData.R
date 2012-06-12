@@ -39,7 +39,7 @@
 #' x.1 <- x.2 <- seq(-2,2,0.05)
 #' grid <- expand.grid(x.1 = x.1, x.2 = x.2)
 #'
-#' # Calculate the posterior probablities for all grid points
+#' # Calculate the posterior probabilities for all grid points
 #' gridPosterior <- spiralPosterior(grid)
 #'
 #' # Draw contour lines of posterior probabilities and plot training observations

@@ -14,7 +14,7 @@
 #  http://www.r-project.org/Licenses/
 #
 
-#' Generation of a binary classification problem with two Gaussian distributions with euqal means and different covariance matrices.
+#' Generation of a binary classification problem with two Gaussian distributions with equal means and different covariance matrices.
 #'
 # details
 #'

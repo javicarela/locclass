@@ -32,9 +32,9 @@
 #' @param mu21 Class center of second class, a vector.
 #' @param mu22 Class center of second class, a vector.
 #' @param mu23 Class center of second class, a vector.
-#' @param mu31 Class center of second class, a vector.
-#' @param mu32 Class center of second class, a vector.
-#' @param mu33 Class center of second class, a vector.
+#' @param mu31 Class center of third class, a vector.
+#' @param mu32 Class center of third class, a vector.
+#' @param mu33 Class center of third class, a vector.
 #' @param sigma Covariance matrix for classes 1, 2, and 3. 
 #' @param data A \code{data.frame}.
 #'
