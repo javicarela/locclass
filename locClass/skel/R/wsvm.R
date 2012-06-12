@@ -162,51 +162,40 @@
 #' @seealso \code{\link{predict.wsvm}}, \code{\link[e1071]{plot.svm}} in package \pkg{e1071}, 
 #'    \code{\link[SparseM]{matrix.csr}} (in package \pkg{SparseM}).
 #'
-#' @keywords neural nonlinear classif
-#' 
-#' @useDynLib locClass
+#' @examples
+#'   data(iris)
+#'   attach(iris)
 #'
-#' @aliases wsvm wsvm.default wsvm.formula
+#'  ## classification mode
+#'  ## default with factor response:
+#'    model <- wsvm(Species ~ ., data = iris)
 #'
-#' @export
+#' # alternatively the traditional interface:
+#'   x <- subset(iris, select = -Species)
+#'   y <- Species
+#'   model <- wsvm(x, y) 
 #'
-#' @import e1071
-
-
-# examples
-#data(iris)
-#attach(iris)
-#
-### classification mode
-## default with factor response:
-#model <- wsvm(Species ~ ., data = iris)
-#
-## alternatively the traditional interface:
-#x <- subset(iris, select = -Species)
-#y <- Species
-#model <- wsvm(x, y) 
-#
-#print(model)
-#summary(model)
-#
-## test with train data
-#pred <- predict(model, x)
-## (same as:)
-#pred <- fitted(model)
-#
-## Check accuracy:
-#table(pred, y)
-#
-## compute decision values and probabilities:
-#pred <- predict(model, x, decision.values = TRUE)
-#attr(pred, "decision.values")[1:4,]
-#
-## visualize (classes by color, SV by crosses):
-#plot(cmdscale(dist(iris[,-5])),
-#     col = as.integer(iris[,5]),
-#     pch = c("o","+")[1:150 \%in\% model$index + 1])
-#
-### try regression mode on two dimensions
+#'   print(model)
+#'  summary(model)
+#'
+#'  # test with train data
+#'   pred <- predict(model, x)
+#'   # (same as:)
+#'    pred <- fitted(model)
+#'
+#'    # Check accuracy:
+#'    table(pred, y)
+#'
+#'  # compute decision values and probabilities:
+#'   pred <- predict(model, x, decision.values = TRUE)
+#'   attr(pred, "decision.values")[1:4,]
+#'
+#'   ## visualize (classes by color, SV by crosses):
+#'   plot(cmdscale(dist(iris[,-5])),
+#'     col = as.integer(iris[,5]),
+#'     pch = c("o","+")[1:150 %in% model$index + 1])
+#'
+## try regression mode on two dimensions
 #
 ## create data
 #x <- seq(0.1, 5, by = 0.05)
@@ -221,36 +210,50 @@
 #points(x, log(x), col = 2)
 #points(x, new, col = 4)
 #
-### density-estimation
-#
-## create 2-dim. normal with rho=0:
-#X <- data.frame(a = rnorm(1000), b = rnorm(1000))
-#attach(X)
-#
-## traditional way:
-#m <- wsvm(X, gamma = 0.1)
-#
-## formula interface:
-#m <- wsvm(~., data = X, gamma = 0.1)
-## or:
-#m <- wsvm(~ a + b, gamma = 0.1)
-#
-## test:
-#newdata <- data.frame(a = c(0, 4), b = c(0, 4))
-#predict (m, newdata)
-#
-## visualize:
-#plot(X, col = 1:1000 \%in\% m$index + 1, xlim = c(-5,5), ylim=c(-5,5))
-#points(newdata, pch = "+", col = 2, cex = 5)
-#
-## weights: (example not particularly sensible)
-#i2 <- iris
-#levels(i2$Species)[3] <- "versicolor"
-#summary(i2$Species)
-#wts <- 100 / table(i2$Species)
-#wts
-#m <- wsvm(Species ~ ., data = i2, class.weights = wts)
-#
+#'  ## density-estimation
+#'
+#'   # create 2-dim. normal with rho=0:
+#'   X <- data.frame(a = rnorm(1000), b = rnorm(1000))
+#'   attach(X)
+#'
+#'   # traditional way:
+#'    m <- wsvm(X, gamma = 0.1)
+#'
+#'   # formula interface:
+#'   m <- wsvm(~., data = X, gamma = 0.1)
+#'
+#'   # test:
+#'   newdata <- data.frame(a = c(0, 4), b = c(0, 4))
+#'   predict (m, newdata)
+#'
+#'  ## visualize:
+#'  plot(X, col = 1:1000 %in% m$index + 1, xlim = c(-5,5), ylim=c(-5,5))
+#'   points(newdata, pch = "+", col = 2, cex = 5)
+#'
+#'  ## weights: (example not particularly sensible)
+#'  i2 <- iris
+#'  levels(i2$Species)[3] <- "versicolor"
+#'  summary(i2$Species)
+#'  wts <- 100 / table(i2$Species)
+#'  wts
+#'  m <- wsvm(Species ~ ., data = i2, class.weights = wts)
+#'
+#'  ## case.weights:
+#'  fit <- wsvm(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, case.weights = rep(c(0.5,1),75))
+#'  pred <- predict(fit)
+#'  mean(pred != iris$Species)
+#'
+#' @keywords neural nonlinear classif
+#' 
+#' @useDynLib locClass
+#'
+#' @aliases wsvm wsvm.default wsvm.formula
+#'
+#' @export
+#'
+#' @import e1071
+
+
 
 wsvm <- function (x, ...)
     UseMethod ("wsvm")
