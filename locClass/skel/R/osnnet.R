@@ -121,7 +121,7 @@
 #'
 #' @examples
 #'  samp <- c(sample(1:50,25), sample(51:100,25), sample(101:150,25))
-#'   fit <- osnnet(species ~ ., data = iris, subset = samp, size = 2, 
+#'   fit <- osnnet(Species ~ ., data = iris, subset = samp, size = 2, 
 #'                rang = 0.1, maxit = 200, bw = 0.5)
 #'  pred <- predict(fit)
 #' 
