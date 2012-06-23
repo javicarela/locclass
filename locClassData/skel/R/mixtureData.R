@@ -98,8 +98,9 @@ mixtureData <- function(n, prior, lambda, mu, sigma) {
 	nclass <- length(prior)
 	y <- factor(sample(1:nclass, size = n, replace = TRUE, prob = prior), levels = 1:nclass)	# class labels
     ncl <- as.vector(table(y))																	# # observations per class
+#print(ncl)
 	if (length(mu) != nclass)
-		stop("'length(mu)' is not 'nclass'")
+		stop("'length(mu)' and 'length(prior)' do not match")
 	d <- sapply(mu, ncol)
 	if (any(d[1] != d))
 		stop("numbers of columns for elements in 'mu' differs")
@@ -108,18 +109,18 @@ mixtureData <- function(n, prior, lambda, mu, sigma) {
 	x <- matrix(0, n, d)
 	if (is.list(sigma)) {							# sigma list or list of lists
 		if (length(sigma) != nclass)
-			stop("'length(sigma)' and 'nclass' differ")
+			stop("'length(sigma)' and 'length(prior)' do not match")
 		if (is.list(lambda)) {						# lambda list
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match'")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			for (k in 1:nclass)
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			for (k in which(ncl > 0))				# if n is small for some classes no observations are generated
 				x[y == k,] <- mixtureDataHelper(ncl[k], lambda[[k]], mu[[k]], sigma[[k]])
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			for (k in 1:nclass)
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			for (k in which(ncl > 0))				# if n is small for some classes no observations are generated
 				x[y == k,] <- mixtureDataHelper(ncl[k], lambda, mu[[k]], sigma[[k]])
 		} else {
 			stop("'lambda' is neither list nor vector")
@@ -127,19 +128,21 @@ mixtureData <- function(n, prior, lambda, mu, sigma) {
 	} else if (is.matrix(sigma)) {					# sigma matrix
 		if (is.list(lambda)) {
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			for (k in 1:nclass)
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			for (k in which(ncl > 0))				# if n is small for some classes no observations are generated
 				x[y == k,] <- mixtureDataHelper(ncl[k], lambda[[k]], mu[[k]], sigma)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			for (k in 1:nclass)
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			for (k in which(ncl > 0))				# if n is small for some classes no observations are generated
 				x[y == k,] <- mixtureDataHelper(ncl[k], lambda, mu[[k]], sigma)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
+	} else {
+		stop("'sigma' is neither list nor matrix")
 	}
 	data <- list(x = x, y = y)
 	class(data) <- c("locClass.mixtureData", "locClass")
@@ -156,8 +159,10 @@ mixtureData <- function(n, prior, lambda, mu, sigma) {
 
 mixtureDataHelper <- function(n_k, lambda_k, mu_k, sigma_k) {
 	ncomp_k <- length(lambda_k)
-	comp_k <- sample(1:ncomp_k, size = n_k, replace = TRUE, prob = lambda_k)
+	comp_k <- factor(sample(1:ncomp_k, size = n_k, replace = TRUE, prob = lambda_k), levels = 1:ncomp_k)
 	tab <- as.vector(table(comp_k))
+#print(comp_k)
+#print(tab)
 	d <- ncol(mu_k)
     x_k <- matrix(0, n_k, d)
     if (is.list(sigma_k)) {
@@ -165,13 +170,17 @@ mixtureDataHelper <- function(n_k, lambda_k, mu_k, sigma_k) {
     		stop("lengths of 'lambda' and 'sigma' do not fit")
     	if (any(as.vector(sapply(sigma_k, dim)) != d))
 			stop("dimensionality of elements in 'sigma' incorrect")
-		for (i in 1:ncomp_k)
+		for(i in which(tab > 0))
     		x_k[comp_k == i,] <- rmvnorm(tab[i], mu_k[i,], sigma_k[[i]])
+		#for (i in names(tab)) #1:ncomp_k)
+    	#	x_k[comp_k == i,] <- rmvnorm(tab[i], mu_k[as.numeric(i),], sigma_k[[as.numeric(i)]])
 	} else if (is.matrix(sigma_k)) {
 		if (any(dim(sigma_k) != d))
 			stop("dimensionality of 'sigma_k' incorrect")
-		for (i in 1:ncomp_k)
+		for(i in which(tab > 0))
     		x_k[comp_k == i,] <- rmvnorm(tab[i], mu_k[i,], sigma_k)
+		# for (i in names(tab)) #1:ncomp_k)
+    		# x_k[comp_k == i,] <- rmvnorm(tab[i], mu_k[as.numeric(i),], sigma_k)
 	} else
 		stop("'sigma_k' is neither list nor matrix")
 	return(x_k)    
@@ -203,7 +212,7 @@ mixtureLabels <- function(data, prior, lambda, mu, sigma) {
 mixturePosterior <- function(data, prior, lambda, mu, sigma) {
 	nclass <- length(prior)
 	if (length(mu) != nclass)
-		stop("'length(mu)' is not 'nclass'")
+		stop("'length(mu)' and 'length(prior)' do not match")
 	d <- sapply(mu, ncol)
 	if (any(d[1] != d))
 		stop("numbers of columns for elements in 'mu' differs")
@@ -211,34 +220,36 @@ mixturePosterior <- function(data, prior, lambda, mu, sigma) {
 	ncomp <- sapply(mu, nrow)						# # of mixture components per class	
 	if (is.list(sigma)) {							# sigma list or list of lists
 		if (length(sigma) != nclass)
-			stop("'length(sigma)' and 'nclass' differ")
+			stop("'length(sigma)' and 'length(prior)' do not match")
 		if (is.list(lambda)) {						# lambda list
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda[[k]], mu[[k]], sigma[[k]]))
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda[[k]], mu[[k]], sigma[[k]])), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda, mu[[k]], sigma[[k]]))
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda, mu[[k]], sigma[[k]])), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
 	} else if (is.matrix(sigma)) {					# sigma matrix
 		if (is.list(lambda)) {
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda[[k]], mu[[k]], sigma))
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda[[k]], mu[[k]], sigma)), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda, mu[[k]], sigma))
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(data, lambda, mu[[k]], sigma)), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
+	} else {
+		stop("'sigma' is neither list nor matrix")
 	}
 	colnames(dens) <- paste("posterior", 1:nclass, sep = ".")
 	rownames(dens) <- rownames(data)
@@ -258,11 +269,11 @@ mixturePosteriorHelper <- function(data, lambda_k, mu_k, sigma_k) {
     		stop("lengths of 'lambda' and 'sigma' do not fit")
     	if (any(as.vector(sapply(sigma_k, dim)) != d))
 			stop("dimensionality of elements in 'sigma' incorrect")
-		dens_k <- rowSums(sapply(1:ncomp_k, function(i) lambda_k[i] * dmvnorm(data, mu_k[i,], sigma_k[[i]])))
+		dens_k <- rowSums(matrix(sapply(1:ncomp_k, function(i) lambda_k[i] * dmvnorm(data, mu_k[i,], sigma_k[[i]])), ncol = ncomp_k))
 	} else if (is.matrix(sigma_k)) {
 		if (any(dim(sigma_k) != d))
 			stop("dimensionality of 'sigma_k' incorrect")
-		dens_k <- rowSums(sapply(1:ncomp_k, function(i) lambda_k[i] * dmvnorm(data, mu_k[i,], sigma_k)))
+		dens_k <- rowSums(matrix(sapply(1:ncomp_k, function(i) lambda_k[i] * dmvnorm(data, mu_k[i,], sigma_k)), ncol = ncomp_k))
 	} else
 		stop("'sigma_k' is neither list nor matrix")
 	return(dens_k)
