@@ -54,6 +54,23 @@ bayes.locClass.flashData <- function(object, ...) {
 
 
 #' @rdname bayes
+#' @method bayes locClass.flexibleData
+#'
+#' @S3method bayes locClass.flexibleData
+
+bayes.locClass.flexibleData <- function(object, ...) {
+	if (!inherits(object, "locClass.flexibleData"))
+		stop("object not of class \"locClass.flexibleData\"")
+	d <- ncol(object$x)
+	posterior <- mixturePosterior(object$x, prior = attr(object, "prior"), mu = attr(object, "muMix"), sigma = attr(object, "sigmaMix")*diag(d), lambda = attr(object, "lambdaMix"))
+	nclass <- length(attr(object, "prior"))
+	ybayes <- factor(max.col(posterior), levels = 1:nclass)
+    return(list(ybayes = ybayes, posterior = posterior))
+}
+
+
+
+#' @rdname bayes
 #' @method bayes locClass.hvData
 #'
 #' @S3method bayes locClass.hvData
@@ -126,11 +143,11 @@ bayes.locClass.mixtureData <- function(object, ...) {
 				stop("'length(lambda)' is not 'nclass'")
 			if (any(sapply(lambda, length) != ncomp))
 				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma[[k]]))
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma[[k]])), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
 				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma[[k]]))
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma[[k]])), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
@@ -140,11 +157,11 @@ bayes.locClass.mixtureData <- function(object, ...) {
 				stop("'length(lambda)' is not 'nclass'")
 			if (any(sapply(lambda, length) != ncomp))
 				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma))
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma)), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
 				stop("length of 'lambda' and 'mu' does not match")
-			dens <- sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma))
+			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma)), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
