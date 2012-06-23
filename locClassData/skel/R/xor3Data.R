@@ -57,7 +57,7 @@ xor3Data <- function(n, prior = rep(1/3,3), lambda = rep(1/3,3), mu11 = c(-4,4),
 	mu <- list(rbind(mu11,mu12,mu13), rbind(mu21, mu22,mu23), rbind(mu31,mu32,mu33))
 	sigma <- list(sigma, sigma, sigma)
 	data <- mixtureData(n, prior, lambda, mu, sigma)
-	attr(data, "class") <- c("locClass.xorData", attr(data, "class"))
+	attr(data, "class") <- c("locClass.xor3Data", attr(data, "class"))
 	return(data)
 }
 
