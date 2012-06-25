@@ -5,7 +5,7 @@ Title: Collection of Artificial Classification Problems
 Author: Julia Schiffner
 Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
 Depends: R (>= 2.13.2)
-Imports: mvtnorm, mlbench
+Imports: mvtnorm, mlbench, igraph
 Suggests: MASS
 Description: Collection of diverse artificial classification problems.
 License: GPL-2
