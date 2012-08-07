@@ -45,6 +45,7 @@ ringData <- function(n, prior = rep(0.5,2), sigma1 = diag(2), sigma2 = 2*diag(2)
 	sigma <- list(sigma1, sigma2)
 	data <- mixtureData(n, prior, lambda = list(1,1), mu, sigma)
 	class(data) <- c("locClass.ringData", class(data))
+	return(data)
 }
 
 
