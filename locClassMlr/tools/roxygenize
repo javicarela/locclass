@@ -1,0 +1,10 @@
+#!/usr/bin/env Rscript
+
+require("roxygen2")
+roxygenize("skel", "../pkg/locClassMlr", unlink.target=TRUE)
+
+warn <- warnings()
+if (!is.null(warn)) {
+	cat("Warnings?\n")
+	print(warn)
+}
