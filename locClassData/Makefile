@@ -12,7 +12,8 @@ usage:
 	echo " check    - run R CMD check on the package"
 	echo " package  - build source package"
 	echo " help     - shows all available targets"
-	echo " reforge	- prepare package for R-forge"
+	echo " test	- run tests"
+	echo " rforge	- prepare package for R-forge"
 
 help: usage
 	echo " clean    - clean up package cruft"
@@ -21,6 +22,10 @@ help: usage
 install: clean pkg
 	echo "Installing package ..."
 	${R} CMD INSTALL ../pkg/locClassData > install.log 2>&1
+
+test: install
+	echo "Testing package ..."
+	${RSCRIPT} ./test_all.R
 
 check: clean pkg
 	echo "Running R CMD check ..."
