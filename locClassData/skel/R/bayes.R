@@ -27,11 +27,26 @@
 #' A list with components:
 #' \item{posterior}{A matrix of posterior probabilities.}
 #' \item{ybayes}{A vector of Bayes predictions.}
+#' \item{noise}{The estimated Bayes error.}
 #'
-#' @aliases bayes bayes.locClass.hvData bayes.locClass.mixtureData bayes.locClass.twonormLinearData
-#'    bayes.locClass.twonormQuadraticData bayes.locClass.ringData bayes.locClass.xorData
-#'    bayes.locClass.outlierCorrectData bayes.locClass.outlierWrongData bayes.locClass.vData
-#'	  bayes.locClass.vNormalData
+#' @aliases bayes 
+#'		bayes.locClass.flashData 
+#'		bayes.locClass.flexibleData
+#'		bayes.locClass.hvData 
+#'		bayes.locClass.hvQuadraticData 
+#'		bayes.locClass.mixtureData
+#'		bayes.locClass.outlierCorrectData
+#'		bayes.locClass.outlierWrongData
+#'		bayes.locClass.ringData
+#'		bayes.locClass.spiralData
+#'		bayes.locClass.twonormLinearData
+#'		bayes.locClass.twonormQuadraticData  
+#'		bayes.locClass.vData
+#'		bayes.locClass.vNormalLinearData
+#'		bayes.locClass.vNormalQuadraticData
+#'		bayes.locClass.wData
+#'		bayes.locClass.xorData
+#'		bayes.locClass.xor3Data
 #'
 #' @export
 
@@ -62,10 +77,12 @@ bayes.locClass.flexibleData <- function(object, ...) {
 	if (!inherits(object, "locClass.flexibleData"))
 		stop("object not of class \"locClass.flexibleData\"")
 	d <- ncol(object$x)
+	n <- nrow(object$x)
 	posterior <- mixturePosterior(object$x, prior = attr(object, "prior"), mu = attr(object, "muMix"), sigma = attr(object, "sigmaMix")*diag(d), lambda = attr(object, "lambdaMix"))
 	nclass <- length(attr(object, "prior"))
 	ybayes <- factor(max.col(posterior), levels = 1:nclass)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -81,11 +98,13 @@ bayes.locClass.hvData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
+    n <- nrow(x)
 	posterior <- k*x[,d]/t(c(rep(1,d-1),k) %*% t(x))
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
 	ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -101,12 +120,14 @@ bayes.locClass.hvQuadraticData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
+    n <- nrow(x)
     x[,d] <- x[,d]^2
 	posterior <- k*x[,d]/t(rep(k,d) %*% t(x))
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
 	ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -128,6 +149,7 @@ bayes.locClass.mixtureData <- function(object, ...) {
     sigma <- attr(object, "sigma")
 	nclass <- length(prior)
 	d <- ncol(x)
+	n <- nrow(x)
 	# if (length(mu) != nclass)
 		# stop("'length(mu)' is not 'nclass'")
 	# d <- sapply(mu, ncol)
@@ -137,16 +159,16 @@ bayes.locClass.mixtureData <- function(object, ...) {
 	ncomp <- sapply(mu, nrow)						# # of mixture components per class	
 	if (is.list(sigma)) {							# sigma list or list of lists
 		if (length(sigma) != nclass)
-			stop("'length(sigma)' and 'nclass' differ")
+			stop("'length(sigma)' and 'length(prior)' differ")
 		if (is.list(lambda)) {						# lambda list
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match'")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
 			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma[[k]])), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
 			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma[[k]])), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
@@ -154,23 +176,26 @@ bayes.locClass.mixtureData <- function(object, ...) {
 	} else if (is.matrix(sigma)) {					# sigma matrix
 		if (is.list(lambda)) {
 			if (length(lambda) != nclass)
-				stop("'length(lambda)' is not 'nclass'")
+				stop("'length(lambda)' and 'length(prior)' do not match")
 			if (any(sapply(lambda, length) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
 			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda[[k]], mu[[k]], sigma)), ncol = nclass)
 		} else if (is.vector(lambda)) {
 			if (any(length(lambda) != ncomp))
-				stop("length of 'lambda' and 'mu' does not match")
+				stop("number of mixture components in 'lambda' and 'mu' do not match")
 			dens <- matrix(sapply(1:nclass, function(k) prior[k] * mixturePosteriorHelper(x, lambda, mu[[k]], sigma)), ncol = nclass)
 		} else {
 			stop("'lambda' is neither list nor vector")
 		}
+	} else {
+		stop("'sigma' is neither list nor matrix")
 	}
 	colnames(dens) <- paste("posterior", 1:nclass, sep = ".")
 	rownames(dens) <- rownames(x)
 	posterior <- dens/rowSums(dens)
 	ybayes <- factor(max.col(posterior), levels = 1:nclass)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -223,6 +248,7 @@ bayes.locClass.spiralData <- function(object, ...) {
 	if (!inherits(object, "locClass.spiralData"))
 		stop("'object' not of class \"locClass.spiralData\"")
     x <- object$x
+    n <- nrow(x)
     cycles <- attr(object, "cycles")
 	sp <- mlbench:::mlbench.1spiral(n = 1000, cycles = cycles, sd = 0)
 	# center spiral at 0
@@ -234,7 +260,8 @@ bayes.locClass.spiralData <- function(object, ...) {
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
     ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -276,13 +303,15 @@ bayes.locClass.vData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
+    n <- nrow(x)
 	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
     posterior <- cbind(1 - posterior, posterior)
     colnames(posterior) <- paste("posterior", 1:2, sep = ".")
     ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
@@ -324,12 +353,14 @@ bayes.locClass.wData <- function(object, ...) {
     x <- object$x
     k <- attr(object, "k")
     d <- ncol(x)
+    n <- nrow(x)
 	posterior <- 0.5 + k * (x[,2] - 2 * abs(x[,1] %% 1 - 0.5))
 	posterior[posterior < 0] <- 0 
 	posterior[posterior > 1] <- 1 
     posterior <- cbind(1 - posterior, posterior)
     ybayes <- factor(max.col(posterior), labels = as.character(1:2), levels = 1:2)
-    return(list(ybayes = ybayes, posterior = posterior))
+	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
+    return(list(ybayes = ybayes, posterior = posterior, noise = noise))
 }
 
 
