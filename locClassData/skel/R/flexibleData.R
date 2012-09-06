@@ -61,7 +61,7 @@
 #' \item{sigmaMix}{The \code{sigmaMix}-argument.}
 #' \item{lambdaMix}{A \code{list} as long as the number of classes containing the conditional probabilities for the mixture components given the class.}
 #' \item{nOther}{The number of observations drawn from the second distribution.}
-#' Optionally, if \code{nOther} is positive:
+#' Optionally, if \code{probMix} is smaller than 1:
 #' \item{muOther}{A \code{matrix} of mixture component centers.}
 #' \item{sigmaOther}{The \code{sigmaOther}-argument}
 #\item{lambdaOther}{A \code{vector} containing the probabilities of the mixture components.}
