@@ -78,7 +78,7 @@ bayes.locClass.flexibleData <- function(object, ...) {
 		stop("object not of class \"locClass.flexibleData\"")
 	d <- ncol(object$x)
 	n <- nrow(object$x)
-	posterior <- mixturePosterior(object$x, prior = attr(object, "prior"), mu = attr(object, "muMix"), sigma = attr(object, "sigmaMix")*diag(d), lambda = attr(object, "lambdaMix"))
+	posterior <- mixturePosterior(object$x, prior = attr(object, "prior"), mu = attr(object, "muMix"), sigma = lapply(attr(object, "sigmaMix"), function(x) x*diag(d)), lambda = attr(object, "lambdaMix"))
 	nclass <- length(attr(object, "prior"))
 	ybayes <- factor(max.col(posterior), levels = 1:nclass)
 	noise <- mean(1 - posterior[cbind(1:n, ybayes)])
