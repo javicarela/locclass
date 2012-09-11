@@ -1,0 +1,47 @@
+Package: locClassMlr
+Version: 0.1-0
+Date: 2012-08-10
+Title: Interface Code for Package mlr
+Author: Julia Schiffner
+Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
+Depends:
+    R (>= 2.15.0),
+    mlr
+Suggests:
+    locClass,
+    party
+Description: Provides functions to use methods from package locClass in
+    conjunction with package mlr.
+License: GPL-2
+URL: http://www.statistik.tu-dortmund.de
+Collate:
+    'classif.constant.R'
+    'classif.dalda.R'
+    'classif.dalr.R'
+    'classif.damultinom.R'
+    'classif.dannet.R'
+    'classif.daqda.R'
+    'classif.dasvm.R'
+    'classif.FLXMCLconstant.R'
+    'classif.FLXMCLlda.R'
+    'classif.FLXMCLmultinom.R'
+    'classif.FLXMCLnnet.R'
+    'classif.FLXMCLqda.R'
+    'classif.FLXMCLsvm.R'
+    'classif.kda.R'
+    'classif.kmc.R'
+    'classif.mobConstantModel.R'
+    'classif.mobLdaModel.R'
+    'classif.mobMultinomModel.R'
+    'classif.mobNnetModel.R'
+    'classif.mobQdaModel.R'
+    'classif.mobSvmModel.R'
+    'classif.oslda.R'
+    'classif.osmultinom.R'
+    'classif.osnnet.R'
+    'classif.osqda.R'
+    'classif.ossvm.R'
+    'classif.wlda.R'
+    'classif.wqda.R'
+    'classif.wsvm.R'
+    'predictNode.R'
