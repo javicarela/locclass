@@ -45,12 +45,10 @@ rforge: package
 	  echo "Deleting unused files ..."
 	${DELETE} ../pkg/locClassMlr/.svn
 	${DELETE} ../pkg/locClassMlr/inst/.svn
-	${DELETE} ../pkg/locClassMlr/inst/tests/.Rapp.history
 	${DELETE} ../pkg/locClassMlr/inst/tests/.svn
-	${DELETE} ../pkg/locClassMlr/inst/doc/.svn
+	${DELETE} ../pkg/locClassMlr/inst/tests/.Rapp.history
 	${DELETE} ../pkg/locClassMlr/R/.Rapp.history
 	${DELETE} ../pkg/locClassMlr/R/.svn
-	${DELETE} ../pkg/locClassMlr/src/.svn
 
 pkg: clean
 	echo "Roxygenizing package ..."
