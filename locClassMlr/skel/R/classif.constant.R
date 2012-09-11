@@ -1,8 +1,3 @@
-# @importFrom mlr makeRLearner trainLearner predictLearner
-#' @importFrom mlr trainLearner predictLearner
-makeRLearner <- mlr:::makeRLearner
-
-
 #' Methods for creating \code{\link[mlr]{Learner}} objects.
 #'
 #' @title Methods for Creating \code{\link[mlr]{Learner}} Objects.
@@ -14,6 +9,7 @@ makeRLearner <- mlr:::makeRLearner
 #' @rdname makeRLearner
 #' @method makeRLearner classif.constant
 #' @S3method makeRLearner classif.constant
+#' @importFrom mlr makeRLearner
 makeRLearner.classif.constant = function() {
 	makeRLearnerClassif(
 		cl = "classif.constant",
@@ -57,6 +53,7 @@ makeRLearner.classif.constant = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.constant
 #' @S3method trainLearner classif.constant
+#' @importFrom mlr trainLearner
 trainLearner.classif.constant <- function(.learner, .task, .subset,  ...) {
 	f = getTaskFormula(.task)
 	if (.task$task.desc$has.weights)
@@ -89,6 +86,7 @@ trainLearner.classif.constant <- function(.learner, .task, .subset,  ...) {
 #' @rdname predictLearner
 #' @method predictLearner classif.constant
 #' @S3method predictLearner classif.constant
+#' @importFrom mlr predictLearner
 predictLearner.classif.constant <- function(.learner, .model, .newdata, ...) {
 	p = predict(.model$learner.model, newdata = .newdata, ...)
 	if(.learner$predict.type == "response")
