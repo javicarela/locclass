@@ -34,5 +34,7 @@ test_that("mobConstantModel: mlr interface code works", {
 	}
 	expect_true(all(pr1$data[,3:4] == p))
 	# mean(pr1$data$truth != pr1$data$response)
-	# predictNode(tr1)
+
+	## type = "node"
+	expect_equal(predictNode(tr1), predict(tr2, type = "node"))
 })

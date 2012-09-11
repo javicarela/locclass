@@ -28,5 +28,7 @@ test_that("mobQdaModel: mlr interface code works", {
 	pr2 <- do.call("rbind", predict(tr2, out = "posterior"))
 	expect_true(all(pr1$data[,3:4] == pr2))
 	# mean(pr1$data$truth != pr1$data$response)
-	# predictNode(tr1)
+
+	## type = "node"
+	expect_equal(predictNode(tr1), predict(tr2, type = "node"))
 })
