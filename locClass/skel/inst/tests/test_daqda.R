@@ -715,35 +715,6 @@ test_that("predict.daqda: misspecified arguments", {
 })  
 
 #=================================================================================================================
-context("daqda: mlr interface code")
-
-test_that("daqda: mlr interface works", {
-	library(mlr)
-	source("../../../../mlr/classif.daqda.R")
-	task <- makeClassifTask(data = iris, target = "Species")
-
-	# missing parameters
-	expect_that(train("classif.daqda", task), gives_warning("either 'bw' or 'k' have to be specified"))
-
-	# class prediction
-	lrn <- makeLearner("classif.daqda", par.vals = list(bw = 10))
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- daqda(Species ~ ., data = iris, bw = 10)
-	pred2 <- predict(tr2)
-	expect_equivalent(pred2$class, pred1@df$response)
-
-	# posterior prediction
-	lrn <- makeLearner("classif.daqda", par.vals = list(bw = 10), predict.type = "prob")
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- daqda(Species ~ ., data = iris, bw = 10)
-	pred2 <- predict(tr2)
-	expect_true(all(pred2$posterior == pred1@df[,3:5]))
-	expect_equivalent(pred2$class, pred1@df$response)
-})
-
-#=================================================================================================================
 
 # mod <- daqda(Species ~ Sepal.Length + Sepal.Width, data = iris, wf = "gaussian", bw = 0.5)
 # x1 <- seq(4,8,0.05)

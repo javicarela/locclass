@@ -528,37 +528,6 @@ test_that("predict.damultinom: misspecified arguments", {
     expect_error(predict(fit, newdata = -50:50))
 }) 
 
-
-#=================================================================================================================
-context("damultinom: mlr interface code")
-
-test_that("damultinom: mlr interface works", {
-	library(mlr)
-	source("../../../../mlr/classif.damultinom.R")
-	task <- makeClassifTask(data = iris, target = "Species")
-
-	# missing parameters
-	expect_that(train("classif.damultinom", task), gives_warning("either 'bw' or 'k' have to be specified"))
-
-	# class prediction
-	lrn <- makeLearner("classif.damultinom", par.vals = list(bw = 2, trace = FALSE))
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- damultinom(Species ~ ., data = iris, bw = 2, trace = FALSE)
-	pred2 <- predict(tr2)
-	expect_equivalent(pred2$class, pred1@df$response)
-
-	# posterior prediction
-	lrn <- makeLearner("classif.damultinom", par.vals = list(bw = 2, trace = FALSE), predict.type = "prob")
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- damultinom(Species ~ ., data = iris, bw = 2, trace = FALSE)
-	pred2 <- predict(tr2)
-	expect_true(all(pred2$posterior == pred1@df[,3:5]))
-	expect_equivalent(pred2$class, pred1@df$response)
-})
-
-
 #=================================================================================================================
 
 ## eqivalence global and local with large bandwidth

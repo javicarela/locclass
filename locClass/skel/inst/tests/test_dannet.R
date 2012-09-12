@@ -882,38 +882,6 @@ test_that("dannet: print.dannet works correctly with formula and data.frame inte
 
 
 #=================================================================================================================
-context("dannet: mlr interface code")
-
-test_that("dannet: mlr interface works", {
-	library(mlr)
-	source("../../../../mlr/classif.dannet.R")
-	task <- makeClassifTask(data = iris, target = "Species")
-
-	# missing parameters
-	expect_that(train("classif.dannet", task), gives_warning("either 'bw' or 'k' have to be specified"))
-
-	Wts = runif(19, -0.5, 0.5)
-	
-	# class prediction
-	lrn <- makeLearner("classif.dannet", par.vals = list(bw = 2, Wts = Wts, size = 2, trace = FALSE))
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- dannet(Species ~ ., data = iris, bw = 2, Wts = Wts, size = 2, trace = FALSE)
-	pred2 <- predict(tr2)
-	expect_equivalent(pred2$class, pred1@df$response)
-
-	# posterior prediction
-	lrn <- makeLearner("classif.dannet", par.vals = list(bw = 2, Wts = Wts, size = 2, trace = FALSE), predict.type = "prob")
-	tr1 <- train(lrn, task)
-	pred1 <- predict(tr1, task = task)
-	tr2 <- dannet(Species ~ ., data = iris, bw = 2, Wts = Wts, size = 2, trace = FALSE)
-	pred2 <- predict(tr2)
-	expect_true(all(pred2$posterior == pred1@df[,3:5]))
-	expect_equivalent(pred2$class, pred1@df$response)
-})
-
-
-#=================================================================================================================
 
 # ###
 # ir <- rbind(iris3[,,1],iris3[,,2],iris3[,,3])
