@@ -95,6 +95,7 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
     		} else {
 	    		ll <- post[cbind(rownames(post), as.character(y))]
 	    	}
+	    	ll <- ifelse(ll == 0, -10000, log(ll))
 # print(head(ll))
 	    	return(ll)
 		}
@@ -105,7 +106,7 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
     	if (!is.factor(grouping)) 
         	warning("'grouping' was coerced to a factor")
 	    g <- as.factor(grouping)
-	    lev <- levels(grouping)
+	    lev <- levels(g)
     	g <- as.matrix(g)
     	attr(g, "lev") <- lev
 		g
@@ -113,7 +114,7 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 	z@fit <- function(x, y, w) {
 		lev <- attr(y, "lev")
 		fit <- constant(x, factor(y, levels = lev), weights = w)
-		fit$df <- length(lev)
+		fit$df <- length(lev) - 1
 		with(fit, eval(z@defineComponent))
 	}
 	z
