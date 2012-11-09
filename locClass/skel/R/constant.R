@@ -189,10 +189,10 @@ constant.default <- function(x, grouping, weights = rep(1, nrow(x)), ...) {
     lev <- lev1 <- levels(g)
     counts <- as.vector(table(g))
     if (any(counts == 0)) {
-        # empty <- lev[counts == 0]
-        # warning(sprintf(ngettext(length(empty), "group %s is empty or weights in this group are all zero", 
-            # "groups %s are empty or weights in these groups are all zero"), paste(empty, collapse = ", ")), 
-            # domain = NA)
+        empty <- lev[counts == 0]
+        warning(sprintf(ngettext(length(empty), "group %s is empty or weights in this group are all zero", 
+            "groups %s are empty or weights in these groups are all zero"), paste(empty, collapse = ", ")), 
+            domain = NA)
         lev1 <- lev[counts > 0]
         g <- factor(g, levels = lev1)
         counts <- as.vector(table(g))
