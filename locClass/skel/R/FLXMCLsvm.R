@@ -27,10 +27,11 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 
 
 
-#' This is a model driver for \code{\link[flexmix]{flexmix}} implementing mixtures of Support Vector Machines.
+#' This is a model driver for \code{\link[flexmix]{flexmix}} implementing mixtures of Support Vector Machines for classification.
 #'
 #' @title Mixtures of Support Vector Machines
-#' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} using \code{\link[stats]{update.formula}}. 
+#' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} 
+#' 	 using \code{\link[stats]{update.formula}}. 
 #'   Only the left-hand side (response) of the formula is used. Default is to use the original \code{\link[flexmix]{flexmix}} model formula.
 #' @param \dots Further arguments to and from other methods.
 #'
@@ -45,30 +46,26 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 #' @examples
 #' library(locClassData)
 #' data <- flashData(1000)
-#' grid <- expand.grid(x.1=seq(-6,6,0.2), x.2=seq(-4,4,0.2))
+#' grid <- expand.grid(x.1 = seq(-6,6,0.2), x.2 = seq(-4,4,0.2))
 #' 
 #' cluster <- kmeans(data$x, center = 2)$cluster
 #' model <- FLXMCLsvm(kernel = "linear")
-#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = model, cluster = cluster, control = list(classify = "hard"))
+#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = model, cluster = cluster, control = list(classify = "hard"))
 #' 
 #' ## prediction for single component models without aggregation
 #' pred.grid <- predict(fit, newdata = grid)
-#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]["decision",][[1]][,1], length(seq(-6,6,0.2))))
-#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]["decision",][[1]][,1], length(seq(-6,6,0.2))), add = TRUE)
+#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
+#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
-#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]]["decision",][[1]][,1], length(seq(-6,6,0.2))))
-#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]]["decision",][[1]][,1], length(seq(-6,6,0.2))), add = TRUE)
+#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]][,1], length(seq(-6,6,0.2))))
+#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[2]][,1], length(seq(-6,6,0.2))), add = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## prediction with aggregation depending on membership in mixture components
 #' pred.grid <- mypredict(fit, newdata = grid, aggregate = TRUE)
-#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]$decision[,1], length(seq(-6,6,0.2))))
-#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]$decision[,1], length(seq(-6,6,0.2))), add  = TRUE)
-#' points(data$x, pch = as.character(data$y))
-#'
-#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]$posterior[,1], length(seq(-6,6,0.2))))
-#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]]$posterior[,1], length(seq(-6,6,0.2))), add  = TRUE)
+#' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
+#' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add  = TRUE)
 #' points(data$x, pch = as.character(data$y))
 #'
 #' ## local membership
@@ -81,106 +78,172 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 # tr <- train(lrn, task = task)
 # pr <- predict(tr, newdata = grid)
 
+## report
+# getMethod("determinePrior", signature = c("ANY","FLXPmultinom"))
+# function (prior, concomitant, group) 
+# {
+    # exps <- exp(concomitant@x %*% concomitant@coef)
+    # exps/rowSums(exps)
+# }
+# <environment: namespace:flexmix>
+# exps kann Inf enthalten, wenn argument groß
+# ergebnis ist NaN
+
 
 FLXMCLsvm <- function(formula = . ~ ., ...) {
 	z <- new("FLXMCLsvm", weighted = TRUE, formula = formula,
 		name = "Mixture of SVM models")
 	z@defineComponent <- expression({
 		predict <- function(x, ...) {
-			pred <- getS3method("predict", "wsvm")(fit, newdata = x, probability = TRUE, decision.values = TRUE, ...)
-			probs <- attr(pred, "probabilities")
-        	decs <- attr(pred, "decision.values")
-			lev <- levels(pred)
-			ng <- length(lev)
-			nl <- length(fit$labels)
-# cat("nl\n")
-# print(nl)
-# cat("diff(fit$labels)\n")
-# print(diff(fit$labels))
-			if (any(diff(fit$labels) < 0)) { 	# order of levels and labels different
-				# binary classification problems
-				problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))
-# cat("problems\n")
-# print(problems)
-				# binary problems where first label is larger than second label
-				col.index <- problems[,1] > problems[,2]
-# cat("col.index\n")
-# print(col.index)
-# print(head(decs))
-				# change sign for these binary problems and adjust the colnames
-				decs[,col.index] <- decs[,col.index] * (-1)
-				colnames(decs)[col.index] <- apply(problems[col.index,,drop = FALSE], 1, function(l) paste(lev[l[2]], lev[l[1]], sep = "/"))
-# print(head(decs))
-			}
-			if (ng > nl) {
-				# add columns for missing classes in posterior probability and decision value matrices
-	        	posterior <- matrix(0, nrow(probs), ng)
-	        	rownames(posterior) <- rownames(probs)
-	        	colnames(posterior) <- lev
-	        	posterior[,colnames(probs)] <- probs
-	        	decision <- matrix(0, nrow(decs), ng * (ng - 1) / 2)
-	  ## Was ist, wenn in Komp. 1 Klasse 1 vorhanden und in Komp. 2 Klassen 1 und 2?
-	  ## Welche Werte sollte decision in Komp. 1 haben? 0 eigentlich nicht sinnvoll, weil Klasse 2 nie vorhergesagt werden kann...
-	  ## sollte hohen Wert für Klasse 1 haben...
-	        	colnames(decision) <- paste(rep(lev, ng:1-1), rep(lev, 1:ng-1), sep = "/")
-	        	decision[,colnames(decs)] <- decs
-			} else {
-				# sort columns of posterior probability and decision value matrices
-				cnames <- colnames(probs)
-				posterior <- probs[,sort(cnames)]
-				decision <- decs[,paste(rep(lev, ng:1-1), rep(lev, 1:ng-1), sep = "/"), drop = FALSE]
-        	}
-# print(head(decision))
-        	return(list(posterior = posterior, decision = decision))
+			lev <- fit$levels
+			ng <- length(lev)								# number of classes
+			nl <- length(fit$labels)						# number of present classes
+			naidx <- apply(x, 1, function(z) any(is.na(z)))	# obs with missing values
+			decs <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
+			problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# binary classification problems
+			classidx <- lapply(fit$labels, function(k) problems == k)					# problems where class k is involved
+			y <- matrix(sapply(classidx, function(x) colSums(t(x)*c(1,-1))), ncol = nl)	# encoding of class k in individual binary problems
+			classidx <- matrix(sapply(classidx, rowSums), ncol = nl)
+			mode(classidx) <- "logical"
+			colnames(classidx) <- colnames(y) <- fit$labels			
+	        posterior <- matrix(0, nrow(x), ng)				# unscaled posteriors
+    	    rownames(posterior) <- rownames(x)
+        	colnames(posterior) <- lev
+			post <- sapply(as.character(fit$labels), function(z) {
+				H <- 1 - t(y[classidx[,z],z] * t(decs[,classidx[,z], drop = FALSE]))
+				H[H < 0] <- 0								# Hinge loss
+				return(exp(-rowSums(H)))
+			})
+			posterior[!naidx,fit$labels] <- post
+			posterior[naidx,] <- NA
+			return(posterior)
+#### old version #############################
+			# lev <- fit$levels
+			# ng <- length(lev)								# number of classes
+			# nl <- length(fit$labels)						# number of present classes
+			# idx <- apply(x, 1, function(z) any(is.na(z)))
+			# if (!is.null(fit$probA)) {						# predict probabilities
+				# pred <- getS3method("predict", "wsvm")(fit, newdata = x, probability = TRUE, decision.values = TRUE, ...)			
+				# probs <- attr(pred, "probabilities")
+	        	# posterior <- matrix(0, nrow(x), ng)
+    	    	# rownames(posterior) <- rownames(x)
+        		# colnames(posterior) <- lev
+	        	# posterior[!idx, colnames(probs)] <- probs
+				# posterior[idx,] <- NA
+			# } else {
+				# pred <- getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...)
+				# posterior <- NULL
+			# }
+			# decs <- attr(pred, "decision.values")
+# # cat("nl\n")
+# # print(nl)
+# # cat("diff(fit$labels)\n")
+# # print(diff(fit$labels))
+			# if (any(diff(fit$labels) < 0)) { 				# order of levels and labels different
+				# # binary classification problems
+				# problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))
+# # cat("problems\n")
+# # print(problems)
+				# # binary problems where first label is larger than second label
+				# col.index <- problems[,1] > problems[,2]
+# # cat("col.index\n")
+# # print(col.index)
+# # print(head(decs))
+				# # change sign for these binary problems and adjust the colnames
+				# decs[,col.index] <- decs[,col.index] * (-1)
+				# colnames(decs)[col.index] <- apply(problems[col.index,,drop = FALSE], 1, function(l) paste(lev[l[2]], lev[l[1]], sep = "/"))
+# # print(head(decs))
+			# }
+# ## Was ist, wenn in Komp. 1 Klasse 1 vorhanden und in Komp. 2 Klassen 1 und 2?
+# ## Welche Werte sollte decision in Komp. 1 haben? 0 eigentlich nicht sinnvoll, weil Klasse 2 nie vorhergesagt werden kann...
+# ## sollte hohen Wert für Klasse 1 haben... Inf oder -Inf, kommt darauf an, wie das voting imlementiert ist
+        	# decision <- matrix(0, nrow(x), ng * (ng - 1) / 2)
+        	# colnames(decision) <- paste(rep(lev, ng:1-1), unlist(sapply(2:ng, function(x) lev[x:ng])), sep = "/")
+			# rownames(decision) <- rownames(x)
+			# decision[!idx, colnames(decs)] <- decs
+			# decision[idx,] <- NA
+# # print(head(decision,30))
+# # print(head(posterior,30))
+        	# return(list(posterior = posterior, decision = decision))
 		}
 		logLik <- function(x, y, ...) {
-			# #dec <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
-			# dec <- fit$decision.values
-# #print(dec)			
-			# #bin.problems <- colnames(dec)
-			# # 2 classes
-			# labels <- fit$labels  ## if dec positive decision for first of the two class labels
-			# correct <- (as.character(y) == labels[1]) * 2 - 1
-			# ll <- exp(correct * dec)
-# #			ll1 <- ll/max(ll)
-# #print(ll1)
-# return(ll)		
-# # > 2 classes
-    		post <- attr(getS3method("predict", "wsvm")(fit, newdata = x, probability = TRUE, ...), "probabilities")
-     		ng <- length(attr(y, "lev"))
-# print(head(post))
-# print(head(y))
-    		if (ng > ncol(post)) {
-    			ll <- rep(0, nrow(post))
-    			col.index <- match(y, colnames(post), 0)
-    			row.index <- which(col.index > 0)
-    			ll[row.index] <- post[cbind(row.index, col.index[row.index])]
-    		} else {
-	    		ll <- post[cbind(rownames(post), as.character(y))]
-	    	}
-# print(head(ll))
-	    	return(ll)
+# fit <- wsvm(Species ~ ., data = iris[1:100,])
+# y <- iris$Species[1:100]
+# l <- fit$decision.values
+# library(mlbench)
+# data(Glass)
+# fit <- wsvm(Type ~ ., data = Glass)
+# y <- Glass$Type
+# l <- fit$decision.values
+#lev <- fit$levels
+#ng <- length(lev)
+			y <- factor(y, levels = attr(y, "lev"))
+			l <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
+			nl <- length(fit$labels)						# number of present classes
+			ng <- length(fit$levels)						# number of classes
+			problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# labels involved in particular binary problems
+			npr <- nl*(nl-1)/2								# number of binary classification problems
+			m <- matrix(NA, npr, ng)
+			m[cbind(1:npr,problems[,1])] <- 1
+			m[cbind(1:npr,problems[,2])] <- -1				# y coding matrix
+			yind <- t(m[, as.numeric(y), drop = FALSE])		# -1/1 class indicators for binary problems, n x npr matrix
+			lpost <- 1 - yind * l
+			lpost[lpost < 0] <- 0							# Hinge loss max(1 - yind*l, 0), n x npr matrix
+			lpost <- rowSums(-lpost, na.rm = TRUE)			# sum of negative Hinge loss over all binary problems = log posterior, n x 1 matrix
+# plot(yind,l)
+# print(cbind(y,yind,l)[sample(nrow(x), size = 30),])
+			co <- t(yind) * 0
+			co[,fit$index][!is.na(co[,fit$index])] <- t(fit$coefs)		# coefficients: alpha_n * y_n, npr x n matrix
+			lambda <- 1/(2 * fit$cost)									# regularization parameter
+			reg <- lambda * t(co * (t(l) - fit$rho))					# n x npr matrix
+			# -fit$rho is correct, because obj is -rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE)
+			reg <- rowSums(-reg, na.rm = TRUE)				# sum of regularization terms over all binary problems
+# cat("sum alpha\n")
+# print(rowSums(abs(co), na.rm = TRUE))
+# cat("regularization\n")
+# print(colSums(fit$case.weight * reg, na.rm = TRUE))
+# cat("negative hinge loss\n")
+# print(colSums(fit$case.weight * lpost, na.rm = TRUE))
+# cat("loglik\n")
+#print(colSums(fit$case.weight * lpost + reg, na.rm = TRUE))
+# print(sum(fit$case.weight * lpost + reg, na.rm = TRUE))
+# cat("lpost\n")
+#print(colSums(fit$case.weight * (lpost + reg), na.rm = TRUE))
+# print(sum(fit$case.weight * lpost, na.rm = TRUE))
+# cat("reg\n")
+#print(colSums(fit$case.weight * (lpost + reg), na.rm = TRUE))
+# print(sum(reg, na.rm = TRUE))
+# cat("obj\n")
+# print(sum(fit$obj))
+#print(-rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE))
+			return(list(lpost = lpost, reg = reg))
 		}
 		new("FLXcomponent", parameters = list(coefs = fit$coefs), 
 			logLik = logLik, predict = predict, df = fit$df)
 	})
 	z@preproc.y <- function(y) {
-		if (is.factor(y)) {
-			lev <- levels(y)
-			y <- as.matrix(y)
-			attr(y, "lev") <- lev
-			return(y)
-		} else
-			return(as.matrix(y))
+    	if (!is.factor(y))
+        	warning("'grouping' was coerced to a factor")
+	    g <- as.factor(y)
+	    lev <- levels(g)
+    	g <- as.matrix(g)
+    	attr(g, "lev") <- lev
+		return(g)
+		# if (is.factor(y)) {
+			# lev <- levels(y)
+			# y <- as.matrix(y)
+			# attr(y, "lev") <- lev
+			# return(y)
+		# } else
+			# return(as.matrix(y))
 	}
 	z@fit <- function(x, y, w) {
 		lev <- attr(y, "lev")
 		w <- w/sum(w) * nrow(x)
-		if (is.null(lev))
-			fit <- wsvm(x, as.vector(y), case.weights = w, probability = TRUE, ...)
-		else
-			fit <- wsvm(x, factor(y, levels = lev), case.weights = w, probability = TRUE, ...)
-# print(str(fit))
+		# if (is.null(lev))
+			# fit <- wsvm(x, as.vector(y), case.weights = w, ...)
+		# else
+		fit <- wsvm(x, factor(y, levels = lev), case.weights = w, ...)
 		fit$df <- sum(fit$nSV)
 		with(fit, eval(z@defineComponent))
 	}
