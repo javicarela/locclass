@@ -147,26 +147,32 @@ setMethod("myfitted", signature(object = "flexmix"), function (object, drop = TR
     		}
       		group <- group(object)
       		prior_weights <- determinePrior(object@prior, object@concomitant, group)[as.integer(group),]
-        	if (class(object@model[[1]]) == "FLXMCLsvm") {
-        		z <- lapply(x, function(z)
-        		    list(decision = matrix(rowSums(matrix(sapply(seq_len(object@k), 
-                		function(K) z[[K]][["decision"]] * prior_weights[,K]), ncol = object@k)), 
-                		nrow = nrow(z[[1]][["decision"]])),
-                	posterior = matrix(rowSums(matrix(sapply(seq_len(object@k), 
-                		function(K) z[[K]][["posterior"]] * prior_weights[,K]), ncol = object@k)), 
-                		nrow = nrow(z[[1]][["posterior"]]))))
-        	} else {
+# print(prior_weights)
+# print(any(is.na(prior_weights)))
+			if (is.null(dim(prior_weights)))
+				prior_weights <- matrix(prior_weights, ncol = length(prior_weights), dimnames = list(NULL, names(prior_weights)))
+      		
+      		
+        	# if (class(object@model[[1]]) == "FLXMCLsvm") {
+        		# z <- lapply(x, function(z)
+        		    # list(decision = matrix(rowSums(matrix(sapply(seq_len(object@k), 
+                		# function(K) z[[K]][["decision"]] * prior_weights[,K]), ncol = object@k)), 
+                		# nrow = nrow(z[[1]][["decision"]])),
+                	# posterior = matrix(rowSums(matrix(sapply(seq_len(object@k), 
+                		# function(K) z[[K]][["posterior"]] * prior_weights[,K]), ncol = object@k)), 
+                		# nrow = nrow(z[[1]][["posterior"]]))))
+        	# } else {
        			z <- lapply(x, function(z)
         		    matrix(rowSums(matrix(sapply(seq_len(object@k), 
                 	function(K) z[[K]] * prior_weights[,K]), ncol = object@k)), 
                 	nrow = nrow(z[[1]])))
-        	}        	
+        	# }        	
          	for (m in seq_along(object@model)) {
-         		if (class(object@model[[m]]) == "FLXMCLsvm") {
-					#for (j in seq_along(z[[m]]))
-						dimnames(z[[m]]$decision) <- dimnames(x[[m]][[1]]$decision)
-						dimnames(z[[m]]$posterior) <- dimnames(x[[m]][[1]]$posterior)
-				} else
+         		# if (class(object@model[[m]]) == "FLXMCLsvm") {
+					# #for (j in seq_along(z[[m]]))
+						# dimnames(z[[m]]$decision) <- dimnames(x[[m]][[1]]$decision)
+						# dimnames(z[[m]]$posterior) <- dimnames(x[[m]][[1]]$posterior)
+				# } else
 	         		dimnames(z[[m]]) <- dimnames(x[[m]][[1]])
          	}
             # z <- lapply(x, function(z) matrix(rowSums(matrix(sapply(seq_len(object@k), 
@@ -250,25 +256,27 @@ setMethod("mypredict", signature(object = "FLXdist"), function (object, newdata 
       			x[[m]] <- predict(object@model[[m]], newdata, comp, ...)
     		}
 			prior_weights <- prior(object, newdata)
-        	if (class(object@model[[1]]) == "FLXMCLsvm") {
-        		z <- lapply(x, function(z)
-        		    list(decision = matrix(rowSums(matrix(sapply(seq_len(object@k), 
-                		function(K) z[[K]][["decision"]] * prior_weights[,K]), ncol = object@k)), 
-                		nrow = nrow(z[[1]][["decision"]])),
-                	posterior = matrix(rowSums(matrix(sapply(seq_len(object@k), 
-                		function(K) z[[K]][["posterior"]] * prior_weights[,K]), ncol = object@k)), 
-                		nrow = nrow(z[[1]][["posterior"]]))))
-        	} else {
+			if (is.null(dim(prior_weights)))
+				prior_weights <- matrix(prior_weights, ncol = length(prior_weights), dimnames = list(NULL, names(prior_weights)))
+        	# if (class(object@model[[1]]) == "FLXMCLsvm") {
+        		# z <- lapply(x, function(z)
+        		    # list(decision = matrix(rowSums(matrix(sapply(seq_len(object@k), 
+                		# function(K) z[[K]][["decision"]] * prior_weights[,K]), ncol = object@k)), 
+                		# nrow = nrow(z[[1]][["decision"]])),
+                	# posterior = matrix(rowSums(matrix(sapply(seq_len(object@k), 
+                		# function(K) z[[K]][["posterior"]] * prior_weights[,K]), ncol = object@k)), 
+                		# nrow = nrow(z[[1]][["posterior"]]))))
+        	# } else {
         		z <- lapply(x, function(z)
         		    matrix(rowSums(matrix(sapply(seq_len(object@k), 
                 	function(K) z[[K]] * prior_weights[,K]), ncol = object@k)), 
                 	nrow = nrow(z[[1]])))
-        	}        	
+        	# }        	
          	for (m in seq_along(object@model)) {
-         		if (class(object@model[[m]]) == "FLXMCLsvm") {
-					dimnames(z[[m]]$decision) <- dimnames(x[[m]][[1]]$decision)
-					dimnames(z[[m]]$posterior) <- dimnames(x[[m]][[1]]$posterior)
-				} else         		
+         		# if (class(object@model[[m]]) == "FLXMCLsvm") {
+					# dimnames(z[[m]]$decision) <- dimnames(x[[m]][[1]]$decision)
+					# dimnames(z[[m]]$posterior) <- dimnames(x[[m]][[1]]$posterior)
+				# } else         		
 	         		dimnames(z[[m]]) <- dimnames(x[[m]][[1]])     		
          	}
             # z <- lapply(x, function(z) matrix(rowSums(matrix(sapply(seq_len(object@k), 
