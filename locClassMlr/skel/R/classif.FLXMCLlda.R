@@ -38,25 +38,35 @@ makeRLearner.classif.FLXMCLlda = function() {
 #' @method trainLearner classif.classif.FLXMCLlda
 #' @S3method trainLearner classif.FLXMCLlda
 trainLearner.classif.FLXMCLlda = function(.learner, .task, .subset,  ...) {
-	f1 = getTaskFormula(.task)
-	f2 = as.formula(paste("~ ", paste(getTaskFeatureNames(.task), collapse = "+")))
+	f = getTaskFormula(.task)
+	# f1 = getTaskFormula(.task)
+	# f2 = as.formula(paste("~ ", paste(getTaskFeatureNames(.task), collapse = "+")))
 	model = FLXMCLlda(...)
 	mf = match.call()
 	mcontrol = match(c("iter.max", "minprior", "tolerance", "verbose", "classify", "nrep"), names(mf), 0)
 	mfcontrol = mf[c(1, mcontrol)]
 	mfcontrol[[1]] = as.name("list")
 	control = eval(mfcontrol)
+	mfcontrol$tolerance = 10^(-2)	# FIXME: should not be hard-coded
+	controlInit = eval(mfcontrol)
 	mkmeans = match("centers", names(mf), 0)
 	mfkmeans = mf[c(1, mkmeans)]
 	mfkmeans$x = getTaskData(.task, .subset, target.extra = TRUE)$data
 	mfkmeans[[1]] = as.name("kmeans")
-	cluster = eval(mfkmeans)$cluster
-	if (.task$task.desc$has.weights)
-		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
+	cluster = replicate(5, eval(mfkmeans)$cluster)	# FIXME: 5 should not be hard-coded
+	if (.task$task.desc$has.weights) {
+		fit <- myStepFlexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = controlInit, cluster = cluster)
+		flexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = control, cluster = posterior(fit))
+		# flexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = control, cluster = cluster)
+		# flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
         # k = eval(mf$k), cluster = eval(mf$cluster))
-	else
-		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
+	} else {
+		fit <- myStepFlexmix(f, data = getTaskData(.task, .subset), model = model, control = controlInit, cluster = cluster)
+		flexmix(f, data = getTaskData(.task, .subset), model = model, control = control, cluster = posterior(fit))
+		# flexmix(f, data = getTaskData(.task, .subset), model = model, control = control, cluster = cluster)
+		# flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
         # k = eval(mf$k), cluster = eval(mf$cluster))
+	}
 }
 
 
@@ -69,6 +79,8 @@ predictLearner.classif.FLXMCLlda = function(.learner, .model, .newdata, ...) {
 	p = mypredict(.model$learner.model, newdata = .newdata, aggregate = TRUE, ...)[[1]]
 	if (.learner$predict.type == "response") {
 		p = factor(colnames(p)[max.col(p)], levels = lev) ## does this always work?
+	} else {
+		p = p/rowSums(p)
 	}
 	return(p)			
 }
