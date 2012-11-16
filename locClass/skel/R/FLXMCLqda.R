@@ -56,7 +56,7 @@ setClass("FLXMCLqda", contains = "FLXMCL")
 #' ## prediction for single component models without aggregation
 #' pred.grid <- predict(fit, newdata = grid)
 #'
-#' joint density of predictors and class variable for class 1
+#' # joint density of predictors and class variable for class 1
 #' image(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))))
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(pred.grid[[1]][,1], length(seq(-6,6,0.2))), add = TRUE)
 #' points(data$x, pch = as.character(data$y))
