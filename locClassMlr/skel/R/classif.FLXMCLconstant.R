@@ -44,17 +44,24 @@ trainLearner.classif.FLXMCLconstant = function(.learner, .task, .subset,  ...) {
 	mfcontrol = mf[c(1, mcontrol)]
 	mfcontrol[[1]] = as.name("list")
 	control = eval(mfcontrol)
+	mfcontrol$tolerance = 10^(-2)	# FIXME: should not be hard-coded
+	controlInit = eval(mfcontrol)
 	mkmeans = match("centers", names(mf), 0)
 	mfkmeans = mf[c(1, mkmeans)]
 	mfkmeans$x = getTaskData(.task, .subset, target.extra = TRUE)$data
 	mfkmeans[[1]] = as.name("kmeans")
-	cluster = eval(mfkmeans)$cluster
-	if (.task$task.desc$has.weights)
-		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
+	cluster = replicate(5, eval(mfkmeans)$cluster)	# FIXME: 5 should not be hard-coded
+	if (.task$task.desc$has.weights) {
+		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
+		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
+		# flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
         # k = eval(mf$k), cluster = eval(mf$cluster))
-	else
-		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control,cluster = cluster)
+	} else {
+		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
+		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
+		# flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control,cluster = cluster)
         # k = eval(mf$k), cluster = eval(mf$cluster))
+	}
 }
 
 
