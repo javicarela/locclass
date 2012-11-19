@@ -95,6 +95,7 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 		name = "Mixture of SVM models")
 	z@defineComponent <- expression({
 		predict <- function(x, ...) {
+			## returns class membership values, these are not scaled and need not sum to unity
 			lev <- fit$levels
 			ng <- length(lev)								# number of classes
 			nl <- length(fit$labels)						# number of present classes
