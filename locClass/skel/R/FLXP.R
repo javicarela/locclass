@@ -71,6 +71,19 @@
 # plot(d$x, col = d$y, cex = pr[,2])
 
 
+#' @noRd
+determinePrior <- flexmix:::determinePrior
+
+
+
+#' @noRd
+setMethod("determinePrior", signature(concomitant = "FLXPmultinom"), function (prior, concomitant, group) {
+	x <- concomitant@x %*% concomitant@coef
+	m <- apply(x, 1, max)
+	exps <- exp(x - m)
+	exps/rowSums(exps)
+})
+
 #================================================================
 ## FLXPwlda
 
@@ -180,11 +193,6 @@ FLXPwlda <- function (formula = ~.) {
     }
     z
 }
-
-
-
-#' @noRd
-determinePrior <- flexmix:::determinePrior
 
 
 
