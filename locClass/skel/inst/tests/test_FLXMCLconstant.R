@@ -42,7 +42,7 @@ test_that("FLXMCLconstant with several options works",{
 		
 	## hard, FLXPwldamultinom
 	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
-	# not monotone
+	# ok
 })
 
 
@@ -67,7 +67,7 @@ test_that("FLXMCLconstant: training data from only one class", {
 
 test_that("FLXMCLconstant: missing classes in clusters", {
 	cluster <- kmeans(iris[,1:4], centers = 3)$cluster
-	expect_warning(tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard")))
+	expect_warning(tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard")))
 	pred1 <- mypredict(tr2, aggregate = FALSE)
 })
 

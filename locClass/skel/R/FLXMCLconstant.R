@@ -50,7 +50,7 @@ setClass("FLXMCLconstant", contains = "FLXMCL")
 #' 
 #' cluster <- kmeans(data$x, center = 4)$cluster
 #' model <- FLXMCLconstant()
-#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = model, cluster = cluster)
+#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = model, cluster = cluster)
 #' 
 #' ## prediction with aggregation depending on membership in mixture components
 #' pred.grid <- mypredict(fit, newdata = grid, aggregate = TRUE)
@@ -78,9 +78,9 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 	        	rownames(posterior) <- rownames(pred$posterior)
 	        	colnames(posterior) <- lev
 	        	posterior[,colnames(pred$posterior)] <- pred$posterior
+	        	return(posterior)
 			} else
-        		posterior <- pred$posterior
-        	return(posterior)
+        		return(pred$posterior)
 		}
 		logLik <- function(x, y, ...) {
     		post <- getS3method("predict", "constant")(fit, newdata = x, ...)$posterior
