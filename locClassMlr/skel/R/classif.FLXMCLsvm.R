@@ -62,17 +62,24 @@ trainLearner.classif.FLXMCLsvm = function(.learner, .task, .subset,  ...) {
 	mfcontrol = mf[c(1, mcontrol)]
 	mfcontrol[[1]] = as.name("list")
 	control = eval(mfcontrol)
+	mfcontrol$tolerance = 10^(-2)	# FIXME: should not be hard-coded
+	controlInit = eval(mfcontrol)
 	mkmeans = match("centers", names(mf), 0)
 	mfkmeans = mf[c(1, mkmeans)]
 	mfkmeans$x = getTaskData(.task, .subset, target.extra = TRUE)$data
 	mfkmeans[[1]] = as.name("kmeans")
-	cluster = eval(mfkmeans)$cluster
-	if (.task$task.desc$has.weights)
-		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
+	cluster = replicate(5, eval(mfkmeans)$cluster)	# FIXME: 5 should not be hard-coded
+	if (.task$task.desc$has.weights) {
+		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
+		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
+		# flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
 		# k = eval(mf$k), cluster = eval(mf$cluster))
-	else
-		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
+	} else {
+		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
+		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
+		# flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
 		# k = eval(mf$k), cluster = eval(mf$cluster))
+	}
 }
 
 
@@ -82,30 +89,42 @@ trainLearner.classif.FLXMCLsvm = function(.learner, .task, .subset,  ...) {
 #' @S3method predictLearner classif.FLXMCLsvm
 predictLearner.classif.FLXMCLsvm = function(.learner, .model, .newdata, ...) {
 	lev = attr(.model$learner.model@model[[1]]@y, "lev")
-	pred = mypredict(.model$learner.model, newdata = .newdata, aggregate = TRUE, ...)[[1]]
-# print(str(pred))
-# print(str(pred$decision))
-	if (.learner$predict.type == "prob") {
-		p = pred$posterior
-# print(head(p))
-		attr(p, "decision") <- pred$decision
+	p = mypredict(.model$learner.model, newdata = .newdata, aggregate = TRUE, ...)[[1]]
+	if (.learner$predict.type == "response") {
+		p = factor(colnames(p)[max.col(p)], levels = lev)
 	} else {
-		## are columns of decision == zero? NAs
-		## does voting work?
-		ng <- length(lev)
-		problems <- rbind(rep(lev, ng:1-1), unlist(sapply(2:ng, function(x) lev[x:ng])))
-# print(problems)
-		votes <- (pred$decision < 0) + 1
-		candidates <- sapply(1:length(lev), function(z) return(problems[votes[,z],z]))				
-# print(head(pred$decision,20))
-# print(head(votes,20))
-# print(head(candidates,20))
-		if (ng == 2) {
-			p = factor(candidates, levels = lev)
-		} else {
-			p = sapply(lev, function(x) rowSums(candidates == x))
-			p = factor(lev[max.col(p)], levels = lev)
-		}
-	}
-	return(p)			
+		p = p/rowSums(p)
+	}	
+	return(p)
 }
+
+## old version
+# predictLearner.classif.FLXMCLsvm = function(.learner, .model, .newdata, ...) {
+	# lev = attr(.model$learner.model@model[[1]]@y, "lev")
+	# pred = mypredict(.model$learner.model, newdata = .newdata, aggregate = TRUE, ...)[[1]]
+ # print(str(pred))
+# # print(str(pred$decision))
+	# if (.learner$predict.type == "prob") {
+		# p = pred$posterior
+# # print(head(p))
+		# attr(p, "decision") <- pred$decision
+	# } else {
+		# ## are columns of decision == zero? NAs
+		# ## does voting work?
+		# ng <- length(lev)
+		# problems <- rbind(rep(lev, ng:1-1), unlist(sapply(2:ng, function(x) lev[x:ng])))
+# # print(problems)
+		# votes <- (pred$decision < 0) + 1
+		# candidates <- sapply(1:length(lev), function(z) return(problems[votes[,z],z]))				
+# # print(head(pred$decision,20))
+# # print(head(votes,20))
+# # print(head(candidates,20))
+		# if (ng == 2) {
+			# p = factor(candidates, levels = lev)
+		# } else {
+			# p = sapply(lev, function(x) rowSums(candidates == x))
+			# p = factor(lev[max.col(p)], levels = lev)
+		# }
+	# }
+	# return(p)			
+# }
