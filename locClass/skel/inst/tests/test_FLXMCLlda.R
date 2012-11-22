@@ -176,7 +176,7 @@ test_that("predict FLXMCLlda works with one single test observation", {
 test_that("predict FLXMCLlda: NA handling in newdata works", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200))
 
 	## NAs in explanatory variables are ok
 	irisna <- iris
