@@ -31,11 +31,13 @@ setClass("FLXMCLlda", contains = "FLXMCL")
 #'
 #' @title Mixtures of Linear Discriminant Analysis Models
 #'
+#' @note \code{method = "ML"} is hard-coded.
+#'
 #' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} using \code{\link[stats]{update.formula}}. 
 #'   Only the left-hand side (response) of the formula is used. Default is to use the original \code{\link[flexmix]{flexmix}} model formula.
-#' @param method Method for scaling the pooled weighted covariance matrix, either \code{"unbiased"} or maximum-likelihood (\code{"ML"}). 
-#'   Defaults to \code{"unbiased"}.
-#' @param \dots Further arguments to and from other methods.
+# @param method Method for scaling the pooled weighted covariance matrix, either \code{"unbiased"} or maximum-likelihood (\code{"ML"}). 
+#   Defaults to \code{"unbiased"}.
+#' @param \dots Further arguments to and from other methods, especially \code{\link{wlda}}.
 #'
 #' @return Returns an object of class \code{FLXMCLlda} inheriting from \code{FLXMCL}.
 #'
@@ -95,12 +97,11 @@ setClass("FLXMCLlda", contains = "FLXMCL")
 #' loc.grid <- posterior(fit, newdata = grid)
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 
-FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
-	method <- match.arg(method)
+FLXMCLlda <- function(formula = . ~ ., ...) {
 	z <- new("FLXMCLlda", weighted = TRUE, formula = formula,
 		name = "Mixture of LDA models")
 	z@defineComponent <- expression({
-		predict <- function(x, ...) {
+		predict <- function(x) {
 			## returns unormalized posteriors !!!
     		ng <- length(attr(y, "lev"))
 			lev1 <- names(fit$prior)
@@ -108,7 +109,7 @@ FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
     		post[,lev1] <- sapply(lev1, function(z) fit$prior[z] * dmvnorm(x, fit$means[z,], fit$cov))
 	    	return(post)
 		}
-		logLik <- function(x, y, ...) {
+		logLik <- function(x, y) {
 			## unnormalized log posterior, joint log likelihood
     		ng <- length(attr(y, "lev"))
 			lev1 <- names(fit$prior)
@@ -119,8 +120,8 @@ FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
 #print(head(ll))
 	    	return(ll)
 		}
-		new("FLXcomponent", parameters = list(prior = fit$prior, means = fit$means, cov = fit$cov), 
-			logLik = logLik, predict = predict, df = fit$df)
+		new("FLXcomponent", parameters = list(prior = fit$prior, means = fit$means, cov = fit$cov, 
+			method = fit$method), logLik = logLik, predict = predict, df = fit$df)
 	})
 	z@preproc.y <- function(grouping) {
     	if (!is.factor(grouping))
@@ -132,7 +133,7 @@ FLXMCLlda <- function(formula = . ~ ., method = c("unbiased", "ML"), ...) {
 		return(g)
 	}
 	z@fit <- function(x, y, w) {
-		fit <- wlda(x, factor(y, levels = attr(y, "lev")), weights = w, method = method)
+		fit <- wlda(x, factor(y, levels = attr(y, "lev")), weights = w, method = "ML", ...)
 		K <- nrow(fit$means)
 		d <- ncol(fit$means)
 		fit$df <- K*d + d*(d-1)/2
