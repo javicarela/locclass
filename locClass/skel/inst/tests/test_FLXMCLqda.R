@@ -13,6 +13,18 @@ test_that("FLXMCLqda: misspecified arguments", {
 })
 
 
+test_that("FLXMCLqda: arguments are passed to wqda",{
+	set.seed(123)
+	cluster <- kmeans(iris[,"Sepal.Width"], centers = 2)$cluster
+
+	# default: "ML" hard-coded
+	fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
+	expect_equal(fit@components[[1]][[1]]@parameters$method, "ML")
+	
+	# unbiased
+	expect_error(fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLqda(method = "unbiased"), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1)))
+})
+
 
 test_that("FLXMCLqda with several options works",{
 	set.seed(123)
@@ -34,12 +46,12 @@ test_that("FLXMCLqda with concomitant model works",{
 	cluster <- kmeans(data$x, centers = 2)$cluster
 	
 	## weighted, FLXPwlda
-	fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
-	# not monotone
+	# fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
+	# # not monotone
 	
-	## hard, FLXPwlda
-	fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
-	# not monotone
+	# ## hard, FLXPwlda
+	# fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPwlda(~ x.1 + x.2), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
+	# # not monotone
 
 	## weighted, FLXPmultinom
 	fit <- flexmix(y ~ x.1 + x.2, data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
@@ -66,7 +78,7 @@ test_that("FLXMCLqda works if only one predictor variable is given", {
 
 test_that("FLXMCLqda: Local and global solution coincide if only one cluster is given", {
 	fit <- flexmix(Species ~ ., data = iris, model = FLXMCLqda(), cluster = 1, control = list(iter.max = 200, classify = "hard"))
-	w <- wqda(Species ~ ., data = iris)
+	w <- wqda(Species ~ ., data = iris, method = "ML")
 	expect_equal(fit@components[[1]][[1]]@parameters$prior, w$prior)
 	expect_equal(fit@components[[1]][[1]]@parameters$means, w$means)
 	expect_equal(fit@components[[1]][[1]]@parameters$cov, w$cov)
@@ -88,7 +100,6 @@ test_that("FLXMCLqda: missing classes in individual clusters", {
 	set.seed(120)
 	cluster <- kmeans(Glass[,1], centers = 2)$cluster
 	expect_that(fit <- flexmix(Type ~ Al, data = Glass, model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("group 6 is empty or weights in this group are all zero"))
-	# expect_that(fit <- flexmix(Type ~ ., data = Glass, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("groups 1, 3 are empty or weights in these groups are all zero"))
 	expect_equal(rownames(fit@components$Comp.1[[1]]@parameters$means), as.character(c(1:3,5:7)))
 	expect_equal(names(fit@components$Comp.1[[1]]@parameters$prior), as.character(c(1:3,5:7)))
 	expect_equal(rownames(fit@components$Comp.2[[1]]@parameters$means), as.character(c(1:3,5,7)))
@@ -164,9 +175,10 @@ test_that("predict FLXMCLqda works with one single test observation", {
 
 
 test_that("predict FLXMCLqda: NA handling in newdata works", {
+	set.seed(129)
 	ran <- sample(1:150,100)
-	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200))
+	cluster <- kmeans(iris[ran,1], centers = 2)$cluster
+	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200))
 
 	## NAs in explanatory variables are ok
 	irisna <- iris
@@ -190,7 +202,7 @@ test_that("predict FLXMCLqda: NA handling in newdata works", {
 test_that("predict FLXMCLqda: misspecified arguments", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], concomitant = FLXPwlda(~ Petal.Width), model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], model = FLXMCLqda(), cluster = cluster, control = list(iter.max = 200))
     # errors in newdata
     expect_error(mypredict(tr2, newdata = TRUE))
     expect_error(mypredict(tr2, newdata = -50:50))
