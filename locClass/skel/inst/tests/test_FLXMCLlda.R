@@ -13,6 +13,18 @@ test_that("FLXMCLlda: misspecified arguments", {
 })
 
 
+test_that("FLXMCLlda: arguments are passed to wlda",{
+	set.seed(123)
+	cluster <- kmeans(iris[,"Sepal.Width"], centers = 3)$cluster
+
+	# default: "ML" hard-coded
+	fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
+	expect_equal(fit@components[[1]][[1]]@parameters$method, "ML")
+	
+	# unbiased
+	expect_error(fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLlda(method = "unbiased"), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1)))
+})
+
 
 test_that("FLXMCLlda with several options works",{
 	set.seed(123)
@@ -31,19 +43,19 @@ test_that("FLXMCLlda with several options works",{
 test_that("FLXMCLlda with concomitant model works",{
 	cluster <- kmeans(iris[,1:4], centers = 2)$cluster
 
-	## weighted, FLXPwlda
-	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPwlda(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
-	# likelihood not monotone
+	# ## weighted, FLXPwlda
+	# fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPwlda(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
+	# # likelihood not monotone
 	
-	## hard, FLXPwlda
-	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPwlda(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
-	# ok
+	# ## hard, FLXPwlda
+	# fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPwlda(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
+	# # ok
 
 	## weighted, FLXPmultinom
 	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1))
 	# no convergence: jumps between two likelihod values
 		
-	## hard, FLXPwldamultinom
+	## hard, FLXPmultinom
 	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
 	# ok
 })
@@ -86,7 +98,6 @@ test_that("FLXMCLlda: missing classes in individual clusters", {
 	set.seed(120)
 	cluster <- kmeans(Glass[,1:9], centers = 2)$cluster
 	expect_that(fit <- flexmix(Type ~ ., data = Glass, model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("groups 1, 3 are empty or weights in these groups are all zero"))
-	# expect_that(fit <- flexmix(Type ~ ., data = Glass, concomitant = FLXPwlda(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("groups 1, 3 are empty or weights in these groups are all zero"))
 	expect_equal(rownames(fit@components$Comp.1[[1]]@parameters$means), as.character(c(1:3,5:7)))
 	expect_equal(names(fit@components$Comp.1[[1]]@parameters$prior), as.character(c(1:3,5:7)))
 	expect_equal(rownames(fit@components$Comp.2[[1]]@parameters$means), as.character(c(2,5:7)))
@@ -189,7 +200,7 @@ test_that("predict FLXMCLlda: NA handling in newdata works", {
 test_that("predict FLXMCLlda: misspecified arguments", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Width + Petal.Width, data = iris[ran,], concomitant = FLXPwlda(~ Sepal.Width + Petal.Width), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Width + Petal.Width, data = iris[ran,], model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200))
     # errors in newdata
     expect_error(mypredict(tr2, newdata = TRUE))
     expect_error(mypredict(tr2, newdata = -50:50))
