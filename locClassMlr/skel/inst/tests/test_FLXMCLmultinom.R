@@ -4,8 +4,26 @@ test_that("FLXMCLmultinom: mlr interface works", {
 	library(locClassData)
 
 	data <- xor3Data(500)
+	data$x <- scale(data$x)
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
 
+	#### model parameters are passed
+	# decay, trace, censored
+	lrn <- makeLearner("classif.FLXMCLmultinom", centers = 3, trace = FALSE, decay = 0.2)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	pars <- tr1$learner.model@components[[1]][[1]]@parameters
+	expect_equal(pars$decay, 0.2)
+	expect_true(!pars$censored)
+	
+	lrn <- makeLearner("classif.FLXMCLmultinom", centers = 3, trace = FALSE)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	pars <- tr1$learner.model@components[[1]][[1]]@parameters
+	expect_equal(pars$decay, 0)
+	expect_true(!pars$censored)
+	
+	## weighted
 	# class prediction
 	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLmultinom", centers = 3, trace = TRUE)
@@ -31,6 +49,7 @@ test_that("FLXMCLmultinom: mlr interface works", {
 
 	expect_true(all(pred3[[1]] == pred2$data[,3:5]))
 	
+	## hard
 	# class prediction
 	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLmultinom", centers = 3, classify = "hard")
