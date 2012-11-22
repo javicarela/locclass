@@ -76,7 +76,7 @@ test_that("FLXMCLlda works if only one predictor variable is given", {
 
 test_that("FLXMCLlda: Local and global solution coincide if only one cluster is given", {
 	fit <- flexmix(Species ~ ., data = iris, model = FLXMCLlda(), cluster = 1, control = list(iter.max = 200, classify = "hard"))
-	w <- wlda(Species ~ ., data = iris)
+	w <- wlda(Species ~ ., data = iris, method = "ML")
 	expect_equal(fit@components[[1]][[1]]@parameters$prior, w$prior)
 	expect_equal(fit@components[[1]][[1]]@parameters$means, w$means)
 	expect_equal(fit@components[[1]][[1]]@parameters$cov, w$cov)
