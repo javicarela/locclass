@@ -22,7 +22,7 @@ makeRLearner.classif.FLXMCLmultinom = function() {
 			## todo: some may not be supported
 			# contrasts ?
     	    makeLogicalLearnerParam(id = "Hess", default = FALSE),
-			makeLogicalLearnerParam(id = "censored", default = FALSE),
+			# makeLogicalLearnerParam(id = "censored", default = FALSE),
 			makeLogicalLearnerParam(id = "model", default = FALSE),
 			## nnet
 			# size is hard coded
