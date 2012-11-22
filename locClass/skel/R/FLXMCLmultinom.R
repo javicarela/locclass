@@ -32,7 +32,7 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' @title Mixtures of Multinomial Regression Models
 #' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} using \code{\link[stats]{update.formula}}. 
 #'   Only the left-hand side (response) of the formula is used. Default is to use the original \code{\link[flexmix]{flexmix}} model formula.
-#' @param \dots Further arguments to and from other methods.
+#' @param \dots Further arguments to and from other methods, especially \code{\link[nnet]{multinom}}.
 #'
 #' @return Returns an object of class \code{FLXMCLmultinom} inheriting from \code{FLXMCL}.
 #'
@@ -45,6 +45,7 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' @examples
 #' library(locClassData)
 #' data <- flashData(1000)
+#' data$x <- scale(data$x)
 #' grid <- expand.grid(x.1=seq(-6,6,0.2), x.2=seq(-4,4,0.2))
 #' 
 #' cluster <- kmeans(data$x, center = 2)$cluster
@@ -72,11 +73,11 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' contour(seq(-6,6,0.2), seq(-4,4,0.2), matrix(loc.grid[,1], length(seq(-6,6,0.2))), add  = TRUE)
 
 
-FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, trace = FALSE, ...) {
+FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
 	z <- new("FLXMCLmultinom", weighted = TRUE, formula = formula,
 		name = "Mixture of multinom models")
 	z@defineComponent <- expression({
-		predict <- function(x, ...) {
+		predict <- function(x) {
 # FIXME: does this work if y originally was a matrix?
 			post <- getS3method("predict", "nnet")(fit, newdata = x)
 # cat("post1\n")			
@@ -99,7 +100,7 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, trace = FALSE, ...
 				return(post)
 			}
 		}
-		logLik <- function(x, y, ...) {
+		logLik <- function(x, y) {
 			post <- fitted(fit)		## nrow(post) <= nrow(x) because observations with zero weight are removed for training
 # print(head(post))
 # print(head(y))
@@ -132,26 +133,31 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, trace = FALSE, ...
 # print(head(post))
 	    	l <- ifelse(l == 0, -10000, log(l))
 	    	ll[fit$ind] <- l
-# print(sum(fit$weights*ll[fit$ind]))
-	    	return(ll)
+# print(a <- sum(fit$weights*ll[fit$ind]))
+# print(b <- sum(-fit$decay*fit$wts^2))
+# print(a + b)
+	    	return(list(lpost = ll, reg = sum(-fit$decay*fit$wts^2)))
 # cat("y\n", y, "\n")
 # print(head(post))
 # print(head(y))
 # print(head(ll))
   		}
-		new("FLXcomponent", parameters = list(wts = fit$wts, entropy = fit$entropy, softmax = fit$softmax, mask = fit$mask), 
+		new("FLXcomponent", parameters = list(wts = fit$wts, entropy = fit$entropy, softmax = fit$softmax, 
+			mask = fit$mask, decay = fit$decay, censored = fit$censored), 
 			logLik = logLik, predict = predict, df = fit$df)
 	})
     z@preproc.y <- function(Y){				# Y results from model.response, can be matrix or factor or ...
     	if (!is.matrix(Y)) {
-        	Y <- as.factor(Y)
-        	lev <- levels(Y)
-        	Y <- as.matrix(Y)
-        	attr(Y, "lev") <- lev
+			if(!is.factor(Y))
+				warning("'Y' was coerced to a factor")
+			Y <- as.factor(Y)
+			lev <- levels(Y)
+			Y <- as.matrix(Y)
+			attr(Y, "lev") <- lev
         }
 		return(Y)
     }
-    z@fit <- function(x, y, w, ...) {
+    z@fit <- function(x, y, w) {
     	class.ind <- function(cl) {
         	n <- length(cl)
         	x <- matrix(0, n, length(levels(cl)))
@@ -219,26 +225,25 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, trace = FALSE, ...
 				Wts <- as.vector(rbind(matrix(0, r + 1L, p), diag(p)))
 				fit <- getS3method("nnet", "default")(x, y, w, Wts = Wts, mask = mask, 
 					size = 0, skip = TRUE, softmax = TRUE, censored = censored, 
-					rang = 0, trace = trace, ...)
+					rang = 0, ...)
 			} else {
 				mask <- c(rep(FALSE, r + 1L), rep(c(FALSE, rep(TRUE, 
 					r)), p - 1L))
 				fit <- getS3method("nnet", "default")(x, y, w, mask = mask, size = 0, 
 					skip = TRUE, softmax = TRUE, censored = censored, 
-					rang = 0, trace = trace, ...)
+					rang = 0, ...)
 			}
 		} else {
 			if (length(offset) <= 1L) {
 				mask <- c(FALSE, rep(TRUE, r))
 				fit <- getS3method("nnet", "default")(x, y, w, mask = mask, size = 0, 
-					skip = TRUE, entropy = TRUE, rang = 0, trace = trace, ...)
+					skip = TRUE, entropy = TRUE, rang = 0, ...)
 			} else {
 				mask <- c(FALSE, rep(TRUE, r), FALSE)
 				Wts <- c(rep(0, r + 1L), 1)
 				x <- cbind(x, offset)
 				fit <- getS3method("nnet", "default")(x, y, w, Wts = Wts, mask = mask, 
-					size = 0, skip = TRUE, entropy = TRUE, rang = 0, trace = trace, 
-					...)
+					size = 0, skip = TRUE, entropy = TRUE, rang = 0, ...)
 			}
 		}
     # fit$formula <- as.vector(attr(Terms, "formula"))
@@ -276,6 +281,7 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, trace = FALSE, ...
 		fit$mask <- mask
 # fit$weights <- w
 # print(fit$value)
+# print(fit$decay)
 		fit$df = sum(mask)				# number of optimized weights
 		class(fit) <- c("multinom", "nnet")
 		with(fit, eval(z@defineComponent))
