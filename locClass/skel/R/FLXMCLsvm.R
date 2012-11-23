@@ -33,7 +33,7 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 #' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} 
 #' 	 using \code{\link[stats]{update.formula}}. 
 #'   Only the left-hand side (response) of the formula is used. Default is to use the original \code{\link[flexmix]{flexmix}} model formula.
-#' @param \dots Further arguments to and from other methods.
+#' @param \dots Further arguments to and from other methods, especially to \code{\link{wsvm}}.
 #'
 #' @return Returns an object of class \code{FLXMCLsvm} inheriting from \code{FLXMCL}.
 #'
@@ -46,11 +46,12 @@ setClass("FLXMCLsvm", contains = "FLXMCL")
 #' @examples
 #' library(locClassData)
 #' data <- flashData(1000)
+#' data$x <- scale(data$x)
 #' grid <- expand.grid(x.1 = seq(-6,6,0.2), x.2 = seq(-4,4,0.2))
 #' 
 #' cluster <- kmeans(data$x, center = 2)$cluster
-#' model <- FLXMCLsvm(kernel = "linear")
-#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = model, cluster = cluster, control = list(classify = "hard"))
+#' model <- FLXMCLsvm(kernel = "linear", fitted = FALSE)
+#' fit <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = model, cluster = cluster)
 #' 
 #' ## prediction for single component models without aggregation
 #' pred.grid <- predict(fit, newdata = grid)
@@ -94,7 +95,7 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 	z <- new("FLXMCLsvm", weighted = TRUE, formula = formula,
 		name = "Mixture of SVM models")
 	z@defineComponent <- expression({
-		predict <- function(x, ...) {
+		predict <- function(x) {
 			## returns class membership values, these are not scaled and need not sum to unity
 			lev <- fit$levels
 			ng <- length(lev)								# number of classes
@@ -167,7 +168,7 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 # # print(head(posterior,30))
         	# return(list(posterior = posterior, decision = decision))
 		}
-		logLik <- function(x, y, ...) {
+		logLik <- function(x, y) {
 # fit <- wsvm(Species ~ ., data = iris[1:100,])
 # y <- iris$Species[1:100]
 # l <- fit$decision.values
@@ -198,29 +199,22 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 			lambda <- 1/(2 * fit$cost)									# regularization parameter
 			reg <- lambda * t(co * (t(l) - fit$rho))					# n x npr matrix
 			# -fit$rho is correct, because obj is -rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE)
-			reg <- rowSums(-reg, na.rm = TRUE)				# sum of regularization terms over all binary problems
+			reg <- sum(-reg, na.rm = TRUE)					# sum of regularization terms over all binary problems
 # cat("sum alpha\n")
 # print(rowSums(abs(co), na.rm = TRUE))
 # cat("regularization\n")
-# print(colSums(fit$case.weight * reg, na.rm = TRUE))
+# print(reg)
 # cat("negative hinge loss\n")
-# print(colSums(fit$case.weight * lpost, na.rm = TRUE))
-# cat("loglik\n")
-#print(colSums(fit$case.weight * lpost + reg, na.rm = TRUE))
-# print(sum(fit$case.weight * lpost + reg, na.rm = TRUE))
-# cat("lpost\n")
-#print(colSums(fit$case.weight * (lpost + reg), na.rm = TRUE))
 # print(sum(fit$case.weight * lpost, na.rm = TRUE))
-# cat("reg\n")
-#print(colSums(fit$case.weight * (lpost + reg), na.rm = TRUE))
-# print(sum(reg, na.rm = TRUE))
+# cat("loglik\n")
+# print(sum(fit$case.weight * lpost, na.rm = TRUE) + reg)
 # cat("obj\n")
 # print(sum(fit$obj))
-#print(-rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE))
+# print(-rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE))
 			return(list(lpost = lpost, reg = reg))
 		}
-		new("FLXcomponent", parameters = list(coefs = fit$coefs), 
-			logLik = logLik, predict = predict, df = fit$df)
+		new("FLXcomponent", parameters = list(coefs = fit$coefs, kernel = fit$kernel, cost = fit$cost, 
+			degree = fit$degree, coef0 = fit$coef0, gamma = fit$gamma, fitted = !is.null(fit$fitted)), logLik = logLik, predict = predict, df = fit$df)
 	})
 	z@preproc.y <- function(y) {
     	if (!is.factor(y))
@@ -240,7 +234,6 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 	}
 	z@fit <- function(x, y, w) {
 		lev <- attr(y, "lev")
-		w <- w/sum(w) * nrow(x)
 		# if (is.null(lev))
 			# fit <- wsvm(x, as.vector(y), case.weights = w, ...)
 		# else
