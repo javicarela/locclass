@@ -46,6 +46,7 @@ setClass("FLXMCLconstant", contains = "FLXMCL")
 #' @examples
 #' library(locClassData)
 #' data <- flashData(1000)
+#' data$x <- scale(data$x)
 #' grid <- expand.grid(x.1=seq(-6,6,0.2), x.2=seq(-4,4,0.2))
 #' 
 #' cluster <- kmeans(data$x, center = 4)$cluster
@@ -69,7 +70,7 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 	z <- new("FLXMCLconstant", weighted = TRUE, formula = formula,
 		name = "Mixture of Constant Classifiers")
 	z@defineComponent <- expression({
-		predict <- function(x, ...) {
+		predict <- function(x) {
 			pred <- getS3method("predict", "constant")(fit, newdata = x, ...)
 			lev <- levels(pred$class)
 			ng <- length(lev)
@@ -82,7 +83,7 @@ FLXMCLconstant <- function(formula = . ~ ., ...) {
 			} else
         		return(pred$posterior)
 		}
-		logLik <- function(x, y, ...) {
+		logLik <- function(x, y) {
     		post <- getS3method("predict", "constant")(fit, newdata = x, ...)$posterior
     		ng <- length(attr(y, "lev"))
 # print(head(post))
