@@ -17,9 +17,9 @@ makeRLearner.classif.FLXMCLqda = function() {
 			makeNumericLearnerParam(id = "tolerance", lower = 0, default = 1e-06),	
 			makeIntegerLearnerParam(id = "verbose", lower = 0L, default = 0L),						
 			makeDiscreteLearnerParam(id = "classify", values = c("auto", "weighted", "hard", "CEM", "random", "SEM"), default = "auto"),
-			makeIntegerLearnerParam(id = "nrep", lower = 1L, default = 1L),
+			makeIntegerLearnerParam(id = "nrep", lower = 1L, default = 1L)
 			## wqda parameters
-			makeDiscreteLearnerParam(id = "method", default = "unbiased", values = c("unbiased", "ML"))
+			# makeDiscreteLearnerParam(id = "method", default = "unbiased", values = c("unbiased", "ML"))
 		),
 		oneclass = FALSE,
 		twoclass = TRUE,
