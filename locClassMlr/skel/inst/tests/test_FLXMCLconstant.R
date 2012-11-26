@@ -6,6 +6,13 @@ test_that("FLXMCLconstant: mlr interface works", {
 	data <- xor3Data(500)
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
 
+	#### model parameters are passed
+	# centers, kernel, cost, degree, coef0, gamma
+	lrn <- makeLearner("classif.FLXMCLconstant", centers = 9)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 9)
+
+	## weighted
 	# class prediction
 	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLconstant", centers = 9)
@@ -30,7 +37,8 @@ test_that("FLXMCLconstant: mlr interface works", {
 	pred3 <- mypredict(tr3, aggregate = TRUE)
 
 	expect_true(all(pred3[[1]] == pred2$data[,3:5]))
-
+	
+	## hard
 	# class prediction
 	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLconstant", centers = 9, classify = "hard")
