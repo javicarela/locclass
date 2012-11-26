@@ -6,15 +6,25 @@ test_that("FLXMCLlda: mlr interface works", {
 	data <- xor3Data(500)
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
 
+	#### model parameters are passed
+	# centers, method 
+	lrn <- makeLearner("classif.FLXMCLlda", centers = 3)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	expect_equal(tr1$learner.model@components[[1]][[1]]@parameters$method, "ML")
+
+	expect_error(lrn <- makeLearner("classif.FLXMCLqda", centers = 3, method = "unbiased"))
+
+	## weighted
 	# class prediction
 	set.seed(120)
-	lrn <- makeLearner("classif.FLXMCLlda", centers = 3, method = "ML")
+	lrn <- makeLearner("classif.FLXMCLlda", centers = 3)
 	tr1 <- train(lrn, task)
 	pred1 <- predict(tr1, task = task)
 	
 	# posterior prediction
 	set.seed(120)
-	lrn <- makeLearner("classif.FLXMCLlda", par.vals = list(method = "ML", centers = 3, iter.max = 200), predict.type = "prob")
+	lrn <- makeLearner("classif.FLXMCLlda", par.vals = list(centers = 3, iter.max = 200), predict.type = "prob")
 	tr2 <- train(lrn, task)
 	pred2 <- predict(tr2, task = task)
 
@@ -25,12 +35,13 @@ test_that("FLXMCLlda: mlr interface works", {
 	
 	set.seed(120)
 	cluster <- replicate(5, kmeans(data$x, centers = 3)$cluster)
-	tr3 <- myStepFlexmix(y ~ ., data = as.data.frame(data), model = FLXMCLlda(method = "ML"), cluster = cluster, control = list(iter.max = 200, tolerance = 10^-2))
-	tr3 <- flexmix(y ~ ., data = as.data.frame(data), model = FLXMCLlda(method = "ML"), cluster = posterior(tr3), control = list(iter.max = 200))
+	tr3 <- myStepFlexmix(y ~ ., data = as.data.frame(data), model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, tolerance = 10^-2))
+	tr3 <- flexmix(y ~ ., data = as.data.frame(data), model = FLXMCLlda(), cluster = posterior(tr3), control = list(iter.max = 200))
 	pred3 <- mypredict(tr3, aggregate = TRUE)
 
 	expect_true(all(pred3[[1]]/rowSums(pred3[[1]]) == pred2$data[,3:5]))
 	
+	## hard
 	# class prediction
 	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLlda", centers = 3, classify = "hard")
@@ -56,5 +67,3 @@ test_that("FLXMCLlda: mlr interface works", {
 
 	expect_true(all(pred3[[1]]/rowSums(pred3[[1]]) == pred2$data[,3:5]))	
 })
-
-## further tests: are options passed correctly
