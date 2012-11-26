@@ -3,6 +3,29 @@ context("FLXMCLsvm: mlr interface code")
 test_that("FLXMCLsvm: mlr interface works", {
 	library(locClassData)
 
+	#### model parameters are passed
+	data <- xor3Data(500)
+	task <- makeClassifTask(data = as.data.frame(data), target = "y")
+
+	# centers, kernel, cost, degree, coef0, gamma
+	lrn <- makeLearner("classif.FLXMCLsvm", centers = 3, kernel = "polynomial", degree = 2, cost = 2, coef0 = 2, fitted = FALSE)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	pars <- tr1$learner.model@components[[1]][[1]]@parameters
+	expect_equal(pars$kernel, 1)
+	expect_equal(pars$degree, 2)
+	expect_equal(pars$cost, 2)
+	expect_equal(pars$coef0, 2)
+
+	# kernel, gamma
+	lrn <- makeLearner("classif.FLXMCLsvm", centers = 3, kernel = "radial", gamma = 2, fitted = FALSE)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	pars <- tr1$learner.model@components[[1]][[1]]@parameters
+	expect_equal(pars$kernel, 2)
+	expect_equal(pars$gamma, 2)
+
+	
 	#### multiclass problem
 	data <- xor3Data(500)
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
