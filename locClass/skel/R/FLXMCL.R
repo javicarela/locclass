@@ -147,12 +147,10 @@ setMethod("myfitted", signature(object = "flexmix"), function (object, drop = TR
     		}
       		group <- group(object)
       		prior_weights <- determinePrior(object@prior, object@concomitant, group)[as.integer(group),]
-# print(prior_weights)
-# print(any(is.na(prior_weights)))
+			if (any(is.na(prior_weights)))
+				warning("NAs in 'prior_weights'")
 			if (is.null(dim(prior_weights)))
 				prior_weights <- matrix(prior_weights, ncol = length(prior_weights), dimnames = list(NULL, names(prior_weights)))
-      		
-      		
         	# if (class(object@model[[1]]) == "FLXMCLsvm") {
         		# z <- lapply(x, function(z)
         		    # list(decision = matrix(rowSums(matrix(sapply(seq_len(object@k), 
@@ -256,6 +254,8 @@ setMethod("mypredict", signature(object = "FLXdist"), function (object, newdata 
       			x[[m]] <- predict(object@model[[m]], newdata, comp, ...)
     		}
 			prior_weights <- prior(object, newdata)
+			if (any(is.na(prior_weights)))
+				warning("NAs in 'prior_weights'")
 			if (is.null(dim(prior_weights)))
 				prior_weights <- matrix(prior_weights, ncol = length(prior_weights), dimnames = list(NULL, names(prior_weights)))
         	# if (class(object@model[[1]]) == "FLXMCLsvm") {
