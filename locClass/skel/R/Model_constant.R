@@ -57,6 +57,9 @@
 #' splits <- predict(fit, newdata = grid, type = "node")
 #' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
 #'
+#' ## training error
+#' mean(predict(fit) != as.numeric(data$y))
+#'
 #' @rdname constantModel 
 #'
 #' @import party
@@ -110,6 +113,8 @@ constantModel <- new("StatModel",
             		if (!use.subset) 
                 		mf$subset <- NULL
             		MF <- eval(mf, frame, enclos = enclos)
+					# if there are only training observations from one class it does not make sense to fit a classification model
+            		if (length(unique(MF[,1])) <= 1) stop("training data from only one group given")
             		if (exists(name, envir = envir, inherits = FALSE)) 
                 		modeltools:::checkData(get(name, envir = envir, inherits = FALSE), 
                   		MF)
@@ -184,7 +189,7 @@ constantModel <- new("StatModel",
 	
 reweight.constantModel <- function (object, weights, ...) {
     fit <- constantModel@fit
-    do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs))
+    try(do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs)))
 }
 
 
@@ -219,18 +224,18 @@ model.response.constantModel <- function (object, ...)
 ## instead of calculating the quantities for all observations and then multipliying by 0 or 1 before summing them up
 ## calculate them only for those observations with weights 1
 deviance.constant <- function (object, ...) {
-    wts <- weights(object)
-    if (is.null(wts)) 
-        wts <- 1
-	#xmat <- model.matrix(object, ...)[wts == 1,]    
-    gr <- model.response.constantModel(object, ...)[wts > 0]
+	try({
+		wts <- weights(object)
+		if (is.null(wts)) 
+			wts <- 1
+		gr <- model.response.constantModel(object, ...)[wts > 0]
 # print(gr)
 # print(object$prior)
-    pr <- object$prior[as.character(gr)]
+		pr <- object$prior[as.character(gr)]
 # print(pr)
-    return(-sum(log(pr)))
-    # z <- xmat - object$means[as.character(gr),]
-    # return(-sum(log(pr) - 0.5 * determinant(object$cov)$modulus - 0.5 * mahalanobis(z, 0, object$cov)))
+		return(-sum(log(pr)))
+    })
+    return(Inf)
 }
 
 
@@ -245,31 +250,22 @@ estfun.constant <- function(x, ...) {
     wts <- weights(x)
     if (is.null(wts)) 
         wts <- 1
-    gr <- model.response.constantModel(x, ...)
-    K <- length(x$prior)
-    if (K > 1) {
-	    pr <- x$prior[1:(K-1)]
-    	lev <- names(x$prior)
-    	d <- matrix(0, length(gr), K-1)
-		colnames(d) <- lev[1:(K-1)]
-    	d[wts > 0, ] <- -1
-		row.index <- wts > 0 & gr != lev[K]
-		gr <- gr[row.index]	
-		col.index <- match(as.character(gr), lev[1:(K-1)], nomatch = 0)
-		d[cbind(which(row.index),col.index)] <- 1/x$prior[as.character(gr)] - 1
-	} else if (K == 1) {  ## simplify
-	    pr <- x$prior
-    	lev <- names(x$prior)
-    	d <- matrix(0, length(gr), K)
-		colnames(d) <- lev
-    	d[wts > 0, ] <- -1
-		row.index <- wts > 0
-		gr <- gr[row.index]	
-		col.index <- match(as.character(gr), lev, nomatch = 0)  ## todo: simplify
-		d[cbind(which(row.index),col.index)] <- 1/x$prior[as.character(gr)] - 1
-	}
-	# print(d)
-	# print(colSums(d))
+    gr <- as.factor(model.response.constantModel(x, ...))
+  	d <- diag(nlevels(gr))[gr,]				# zero-one class indicator matrix, number of columns equals total number of classes
+  	colnames(d) <- levels(gr)
+  	d <- d[,names(x$prior), drop = FALSE]	# choose columns that belong to classes present in this subset
+    d <- 1 - t(t(d)/as.vector(x$prior))		# calculate scores
+    d <- wts * d							# multiply with wts
+# print(x$prior/sqrt(sum(x$prior^2)))
+# print(eigen(crossprod(d)))
+# print(crossprod(d) %*% as.matrix(x$prior))
+	cd <- ncol(d)		# if d has more than 2 columns drop the last one in order to prevent linear dependencies
+	if (cd > 1)			# if d has only one column there is only one class present in the training data and a try-error will occur in the fluctuation tets
+		d <- d[,-cd, drop = FALSE]
+# print(colSums(d))
+# print(cbind(gr, d))
+# print(x$prior)
+# print(cor(d))
     return(d)
 }
 
