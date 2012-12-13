@@ -268,7 +268,7 @@ estfun.wlda <- function(x, ...) {
 	### scores with respect to priors
   	dPrior <- diag(nlevels(gr))[gr,]							# zero-one class indicator matrix, number of columns equals total number of classes
   	colnames(dPrior) <- levels(gr)
-  	dMean <- dPrior <- dPrior[,names(x$prior), drop = FALSE]	# select columns that belong to classes present in this subset
+  	d <- dPrior <- dPrior[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in this subset
     dPrior <- wts * t(-t(dPrior) + as.vector(x$prior))			# calculate scores
 	if (ncol(dPrior) > 1)	# if dPrior has more than 2 columns drop the first one in order to prevent linear dependencies (n x (K-1))	
 		dPrior <- dPrior[,-1, drop = FALSE]
@@ -276,15 +276,14 @@ estfun.wlda <- function(x, ...) {
 	## scores with respect to means
     p <- ncol(xmat)
     n <- nrow(xmat)
+    K <- ncol(d)
     z <- matrix(0, n, p)
     indw <- wts > 0
 	z[indw,] <- xmat[indw, , drop = FALSE] - x$means[as.character(gr[indw]), , drop = FALSE]
 	cov.inv <- solve(x$cov)	
-	ind1 <- rep(1:p, each = p)
-	ind2 <- rep(1:p, p)
-	dMean <- dMean[,ind1, drop = FALSE] * (-wts * z %*% cov.inv)[,ind2, drop = FALSE]		# n x (K * V) matrix
+	dMean <- d[,rep(1:K, each = p), drop = FALSE] * (-wts * z %*% cov.inv)[,rep(1:p, K), drop = FALSE]		# n x (K * V) matrix
 	## scores with respect to cov
-	inds <- cbind(ind1, ind2)
+	inds <- cbind(rep(1:p, each = p), rep(1:p, p))
 	inds <- inds[inds[,1] <= inds[,2], , drop = FALSE]
 	f <- function(ind, cov.inv, z) {
 		S <- cov.inv[,ind[1],drop = FALSE] %*% cov.inv[ind[2],,drop = FALSE]
