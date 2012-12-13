@@ -54,6 +54,9 @@
 #' splits <- predict(fit, newdata = grid, type = "node")
 #' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
 #'
+#' ## training error
+#' mean(predict(fit) != as.numeric(data$y))
+#'
 #' @rdname ldaModel 
 #'
 #' @import party
@@ -182,7 +185,7 @@ ldaModel <- new("StatModel",
 	
 reweight.ldaModel <- function (object, weights, ...) {
     fit <- ldaModel@fit
-    do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs))
+    try(do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs)))
 }
 
 
@@ -212,20 +215,41 @@ model.response.ldaModel <- function (object, ...)
 #' @importFrom stats deviance
 
 ## negative log-likelihood for wlda
-## wts is 0 or 1
 ## if classes are missing in the training data their weights are 0
-## instead of calculating the quantities for all observations and then multipliying by 0 or 1 before summing them up
-## calculate them only for those observations with weights 1
+## instead of calculating the quantities for all observations and then multipliying by 0 or >0 before summing them up
+## calculate them only for those observations with weights >0
 deviance.wlda <- function (object, ...) {
-    wts <- weights(object)
-    if (is.null(wts)) 
-        wts <- 1
-	xmat <- model.matrix(object, ...)[wts == 1,]
-    gr <- model.response.ldaModel(object, ...)[wts == 1]
-    pr <- object$prior[as.character(gr)]
-    z <- xmat - object$means[as.character(gr),]
-    return(-sum(log(pr) - 0.5 * determinant(object$cov)$modulus - 0.5 * mahalanobis(z, 0, object$cov)))
+    try({
+		wts <- weights(object)
+		if (is.null(wts)) 
+			wts <- 1
+		indw <- wts > 0
+		xmat <- model.matrix(object, ...)[indw, , drop = FALSE]
+		gr <- model.response.ldaModel(object, ...)[indw]
+		## check
+   		# ng <- nlevels(gr)
+		# lev1 <- names(object$prior)
+    	# post <- matrix(NA, ncol = ng, nrow = nrow(xmat), dimnames = list(rownames(xmat), levels(gr)))
+    	# post[,lev1] <- sapply(lev1, function(z) log(object$prior[z]) + dmvnorm(xmat, object$means[z,], object$cov, log = TRUE))
+# print(head(cbind(gr, post)))
+    	# ll <- post[cbind(rownames(post), as.character(gr))]
+# print(head(-ll))
+		pr <- object$prior[as.character(gr)]
+		z <- xmat - object$means[as.character(gr), , drop = FALSE]
+# print(head(-log(pr) + ncol(xmat)/2 * log(2*pi) + 0.5 * determinant(object$cov)$modulus + 0.5 * mahalanobis(z, 0, object$cov)))
+		return(sum(wts[indw] * (-log(pr) + 0.5 * determinant(object$cov)$modulus + 0.5 * mahalanobis(z, 0, object$cov))))
+	})
+	return(Inf)
 }
+
+
+
+#' @noRd
+#'
+#' @method deviance try-error
+#' @S3method deviance try-error
+
+'deviance.try-error' <- function(object, ...) Inf
 
 
 
@@ -240,24 +264,42 @@ estfun.wlda <- function(x, ...) {
     if (is.null(wts)) 
         wts <- 1
 	xmat <- model.matrix(x, ...)
-    gr <- model.response.ldaModel(x, ...)
+    gr <- as.factor(model.response.ldaModel(x, ...))
+	### scores with respect to priors
+  	dPrior <- diag(nlevels(gr))[gr,]							# zero-one class indicator matrix, number of columns equals total number of classes
+  	colnames(dPrior) <- levels(gr)
+  	dMean <- dPrior <- dPrior[,names(x$prior), drop = FALSE]	# select columns that belong to classes present in this subset
+    dPrior <- wts * t(-t(dPrior) + as.vector(x$prior))			# calculate scores
+	if (ncol(dPrior) > 1)	# if dPrior has more than 2 columns drop the first one in order to prevent linear dependencies (n x (K-1))	
+		dPrior <- dPrior[,-1, drop = FALSE]
+	# else: if dPrior has only one column there is only one class present in the training data and a try-error will occur in the fluctuation tets
+	## scores with respect to means
     p <- ncol(xmat)
-    z <- matrix(0, nrow(xmat), p)
-	z[wts == 1,] <- xmat[wts == 1,] - x$means[as.character(gr[wts == 1]),]
+    n <- nrow(xmat)
+    z <- matrix(0, n, p)
+    indw <- wts > 0
+	z[indw,] <- xmat[indw, , drop = FALSE] - x$means[as.character(gr[indw]), , drop = FALSE]
 	cov.inv <- solve(x$cov)	
-	d1 <- -wts * z %*% cov.inv
-	inds <- cbind(rep(1:p, each = p), rep(1:p, p))
-	inds <- inds[inds[,1] <= inds[,2],]
+	ind1 <- rep(1:p, each = p)
+	ind2 <- rep(1:p, p)
+	dMean <- dMean[,ind1, drop = FALSE] * (-wts * z %*% cov.inv)[,ind2, drop = FALSE]		# n x (K * V) matrix
+	## scores with respect to cov
+	inds <- cbind(ind1, ind2)
+	inds <- inds[inds[,1] <= inds[,2], , drop = FALSE]
 	f <- function(ind, cov.inv, z) {
-		E <- matrix(0, p, p)
-		E[ind[1], ind[2]] <- 1
-		cov.inv.E <- cov.inv %*% E
-		cov.inv.E.cov.inv <- cov.inv.E %*% cov.inv
-		return(wts * sum(diag(cov.inv.E)) - mahalanobis(z, center = 0, cov = cov.inv.E.cov.inv, inverted = TRUE))
+		S <- cov.inv[,ind[1],drop = FALSE] %*% cov.inv[ind[2],,drop = FALSE]
+		return(wts * 0.5 * (cov.inv[ind[1], ind[2]] - mahalanobis(z, center = 0, cov = S, inverted = TRUE)))
 	}
-	d2 <- apply(inds, 1, f, cov.inv = cov.inv, z = z)
-#print(colSums(cbind(d1, d2)))
-	return(cbind(d1, d2))
+	dCov <- apply(inds, 1, f, cov.inv = cov.inv, z = z)
+# checks
+# print(0.5 * cov.inv - 0.5 * cov.inv %*% z[1,] %*% t(z[1,]) %*% cov.inv)
+# print(0.5 * cov.inv - 0.5 * cov.inv %*% z[2,] %*% t(z[2,]) %*% cov.inv)
+# print(0.5 * cov.inv - 0.5 * cov.inv %*% z[3,] %*% t(z[3,]) %*% cov.inv)
+# print(head(dCov))
+# print(cbind(gr, dPrior, dMean, dCov))
+# print(colSums(cbind(dPrior, dMean, dCov)))
+# print(cor(cbind(dPrior, dMean, dCov)[x$weights>0,,drop = FALSE]))
+	return(cbind(dPrior, dMean, dCov))
 }
 
 
