@@ -220,20 +220,21 @@ model.response.constantModel <- function (object, ...)
 
 ## negative log-likelihood for constant
 ## if classes are missing in the training data their weights are 0
-## instead of calculating the quantities for all observations and then multipliying by 0 or >1 before summing them up
-## calculate them only for those observations with weights >1
+## instead of calculating the quantities for all observations and then multipliying by 0 or >0 before summing them up
+## calculate them only for those observations with weights >0
 deviance.constant <- function (object, ...) {
 	try({
 		wts <- weights(object)
 		if (is.null(wts)) 
 			wts <- 1
-		gr <- model.response.constantModel(object, ...)[wts > 0]
+		indw <- wts > 0
+		gr <- model.response.constantModel(object, ...)[indw]
 # print(gr)
 # print(object$prior)
 		pr <- object$prior[as.character(gr)]
 # print(pr)
-# print(c(object$prior, sum(-wts[wts > 0] * log(pr))))
-		return(sum(-wts[wts > 0] * log(pr)))
+# print(c(object$prior, sum(-wts[indw] * log(pr))))
+		return(sum(-wts[indw] * log(pr)))
     })
     return(Inf)
 }
@@ -251,19 +252,15 @@ estfun.constant <- function(x, ...) {
     if (is.null(wts)) 
         wts <- 1
     gr <- as.factor(model.response.constantModel(x, ...))
-  	d <- diag(nlevels(gr))[gr,]				# zero-one class indicator matrix, number of columns equals total number of classes
+  	d <- diag(nlevels(gr))[gr,]					# zero-one class indicator matrix, number of columns equals total number of classes
   	colnames(d) <- levels(gr)
-  	d <- d[,names(x$prior), drop = FALSE]	# select columns that belong to classes present in this subset
-	d <- t(-t(d) + as.vector(x$prior))		# calculate scores
-    d <- wts * d							# multiply with wts
-# print(x$prior/sqrt(sum(x$prior^2)))
-# print(eigen(crossprod(d)))
-# print(crossprod(d) %*% as.matrix(x$prior))
+  	d <- d[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in this subset
+	d <- wts * t(-t(d) + as.vector(x$prior))	# calculate scores
 	if (ncol(d) > 1)	# if d has more than 2 columns drop the first one in order to prevent linear dependencies (i.e., class 1 is reference class)
 		d <- d[,-1, drop = FALSE]
 	# else: if d has only one column there is only one class present in the training data; we do nothing, a try-error will occur in the fluctuation test
 	# and the current branch of the tree will stop to grow which is prefectly reasonable for a pure node
-#  print(colSums(d))
+# print(colSums(d))
 # print(cbind(gr, d))
 # print(x$prior)
 # print(cor(d))
