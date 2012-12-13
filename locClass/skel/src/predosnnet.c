@@ -350,16 +350,19 @@ void
 VR_dfunc2(double *p, double *dfn)
 {
     int   i, j;
-    //double sum1;
 	
+	double sumWeights = 0;			// sum of observation weights
+	for (i = 0; i < NTrain; i++)
+		sumWeights += Weights[i];
+
+// Rprintf("Decay %f\n", Decay[1]);
+
     for (i = 0; i < Nweights; i++)
 		wts[i] = p[i];
-    //for (j = 0; j < Nweights; j++)
-	//	Slopes[j] = 2 * Decay[j] * wts[j];
     TotalError = 0.0;
     for (i = 0; i < NTrain; i++) {
 		for (j = 0; j < Nweights; j++)
-			Slopes[j] = 2/NTrain * Decay[j] * wts[j]; // /Ntrain nachgucken
+			Slopes[j] = Weights[i]/sumWeights * 2 * Decay[j] * wts[j];
 		for (j = 0; j < Noutputs; j++)
 			toutputs[j] = TrainOut[i + NTrain * j];
 		fpass(TrainIn + i, toutputs, Weights[i], NTrain);
@@ -367,12 +370,6 @@ VR_dfunc2(double *p, double *dfn)
 		for (j = 0; j < Nweights; j++)
 			dfn[j + Nweights * i] = Slopes[j];
     }
-    //sum1 = 0.0;
-    //for (i = 0; i < Nweights; i++)
-	//	sum1 += Decay[i] * p[i] * p[i];
-    //*fp = TotalError + sum1;
-    //for (j = 0; j < Nweights; j++)
-	//	df[j] = Slopes[j];
     Epoch++;
 }
 
