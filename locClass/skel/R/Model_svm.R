@@ -33,13 +33,12 @@
 #'
 #' @examples
 #' library(locClassData)
-#' library(party)
 #'
 #' data <- vData(500)
 #' x <- seq(0,1,0.05)
 #' grid <- expand.grid(x.1 = x, x.2 = x)
 #' 
-#' fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = svmModel, kernel = "linear",
+#' fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = svmModel, kernel = "linear", fitted = FALSE,
 #' control = mob_control(objfun = deviance, minsplit = 200))
 #'
 #' ## predict decision values
@@ -52,6 +51,9 @@
 #' ## predict node membership
 #' splits <- predict(fit, newdata = grid, type = "node")
 #' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
+#'
+#' ## training error
+#' mean(predict(fit) != data$y)
 #'
 #' @rdname svmModel 
 #'
@@ -119,9 +121,12 @@ svmModel <- new("StatModel",
                   		...), envir = envir)
             		}
             		if (name == "response" && responseMatrix) {
-#cat("MF[,1]")
-#print(MF[,1])
-                		assign("responseMatrix", MF[,1], envir = envir)
+						y <- MF[,1]
+						if (!is.factor(y)) {
+							y <- as.factor(y)
+							warning("response variable was coerced to a factor")
+						}
+                		assign("responseMatrix", y, envir = envir)
             		}
         		}
         		MEapply(MEF, MEF@hooks$set, clone = FALSE)
@@ -205,7 +210,7 @@ svmModel <- new("StatModel",
 # stop("predict_response aufgerufen")
         		# return(gr)
     		}
-    		z$addargs <- list(...)
+    		z$addargs <- list(scale = scale, ...)
     		z$ModelEnv <- object
     		z$statmodel <- svmModel
    		 	z
@@ -229,7 +234,7 @@ svmModel <- new("StatModel",
 	
 reweight.svmModel <- function (object, weights, ...) {
     fit <- svmModel@fit
-    do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs))
+    try(do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs)))
 }
 
 
@@ -258,9 +263,9 @@ model.response.svmModel <- function (object, ...)
 #' @S3method deviance wsvm
 #' @importFrom stats deviance
 
-## dual objective function for wsvm (to minimize)
+## object$obj: dual objective function for wsvm (to maximize)
 deviance.wsvm <- function (object, ...) {
-	return(sum(object$obj))
+	return(sum(-object$obj))
 }
 
 
@@ -275,50 +280,53 @@ estfun.wsvm <- function(x, ...) {
     wts <- weights(x)
     if (is.null(wts)) 
         wts <- 1
-	## resort coefs
-	n <- length(wts)
-	K <- x$nclasses  # 2 for regression and one-class
-#cat("K", K, "\n")
-	levels <- x$levels
-	labels <- x$labels
-	d1 <- matrix(0, n, K - 1)
-	d1[x$index,] <- x$coefs
-	if (K > 2) {
+	xmat <- model.matrix.svmModel(x)
+	n <- nrow(xmat)
+	nl <- x$nclasses 			# number of present classes, nl = 2 for regression, one-class and binary classification problems
+	d2 <- attr(predict.wsvm(x, newdata = xmat, decision.values = TRUE), "decision.values")	# decision values f(x_n)
+	d1 <- matrix(0, n, nl-1)
+	d1[x$index,] <- -x$coefs	# -alpha_n y_n (correct rows, for nl>2 columns not correct)
+	if (nl == 2) {				# binary classification problem
+		d2 <- d2 - x$rho		# f(x_n) - beta_0
+		d2 <- d1 * d2			# -alpha_n y_n * (f(x_n) - beta_0)
+		m <- -colSums(d2) * wts/sum(wts)	# -colSums(d2) equals the regularization term ||beta||^2
+# print("m")
+# print(m)
+		d2 <- d2 + m			# -alpha_n y_n * (f(x_n) - beta_0) + ||bbeta||^2 * wts/sum(wts)
+	} else {					# multi-class problem
 		y <- model.response.svmModel(x, ...)
-		coefs <- matrix(0, n, K*(K-1)/2)
-		colns <- character(K*(K-1)/2)
-		for (i in 1:(K - 1)) {
-    		for (j in (i + 1):K) {
-                colns[(i - 1)*K - i*(i-1)/2 + j - i] <- 
-                           paste(levels[labels[i]],
-                                 "/", levels[labels[j]],
-                                 sep = "")
-#print((i - 1)*K - i*(i-1)/2 + j - i)
-    			idx <- y == levels[labels[i]]
-    			coefs[idx,(i-1)*K - i*(i-1)/2 + j-i] <- d1[idx,j-1]
-    			idx <- y == levels[labels[j]]
-				coefs[idx,(i-1)*K - i*(i-1)/2 + j-i] <- d1[idx,i]    				
-    		}
-    	}
-		colnames(coefs) <- colns
-    	d1 <- coefs
-    } 
-	## d2
-	#idx <- abs(d1) < x$cost & abs(d1) > 0
-	#predict.wsvm(newdata = xmat[idx[,1],], decision.values = TRUE)
-	# calculate mean of margin vectors for all two-class problems
-	#xmat <- ...
-	#x$cost
-
-	# calculate kernel values for all training observations
-	
-	# calculate score function for all two-class problems
-	#d2[,] <- x$rho[] - d1[] * kernel[]        
-#cat("d\n")
-#print(d1)
-#print(wts * d1)
-#print(colSums(wts*d1))
-    return(wts * d1)
+		ng <- length(x$levels)						# total number of classes
+		problems <- cbind(rep(x$labels, nl:1-1), unlist(sapply(2:nl, function(z) x$labels[z:nl])))
+													# class labels involved in particular binary problems
+		npr <- nl*(nl-1)/2							# number of binary classification problems
+		m <- matrix(0, npr, ng)
+		m[cbind(1:npr,problems[,1])] <- 1
+		m[cbind(1:npr,problems[,2])] <- 1
+		idx <- m[, as.numeric(y), drop = FALSE]		# 0/1 indicator matrix of obs involved in binary problems, npr x n matrix
+		rownames(idx) <- paste(problems[,1], problems[,2], sep = "/")
+		d1n <- idx
+		d1n[idx != 0] <- t(d1)						# -alpha_n * y_n, npr x n matrix
+		idx <- t(idx)								# 0/1 indicator matrix, n x npr matrix
+		d2 <- t(d1n * (t(d2) - x$rho))				# -alpha_n y_n (f(x_n) - beta_0), n x npr matrix
+		d1 <- t(d1n)								# -alpha_n * y_n, n x npr matrix
+# print(cbind(wts, as.numeric(y), idx))
+# print(cbind(wts, as.numeric(y), d1))
+# print(cbind(wts, as.numeric(y), d2))
+		m <- -colSums(d2)			# norm of beta vector
+# print("m")
+# print(m)
+		idx <- wts * idx			# index matrix multiplied by weights, observations with zero weight are removed
+									# wts is multiplied to account for wts > 1
+		tab <- colSums(idx)			# sum of observation weights in the pairwise problems
+		m <- t(t(idx) * m/tab)		# regularization term, n x npr matrix
+		d2 <- d2 + m				# -alpha_n y_n (f(x_n) - beta_0) + ||beta|| * wts/sum(wts)
+    }    
+# print(all(d1 == wts*d1))
+# print(all(d2 == wts*d2))
+# print(colSums(d1))
+# print(colSums(d2))
+# print(cor(cbind(d1,d2)))
+    return(cbind(d1, d2))
 }
 
 
@@ -328,23 +336,31 @@ estfun.wsvm <- function(x, ...) {
 #' @method predict svmModel
 #' @S3method predict svmModel
 
-## todo: class labels can be interchanged: correct sign of decision.values
-predict.svmModel <- function(object, out = c("class", "posterior", "decision"), ...) {
-	pred <- NextMethod(object, ...)
-# m <- match.call(expand.dots = FALSE)
-# print(m$...)
+## todo: class labels can be interchanged/missing: correct sign/aggregation of decision.values???
+predict.svmModel <- function(object, out = c("class", "posterior", "decision"), newdata, ...) {
+	K <- length(object$labels)
 	out <- match.arg(out)
+	idx <- apply(newdata, 1, function(x) any(is.na(x)))
 	pred <- switch(out,
-		class = NextMethod(object, ...),
+		class = {
+			pr <- rep(NA, length(idx))
+			pr[!idx] <- NextMethod(object, newdata, ...)
+			pr
+		},
 		posterior = {
-			pred <- NextMethod(object, probability = TRUE, ...)
-#print(pred)
-			post <- attr(pred, "probabilities")
+			pred <- NextMethod(object, probability = TRUE, newdata, ...)
+			post <- matrix(NA, length(idx), K)
+			post[!idx,] <- attr(pred, "probabilities")
+			colnames(post) <- colnames(attr(pred, "probabilities"))
+			rownames(post) <- rownames(newdata)
 			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		},
 		decision = {
-			pred <- NextMethod(object, decision.values = TRUE, ...)			
-			decision <- attr(pred, "decision.values")
+			pred <- NextMethod(object, decision.values = TRUE, newdata, ...)
+			decision <- matrix(NA, length(idx), K*(K-1)/2)
+			decision[!idx,] <- attr(pred, "decision.values")
+			colnames(decision) <- colnames(attr(pred, "decision.values"))
+			rownames(decision) <- rownames(newdata)
 			lapply(seq_len(nrow(decision)), function(i) decision[i,, drop = FALSE])
 		})
 	return(pred)
