@@ -33,7 +33,6 @@
 #'
 #' @examples
 #' library(locClassData)
-#' library(party)
 #'
 #' data <- vData(500)
 #' x <- seq(0,1,0.05)
@@ -264,7 +263,7 @@ estfun.wqda <- function(x, ...) {
 	## scores with respect to priors
   	dPrior <- diag(nlevels(gr))[gr,]					# zero-one class indicator matrix, number of columns equals total number of classes
   	colnames(dPrior) <- levels(gr)
-  	d <- dPrior <- dPrior[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in this subset
+  	d <- dPrior <- dPrior[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in the current subset
     dPrior <- wts * t(-t(dPrior) + as.vector(x$prior))			# calculate scores
 	if (ncol(dPrior) > 1)	# if dPrior has more than 2 columns drop the first one in order to prevent linear dependencies (n x (K-1))	
 		dPrior <- dPrior[,-1, drop = FALSE]
