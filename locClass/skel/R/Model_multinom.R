@@ -33,7 +33,6 @@
 #'
 #' @examples
 #' library(locClassData)
-#' library(party)
 #'
 #' data <- vData(500)
 #' x <- seq(0,1,0.05)
@@ -53,6 +52,9 @@
 #' ## predict node membership
 #' splits <- predict(fit, newdata = grid, type = "node")
 #' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
+#'
+#' ## training error
+#' mean(predict(fit) != data$y)
 #'
 #' @rdname multinomModel
 #' 
@@ -136,8 +138,8 @@ multinomModel <- new("StatModel",
 #print(str(MEF))
        	MEF
 		},
-    ##arguments subset, na.action, contrasts, Hess, model discarded
-	fit = function (object, weights = NULL, summ = 0, censored = FALSE, ...) {
+    ##arguments subset, na.action, contrasts, model discarded
+	fit = function (object, weights = NULL, summ = 0, censored = FALSE, Hess = FALSE, ...) {
 		    class.ind <- function(cl) {
 		        n <- length(cl)
 		        x <- matrix(0, n, length(levels(cl)))
@@ -287,9 +289,9 @@ multinomModel <- new("StatModel",
     		z$AIC <- z$deviance + 2 * edf
 	    	# if (model) 
     	    	# z$model <- m
-	    	# if (Hess) 
-	        	# fit$Hessian <- multinomHess(fit, X)
     		class(z) <- c("multinomModel", "multinom", "nnet")
+	    	if (Hess) 
+	        	z$Hessian <- nnet:::multinomHess(z, X)
     		z$predict_response <- function(newdata = NULL) {#### prior als Argument für predict?
         		if (!is.null(newdata)) {
             		penv <- new.env()
@@ -299,7 +301,7 @@ multinomModel <- new("StatModel",
             		dm <- object@get("designMatrix")
         		}
     		}
-    		z$addargs <- list(...)
+    		z$addargs <- list(summ = summ, censored = censored, Hess = Hess, ...)
     		z$ModelEnv <- object
     		z$statmodel <- multinomModel
    		 	z
@@ -323,7 +325,7 @@ multinomModel <- new("StatModel",
 
 reweight.multinomModel <- function (object, weights, ...) {
     fit <- multinomModel@fit
-    do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs))
+    try(do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs)))
 }
 
 
@@ -352,6 +354,7 @@ model.response.multinomModel <- function (object, ...)
 #' @S3method deviance multinom
 #' @importFrom stats deviance
 
+## deviance is -2*log-likelihood and is minimized
 deviance.multinom <- function (object, ...) {
 	return(object$deviance)
 }
@@ -365,10 +368,20 @@ deviance.multinom <- function (object, ...) {
 #' @importFrom sandwich estfun
 
 estfun.multinom <- function(x, ...) {
-	#cat("gradient\n")
-	#print(x$gradient)
-	#print(colSums(x$gradient))
-	x$gradient
+#cat("gradient\n")
+# print(x$wts)
+# print(x$gr[x$wts != 0])
+# print(colSums(x$gradient))
+# print(head(x$gradient))
+# print(x$convergence) ## 0 für konvergenz, 1 wenn maxit erreicht
+# print(cor(x$gradient[x$weights>0,,drop = FALSE]))
+# print(z <- crossprod(x$gradient[x$weights>0,,drop = FALSE]/sqrt(sum(x$weights))))
+# print(eigen(z, symmetric = TRUE, only.values = TRUE)$values)
+# print(z <- crossprod(10^10*x$gradient[x$weights>0,,drop = FALSE]/sqrt(n)))
+# print(eigen(z, symmetric = TRUE, only.values = TRUE)$values)	
+#print(crossprod(x$gradient[x$weights>0,,drop = FALSE])[1:5,1:5])
+#print(solve(crossprod(x$gradient[x$weights>0,,drop = FALSE])[1:5,1:5]))
+	return(x$gradient)
 }
 
 
@@ -384,16 +397,17 @@ add.net <- nnet:::add.net
 #' @method predict multinomModel
 #' @S3method predict multinomModel
 
-predict.multinomModel <- function(object, out = c("class", "posterior"), ...) {
+predict.multinomModel <- function(object, out = c("class", "posterior"), newdata, ...) {
 	out <- match.arg(out)
 	pred <- switch(out,
 		class = {
-			cl <- NextMethod(object, type = "class", ...)
+			cl <- NextMethod(object, type = "class", newdata, ...)
 			factor(cl, levels = object$lev)	
 		},
 		posterior = {
-			post <- NextMethod(object, type = "probs", ...)
-#print(str(post))
+			post <- NextMethod(object, type = "probs", newdata, ...)
+			if (nrow(newdata) == 1)
+				post <- t(as.matrix(post))
 			if (!is.matrix(post))
 				post = cbind(1 - post, post)
 			colnames(post) <- object$lev
