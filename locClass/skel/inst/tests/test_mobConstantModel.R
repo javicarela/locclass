@@ -17,6 +17,28 @@ test_that("mobConstantModel: misspecified arguments", {
 })
 
 
+test_that("binary problem", {
+	library(locClassData)
+	data <- vData(500)
+	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = constantModel,
+		control = mob_control(objfun = deviance, minsplit = 50))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(vBayesClass(data$x) != data$y)
+	expect_true(tr < ba + 0.05)	
+})
+
+
+test_that("multi-class problem", {
+	library(locClassData)
+	data <- xor3Data(1000)
+	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = constantModel,
+		control = mob_control(objfun = deviance, minsplit = 50))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(xor3BayesClass(data$x) != data$y)
+	expect_true(tr < ba + 0.05)	
+## does not work for xor problem !!!
+})
+
 
 test_that("mobConstantModel throws a warning if grouping variable is numeric", {
 	expect_that(fit <- mob(Petal.Width ~ . | Sepal.Length, data = iris, model = constantModel,
@@ -27,6 +49,19 @@ test_that("mobConstantModel throws a warning if grouping variable is numeric", {
 test_that("mobConstantModel works if only one predictor variable is given", {
 	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = constantModel,
 		control = mob_control(objfun = deviance, minsplit = 20))
+})
+
+
+test_that("mobConstantModel: Local and global solution coincide if minsplit is large", {
+	library(locClassData)
+	data <- vData(500)
+	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = constantModel,
+		control = mob_control(objfun = deviance, minsplit = 500))
+	w <- constant(y ~ ., data = as.data.frame(data))
+	expect_equal(fit@tree$model$prior, w$prior)
+	pred <- predict(fit)
+	p <- predict(w)
+	expect_equal(pred, as.numeric(p$class))
 })
 
 

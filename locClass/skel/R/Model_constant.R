@@ -33,7 +33,6 @@
 #'
 #' @examples
 #' library(locClassData)
-#' library(party)
 #'
 #' data <- vData(500)
 #' x <- seq(0,1,0.05)
@@ -114,7 +113,8 @@ constantModel <- new("StatModel",
                 		mf$subset <- NULL
             		MF <- eval(mf, frame, enclos = enclos)
 					# if there are only training observations from one class it does not make sense to fit a classification model
-            		if (length(unique(MF[,1])) <= 1) stop("training data from only one group given")
+            		if (length(unique(MF[,1])) <= 1)
+            			stop("training data from only one group given")
             		if (exists(name, envir = envir, inherits = FALSE)) 
                 		modeltools:::checkData(get(name, envir = envir, inherits = FALSE), 
                   		MF)
@@ -254,12 +254,13 @@ estfun.constant <- function(x, ...) {
     gr <- as.factor(model.response.constantModel(x, ...))
   	d <- diag(nlevels(gr))[gr,]					# zero-one class indicator matrix, number of columns equals total number of classes
   	colnames(d) <- levels(gr)
-  	d <- d[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in this subset
+  	d <- d[,names(x$prior), drop = FALSE]		# select columns that belong to classes present in the current subset
 	d <- wts * t(-t(d) + as.vector(x$prior))	# calculate scores
 	if (ncol(d) > 1)	# if d has more than 2 columns drop the first one in order to prevent linear dependencies (i.e., class 1 is reference class)
 		d <- d[,-1, drop = FALSE]
 	# else: if d has only one column there is only one class present in the training data; we do nothing, a try-error will occur in the fluctuation test
-	# and the current branch of the tree will stop to grow which is prefectly reasonable for a pure node
+	# and the current branch of the tree will stop to grow which is perfectly reasonable for a pure node
+	# more efficient to stop when fitting?
 # print(colSums(d))
 # print(cbind(gr, d))
 # print(x$prior)
