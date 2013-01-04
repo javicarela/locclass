@@ -16,6 +16,7 @@
 #' @param x An object of class "multinom".
 #' @param weights A vector of observation weights.
 #' @param out Should class labels or posterior probabilities be returned?
+#' @param newdata A \code{data.frame} of cases to be classified.
 #' @param \dots Further arguments.
 #'
 #' @return 
