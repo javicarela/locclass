@@ -843,9 +843,16 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 	
 	double sum_weights = 0.0;				// sum of observation weights for normalization of weights
 
+	SEXP s_res;								// list for results
+	PROTECT(s_res = allocVector(VECSXP, 2)); 
+	
 	SEXP s_result;							// initialize matrix for raw values
 	PROTECT(s_result = allocMatrix(REALSXP, *ntest, *nout));
-	Sdata *result = REAL(s_result);	
+	Sdata *result = REAL(s_result);
+	
+	SEXP s_Fmins;							// initialize vector for values of objective function
+	PROTECT(s_Fmins = allocVector(REALSXP, *ntest));
+	Sdata *Fmins = REAL(s_Fmins);
 	
 	/* select weight function */
 	typedef void (*wf_ptr_t) (double*, double*, int, double*, int);// *w, *dist, N, *bw, k
@@ -936,6 +943,7 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 				Nw, wts, Fmin,
 				INTEGER(s_maxit), INTEGER(s_trace), INTEGER(s_mask),
 				REAL(s_abstol), REAL(s_reltol), INTEGER(s_ifail));
+		Fmins[l] = *Fmin;
 		/*VR_dovm(Sint *ntr, Sdata *train, Sdata *weights,
 			Sint *Nw, double *wts, double *Fmin,
 			Sint *maxit, Sint *trace, Sint *mask,
@@ -951,11 +959,15 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 	
 	}
 	// end loop over test observations
-	
+
 	/* cleaning up */
 	VR_unset_net();
 	PutRNGstate();
-	UNPROTECT(3);		// s_dist, s_w, s_result
-	return(s_result);
+
+	SET_VECTOR_ELT(s_res, 0, s_result);
+	SET_VECTOR_ELT(s_res, 1, s_Fmins);
+	
+	UNPROTECT(5);		// s_dist, s_w, s_result, s_Fmins, s_res
+	return(s_res);
 
 }
