@@ -10,6 +10,28 @@ class.ind <- function(cl) {
 }
 
 
+test_that("osnnet: reps argument works", {
+	## formula, data
+	fit <- osnnet(Species ~ ., data = iris, wf = "gaussian", bw = 2, size = 2, trace = FALSE)
+	expect_equal(fit$reps, 1)
+	predict(fit)
+	predict(fit, newdata = iris[1,])
+	fit <- osnnet(Species ~ ., data = iris, wf = "gaussian", bw = 2, size = 2, trace = FALSE, reps = 3)
+	expect_equal(fit$reps, 3)
+	predict(fit)
+	predict(fit, newdata = iris[1,])
+	## x, y	
+	fit <- osnnet(y = class.ind(iris$Species), x = as.matrix(iris[,-5]), wf = "gaussian", bw = 2, size = 2, trace = FALSE)
+	expect_equal(fit$reps, 1)
+	predict(fit)
+	predict(fit, newdata = iris[1,-5])
+	fit <- osnnet(y = class.ind(iris$Species), x = as.matrix(iris[,-5]), wf = "gaussian", bw = 2, size = 2, trace = FALSE, reps = 3)
+	expect_equal(fit$reps, 3)
+	predict(fit)
+	predict(fit, newdata = iris[1,-5])
+})
+
+
 test_that("osnnet: misspecified arguments", {
 	data(iris)
 	# wrong variable names
@@ -58,7 +80,7 @@ test_that("osnnet: subsetting works", {
 	# formula, data
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	expect_that(fit2 <- osnnet(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-27],fit2[-27])
+	expect_equal(fit1[-28],fit2[-28])
 	# x, y
 #	expect_that(fit1 <- osnnet(y = class.ind(class.ind(iris$Species)), x = iris[,-5], wf = "gaussian", bw = 2, subset = 1:80, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 #	expect_that(fit2 <- osnnet(y = class.ind(class.ind(iris$Species))[1:80],, x = iris[1:80,-5], wf = "gaussian", bw = 2, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
@@ -82,7 +104,7 @@ test_that("osnnet: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- osnnet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	expect_that(fit2 <- osnnet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(27, 30)], fit2[-27])
+	expect_equal(fit1[-c(28, 31)], fit2[-28])
 
 	## x, y
 	# na.fail
@@ -90,7 +112,7 @@ test_that("osnnet: NA handling works correctly", {
 	# # check if na.omit works correctly
 	# expect_that(fit1 <- osnnet(y = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	# expect_that(fit2 <- osnnet(y = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	# expect_equal(fit1[-c(27, 30)], fit2[-27])
+	# expect_equal(fit1[-c(28, 31)], fit2[-28])
 	
 	### NA in y
 	irisna <- iris
@@ -101,14 +123,14 @@ test_that("osnnet: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- osnnet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	expect_that(fit2 <- osnnet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(27, 30)], fit2[-27])
+	expect_equal(fit1[-c(28, 31)], fit2[-28])
 	## x, y
 	# # na.fail
 	# expect_that(osnnet(y = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail, size = 2, trace = FALSE), throws_error("missing values in object"))
 	# # check if na.omit works correctly
 	# expect_that(fit1 <- osnnet(y = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	# expect_that(fit2 <- osnnet(y = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	# expect_equal(fit1[-c(27, 30)], fit2[-27])
+	# expect_equal(fit1[-c(28, 31)], fit2[-28])
 
 	### NA in subset
 	subset <- 6:60
@@ -119,14 +141,14 @@ test_that("osnnet: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	expect_that(fit2 <- osnnet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(27,30)], fit2[-27])
+	expect_equal(fit1[-c(28,31)], fit2[-28])
 	## x, y
 	# na.fail
 	# expect_that(osnnet(y = class.ind(iris$Species), x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.fail, size = 2, trace = FALSE), throws_error("missing values in object"))
 	# # check if na.omit works correctly
 	# expect_that(fit1 <- osnnet(y = class.ind(iris$Species), x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	# expect_that(fit2 <- osnnet(y = class.ind(iris$Species), x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	# expect_equal(fit1[-c(27,30)], fit2[-27])
+	# expect_equal(fit1[-c(28,31)], fit2[-28])
 })
 
 
@@ -137,9 +159,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(5), Wts = Wts, size = 2, trace = FALSE)    
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "gaussian", bw = 5, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = gaussian(5), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -148,15 +170,15 @@ test_that("osnnet: try all weight functions", {
 	pred4 <- predict(fit4)
 	expect_equal(pred1, pred2)
 	expect_equal(pred3, pred4)
-	expect_equal(pred2, pred4) ## rownames fehlen bei matrix metho
+	expect_equal(pred2, pred4) ## rownames fehlen bei matrix method
 		
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "gaussian", bw = 5, k = 30, Wts = Wts, size = 2, trace = FALSE)    
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(bw = 5, k = 30), Wts = Wts, size = 2, trace = FALSE)    
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "gaussian", bw = 5, k = 30, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = gaussian(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -171,9 +193,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = epanechnikov(bw = 5, k = 30), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "epanechnikov", softmax = TRUE, Wts = Wts, bw = 5, k = 30, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = epanechnikov(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -188,9 +210,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 30), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "rectangular", bw = 5, k = 30, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = rectangular(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -205,9 +227,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = triangular(5, k = 30), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "triangular", bw = 5, k = 30, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = triangular(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -222,9 +244,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = biweight(5), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "biweight", bw = 5, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = biweight(5), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -239,9 +261,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = optcosine(5, k = 30), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "optcosine", bw = 5, k = 30, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = optcosine(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -256,9 +278,9 @@ test_that("osnnet: try all weight functions", {
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = cosine(5, k = 30), Wts = Wts, size = 2, trace = FALSE)
 	fit3 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = "cosine", bw = 5, k = 30, softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)
 	fit4 <- osnnet(x = iris[,-5], y = class.ind(iris$Species), wf = cosine(5, 30), softmax = TRUE, Wts = Wts, size = 2, trace = FALSE)    
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
-	expect_equal(fit3[-c(21,27)], fit4[-c(21,27)])
-	expect_equal(fit2[-c(1:2,27:30)], fit4[-c(1:2,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
+	expect_equal(fit3[-c(22,28)], fit4[-c(22,28)])
+	expect_equal(fit2[-c(1:2,28:31)], fit4[-c(1:2,28)])
 	expect_equivalent(fit2[1], fit4[1])
 	expect_equivalent(fit2[2], fit4[2])
 	pred1 <- predict(fit1)
@@ -293,11 +315,11 @@ test_that("osnnet: arguments related to weighting misspecified", {
 	# bw, k not required
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = gaussian(0.5), k = 30, bw = 0.5, size = 2, trace = FALSE), gives_warning(c("argument 'k' is ignored", "argument 'bw' is ignored")))
 	fit2 <- osnnet(Species ~ ., data = iris, wf = gaussian(0.5), size = 2, trace = FALSE)
-	expect_equal(fit1[-27], fit2[-27])
+	expect_equal(fit1[-28], fit2[-28])
 
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = gaussian(0.5), bw = 0.5, size = 2, trace = FALSE), gives_warning("argument 'bw' is ignored"))	
 	fit2 <- osnnet(Species ~ ., data = iris, wf = gaussian(0.5), size = 2, trace = FALSE)
-	expect_equal(fit1[-27], fit2[-27])
+	expect_equal(fit1[-28], fit2[-28])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, 0.5)	
@@ -305,7 +327,7 @@ test_that("osnnet: arguments related to weighting misspecified", {
 
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5, k = 30, size = 2, trace = FALSE), gives_warning(c("argument 'k' is ignored", "argument 'bw' is ignored")))
 	expect_that(fit2 <- osnnet(Species ~ ., data = iris, wf = function(x) exp(-x), k = 30, size = 2, trace = FALSE), gives_warning("argument 'k' is ignored"))
-	expect_equal(fit1[-27], fit2[-27])
+	expect_equal(fit1[-28], fit2[-28])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, NULL)	
@@ -313,7 +335,7 @@ test_that("osnnet: arguments related to weighting misspecified", {
 
 	expect_that(fit1 <- osnnet(Species ~ ., data = iris, wf = function(x) exp(-x), bw = 0.5, size = 2, trace = FALSE), gives_warning("argument 'bw' is ignored"))
 	fit2 <- osnnet(Species ~ ., data = iris, wf = function(x) exp(-x), size = 2, trace = FALSE)
-	expect_equal(fit1[-27], fit2[-27])
+	expect_equal(fit1[-28], fit2[-28])
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)	
 	expect_equal(fit1$bw, NULL)	
@@ -360,7 +382,7 @@ test_that("osnnet: weighting schemes work", {
 	# fixed bw
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(bw = 5), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, 5)
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)
@@ -369,7 +391,7 @@ test_that("osnnet: weighting schemes work", {
 	# adaptive bw, only knn 
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "rectangular", k = 50, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(k = 50), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$bw, NULL)
 	expect_true(fit1$nn.only)
@@ -378,7 +400,7 @@ test_that("osnnet: weighting schemes work", {
 	# fixed bw, only knn
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 50, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 50), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, 5)
 	expect_equal(fit1$k, 50)
 	expect_true(fit1$nn.only)
@@ -396,7 +418,7 @@ test_that("osnnet: weighting schemes work", {
 	# fixed bw
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, 0.5)
 	expect_equal(fit1$k, NULL)
 	expect_equal(fit1$nn.only, NULL)
@@ -405,7 +427,7 @@ test_that("osnnet: weighting schemes work", {
 	# adaptive bw, only knn
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "gaussian", k = 50, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(k = 50), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, TRUE)
@@ -414,7 +436,7 @@ test_that("osnnet: weighting schemes work", {
 	# adaptive bw, all obs
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "gaussian", k = 50, nn.only = FALSE, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(k = 50, nn.only = FALSE), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, FALSE)
@@ -423,7 +445,7 @@ test_that("osnnet: weighting schemes work", {
 	# fixed bw, only knn
 	fit1 <- osnnet(formula = Species ~ ., data = iris, wf = "gaussian", bw = 1, k = 50, size = 2, trace = FALSE)
 	fit2 <- osnnet(formula = Species ~ ., data = iris, wf = gaussian(bw = 1, k = 50), size = 2, trace = FALSE)
-	expect_equal(fit1[-c(21,27)], fit2[-c(21,27)])
+	expect_equal(fit1[-c(22,28)], fit2[-c(22,28)])
 	expect_equal(fit1$bw, 1)
 	expect_equal(fit1$k, 50)
 	expect_equal(fit1$nn.only, TRUE)

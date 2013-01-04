@@ -70,6 +70,8 @@
 #'   essentially perfect fit.
 #' @param reltol  Stop if the optimizer is unable to reduce the fit criterion by a
 #'   factor of at least \code{1 - reltol}.
+#' @param reps Neural networks are fitted repeatedly (\code{reps} times) for different initial values and the solution with largest likelihood
+#'  value is kept. Defaults to 1. (\code{reps} larger one does not make sense if \code{Wts} is specified.)
 #' @param wf A window function which is used to calculate weights that are introduced into 
 #'   the fitting process. Either a character string or a function, e.g. \code{wf = function(x) exp(-x)}.
 #'   For details see the documentation for \code{\link[=biweight]{wfs}}.
@@ -120,10 +122,10 @@
 #' @seealso \code{\link{predict.osnnet}}, \code{\link[nnet]{nnet}}.
 #'
 #' @examples
-#'  samp <- c(sample(1:50,25), sample(51:100,25), sample(101:150,25))
-#'   fit <- osnnet(Species ~ ., data = iris, subset = samp, size = 2, 
-#'                rang = 0.1, maxit = 200, bw = 0.5)
-#'  pred <- predict(fit)
+#' samp <- c(sample(1:50,25), sample(51:100,25), sample(101:150,25))
+#' fit <- osnnet(Species ~ ., data = iris, subset = samp, size = 2, 
+#'                rang = 0.1, maxit = 200, bw = 0.5, reps = 2)
+#' pred <- predict(fit)
 #' 
 #' @keywords neural
 #'
@@ -207,7 +209,7 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
 	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only = TRUE, 
 	size, Wts, mask = rep(TRUE, length(wts)), linout = FALSE, entropy = FALSE, softmax = FALSE, 
 	censored = FALSE, skip = FALSE, rang = 0.7, decay = 0, maxit = 100, 
-    trace = TRUE, MaxNWts = 1000, abstol = 1e-04, reltol = 1e-08, ...) {
+    trace = TRUE, MaxNWts = 1000, abstol = 1e-04, reltol = 1e-08, reps = 1, ...) {
 	net <- NULL
     x <- as.matrix(x, rownames.force = TRUE)
     y <- as.matrix(y)
@@ -322,7 +324,7 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
     	cl <- match.call()
     	cl[[1]] <- as.name("osnnet")
     	return(structure(c(list(x = x, y = y), net, list(mask = mask, maxit = maxit, trace = trace, 
-    		abstol = abstol, reltol = reltol, lev = lev, wf = check$wf, bw = check$bw, k = check$k, nn.only = check$nn.only, 
+    		abstol = abstol, reltol = reltol, reps = reps, lev = lev, wf = check$wf, bw = check$bw, k = check$k, nn.only = check$nn.only, 
     		adaptive = check$adaptive, variant = check$variant, call = cl)), class = "osnnet"))
     } else if (is.function(wf)) {
     	if (!missing(k))
@@ -352,7 +354,7 @@ osnnet.default <- function (x, y, wf = c("biweight", "cauchy", "cosine", "epanec
     	cl <- match.call()
     	cl[[1]] <- as.name("osnnet")
     	return(structure(c(list(x = x, y = y), net, list(mask = mask, maxit = maxit, trace = trace, 
-    		abstol = abstol, reltol = reltol, lev = lev, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
+    		abstol = abstol, reltol = reltol, reps = reps, lev = lev, wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), 
     		nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), variant = variant, call = cl)), class = "osnnet"))
     } else
 		stop("argument 'wf' has to be either a character or a function")
@@ -451,10 +453,10 @@ print.osnnet <- function(x, ...) {
 #' @seealso \code{\link{osnnet}}, \code{\link[nnet]{predict.nnet}}, \code{\link[nnet]{nnet}}.
 #'
 #' @examples
-#'  samp <- c(sample(1:50,25), sample(51:100,25), sample(101:150,25))
-#'   fit <- osnnet(Species ~ ., data = iris, subset = samp, size = 2, 
-#'                rang = 0.1, maxit = 200, bw = 0.5)
-#'  pred <- predict(fit)
+#' samp <- c(sample(1:50,25), sample(51:100,25), sample(101:150,25))
+#' fit <- osnnet(Species ~ ., data = iris, subset = samp, size = 2, 
+#'                rang = 0.1, maxit = 200, bw = 0.5, reps = 2)
+#' pred <- predict(fit)
 #' 
 #' @keywords neural
 #' 
@@ -517,39 +519,55 @@ predict.osnnet <- function(object, newdata, type = c("raw", "class"), ...) {
 		object$wf <- paste(object$wf, object$variant, sep = "")
 		object$wf <- match(object$wf, wfs)
 	}
-	z <- .Call("predosnnet", 
-		as.integer(object$n),
-		as.integer(object$nconn),
-		as.integer(object$conn),
-		as.double(object$decay),
-		as.integer(object$nsunits),
-		as.integer(object$entropy),
-		as.integer(object$softmax),
-		as.integer(object$censored),
+	
+	zList <- list()
+	for (i in 1:object$reps) {
+		zList[[i]] <- .Call("predosnnet", 
+			as.integer(object$n),
+			as.integer(object$nconn),
+			as.integer(object$conn),
+			as.double(object$decay),
+			as.integer(object$nsunits),
+			as.integer(object$entropy),
+			as.integer(object$softmax),
+			as.integer(object$censored),
 		
-		as.integer(nrow(object$x)),
-		Z,
-		as.integer(length(object$conn)),
-		as.double(object$wts),
-		object$random,
-		as.double(object$rang),
-		double(1),
-		as.integer(object$maxit),
-		as.logical(object$trace), 
-		as.integer(object$mask), 
-		as.double(object$abstol),
-		as.double(object$reltol),
-		integer(1L),
+			as.integer(nrow(object$x)),
+			Z,
+			as.integer(length(object$conn)),
+			as.double(object$wts),
+			object$random,
+			as.double(object$rang),
+			double(1),
+			as.integer(object$maxit),
+			as.logical(object$trace), 
+			as.integer(object$mask), 
+			as.double(object$abstol),
+			as.double(object$reltol),
+			integer(1L),
 
-		as.integer(ntest),
-		as.integer(nout),
-		x,
+			as.integer(ntest),
+			as.integer(nout),
+			x,
 		
-		object$wf,
-		ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0),
-		ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L),
-		new.env())
-
+			object$wf,
+			ifelse(is.integer(object$wf) && !is.null(object$bw), object$bw, 0),
+			ifelse(is.integer(object$wf) && !is.null(object$k), as.integer(object$k), 0L),
+			new.env())
+	}
+	if (object$reps > 1) {
+		obj <- matrix(sapply(zList, function(x) x[[2]]), ncol = object$reps)
+# print(obj)
+		sol <- max.col(-obj)
+# print(sol)
+		z <- matrix(0, ntest, nout)
+		for (i in 1:object$reps) {
+			z[sol == i, ] <- zList[[i]][[1]][sol == i,, drop = FALSE]
+		}
+	} else 
+		z <- zList[[1]][[1]]
+# print(zList)
+# print(z)
 	dimnames(z) <- list(rn, colnames(object$y))
     switch(type, raw = z,
     	class = {
