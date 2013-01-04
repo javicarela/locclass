@@ -276,7 +276,7 @@ test_that("ossvm: local solution with rectangular window function and large bw a
 	expect_equal(pred1, pred3)
 	## newdata given
 	fit1 <- wsvm(formula = Species ~ ., data = iris, probability = TRUE)
-	fit2 <- ossvm(formula = Species ~ ., data = iris, wf = rectangular(7), probability = TRUE)
+	fit2 <- ossvm(formula = Species ~ ., data = iris, wf = rectangular(8), probability = TRUE)
 	fit3 <- svm(Species ~ ., data = iris, probability = TRUE)
 	pred1 <- predict(fit1, newdata = iris, probability = TRUE, decision.values = TRUE)
 	pred2 <- predict(fit2, newdata = iris, probability = TRUE, decision.values = TRUE)
