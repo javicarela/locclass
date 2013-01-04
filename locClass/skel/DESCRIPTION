@@ -4,8 +4,8 @@ Date: 2010-06-07
 Title: Collection of Local Classification Methods
 Author: Julia Schiffner and Stefanie Hillebrand
 Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
-Depends: R (>= 2.10.0), methods, flexmix
-Imports: stats, nnet, e1071, mvtnorm, party, sandwich
+Depends: R (>= 2.10.0), methods, flexmix, party
+Imports: stats, nnet, e1071, mvtnorm, sandwich
 Suggests: mlbench, klaR, MASS, Matrix, SparseM, locClassData
 Description: Collection of diverse local classification methods such as local versions of linear discriminant analysis, Fisher discriminant analysis and logistic regression.
 License: GPL-2
