@@ -32,6 +32,7 @@ setClass("FLXMCLmultinom", contains = "FLXMCL")
 #' @title Mixtures of Multinomial Regression Models
 #' @param formula A formula which is interpreted relative to the formula specified in the call to \code{\link[flexmix]{flexmix}} using \code{\link[stats]{update.formula}}. 
 #'   Only the left-hand side (response) of the formula is used. Default is to use the original \code{\link[flexmix]{flexmix}} model formula.
+#' @param censored If the response is a matrix with more than two columns, interpret the entries as one for possible classes, zero for impossible classes, rather than as counts (see \code{\link[nnet]{multinom}}).
 #' @param \dots Further arguments to and from other methods, especially \code{\link[nnet]{multinom}}.
 #'
 #' @return Returns an object of class \code{FLXMCLmultinom} inheriting from \code{FLXMCL}.
