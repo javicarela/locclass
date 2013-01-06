@@ -30,38 +30,38 @@
 
 /* weight functions */
 
-void biweight1 (double *, double *, int, double *, int);
-void cauchy1 (double *, double *, int, double *, int);
-void cosine1 (double *, double *, int, double *, int);
-void epanechnikov1 (double *, double *, int, double *, int);
-void exponential1 (double *, double *, int, double *, int);
-void gaussian1 (double *, double *, int, double *, int);
-void optcosine1 (double *, double *, int, double *, int);
-void rectangular1 (double *, double *, int, double *, int);
-void triangular1 (double *, double *, int, double *, int);
+void biweight1 (double *, double *, int *, double *, int *);
+void cauchy1 (double *, double *, int *, double *, int *);
+void cosine1 (double *, double *, int *, double *, int *);
+void epanechnikov1 (double *, double *, int *, double *, int *);
+void exponential1 (double *, double *, int *, double *, int *);
+void gaussian1 (double *, double *, int *, double *, int *);
+void optcosine1 (double *, double *, int *, double *, int *);
+void rectangular1 (double *, double *, int *, double *, int *);
+void triangular1 (double *, double *, int *, double *, int *);
 
-void biweight2 (double *, double *, int, double *, int);
-void cauchy2 (double *, double *, int, double *, int);
-void cosine2 (double *, double *, int, double *, int);
-void epanechnikov2 (double *, double *, int, double *, int);
-void exponential2 (double *, double *, int, double *, int);
-void gaussian2 (double *, double *, int, double *, int);
-void optcosine2 (double *, double *, int, double *, int);
-void rectangular2 (double *, double *, int, double *, int);
-void triangular2 (double *, double *, int, double *, int);
+void biweight2 (double *, double *, int *, double *, int *);
+void cauchy2 (double *, double *, int *, double *, int *);
+void cosine2 (double *, double *, int *, double *, int *);
+void epanechnikov2 (double *, double *, int *, double *, int *);
+void exponential2 (double *, double *, int *, double *, int *);
+void gaussian2 (double *, double *, int *, double *, int *);
+void optcosine2 (double *, double *, int *, double *, int *);
+void rectangular2 (double *, double *, int *, double *, int *);
+void triangular2 (double *, double *, int *, double *, int *);
 
-void biweight3 (double *, double *, int, double *, int);
-void cauchy3 (double *, double *, int, double *, int);
-void cosine3 (double *, double *, int, double *, int);
-void epanechnikov3 (double *, double *, int, double *, int);
-void exponential3 (double *, double *, int, double *, int);
-void gaussian3 (double *, double *, int, double *, int);
-void optcosine3 (double *, double *, int, double *, int);
-void rectangular3 (double *, double *, int, double *, int);
-void triangular3 (double *, double *, int, double *, int);
+void biweight3 (double *, double *, int *, double *, int *);
+void cauchy3 (double *, double *, int *, double *, int *);
+void cosine3 (double *, double *, int *, double *, int *);
+void epanechnikov3 (double *, double *, int *, double *, int *);
+void exponential3 (double *, double *, int *, double *, int *);
+void gaussian3 (double *, double *, int *, double *, int *);
+void optcosine3 (double *, double *, int *, double *, int *);
+void rectangular3 (double *, double *, int *, double *, int *);
+void triangular3 (double *, double *, int *, double *, int *);
 
-void cauchy4 (double *, double *, int, double *, int);
-void exponential4 (double *, double *, int, double *, int);
-void gaussian4 (double *, double *, int, double *, int);
+void cauchy4 (double *, double *, int *, double *, int *);
+void exponential4 (double *, double *, int *, double *, int *);
+void gaussian4 (double *, double *, int *, double *, int *);
 
 #endif /* WF_H */
