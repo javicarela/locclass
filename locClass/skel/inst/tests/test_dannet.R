@@ -9,6 +9,28 @@ class.ind <- function(cl) {
 }
 
 
+test_that("dannet: reps argument works", {
+	## formula, data
+	fit <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 2, size = 2, trace = FALSE)
+	expect_equal(fit$reps, 1)
+	predict(fit)
+	predict(fit, newdata = iris[1,])
+	fit <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 2, size = 2, trace = FALSE, reps = 3)
+	expect_equal(fit$reps, 3)
+	predict(fit)
+	predict(fit, newdata = iris[1,])
+	## x, y	
+	fit <- dannet(y = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, size = 2, trace = FALSE)
+	expect_equal(fit$reps, 1)
+	predict(fit)
+	predict(fit, newdata = iris[1,-5])
+	fit <- dannet(y = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, size = 2, trace = FALSE, reps = 3)
+	expect_equal(fit$reps, 3)
+	predict(fit)
+	predict(fit, newdata = iris[1,-5])
+})
+
+
 test_that("dannet: misspecified arguments", {
 	data(iris)
 	# wrong variable names
@@ -597,7 +619,7 @@ test_that("dannet: weighting schemes work", {
 	expect_true(fit1$adaptive)
 	a <- rep(100, 3)
 	names(a) <- 1:3
-	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
+	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a) ####
 
 	# fixed bw, only knn
 	set.seed(120)

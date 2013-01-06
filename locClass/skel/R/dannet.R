@@ -72,6 +72,8 @@
 #' @param nn.only (Required only if \code{wf} is a string indicating a window function with infinite support and if \code{k} is specified.) Should
 #' only the \code{k} nearest neighbors or all observations receive positive weights? (See \code{\link[=biweight]{wfs}}.)
 #' @param itr Number of iterations for model fitting, defaults to 3. See also the Details section.
+#' @param reps Neural networks are fitted repeatedly (\code{reps} times) for different initial values and the solution with largest likelihood
+#'  value is kept. Defaults to 1. (\code{reps} larger one does not make sense if \code{Wts} is specified.)
 #' @param \dots Further arguments to \code{\link[nnet]{nnet}}.
 #' @param subset An index vector specifying the cases to be used in the training sample. (NOTE: If given, this argument must be named.) 
 #' @param na.action A function to specify the action to be taken if NAs are found. The default action is first
@@ -319,14 +321,15 @@ dannet.matrix <- function (x, y, weights = rep(1, nrow(x)), ..., subset, na.acti
 
 ##...: size, Wts, mask, linout, entropy, softmax, censored, skip, rang, decay, maxit, Hess, trace, MaxNWts, abstol, reltol, ...
 dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanechnikov", 
-	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights = rep(1, nrow(x)), ...) {
+	"exponential", "gaussian", "optcosine", "rectangular", "triangular"), bw, k, nn.only, itr = 3, weights = rep(1, nrow(x)), reps = 1, ...) {
 	dannet.fit <- function(x, y, wf, itr, weights = rep(1, nrow(x)), ...) {
 		w <- list()
 		ntr <- nrow(x)
 		weights <- weights/sum(weights) * ntr     		# rescale weights such that they sum up to ntr
 		w[[1]] <- weights
 		names(w[[1]]) <- rownames(x)
-		res <- nnet.default(x = x, y = y, weights = weights, ...)
+		# res <- nnet.default(x = x, y = y, weights = weights, ...)
+		res <- nnetRep(reps, x = x, y = y, weights = weights, ...)
 		for (i in seq_len(itr)) {
 			# 1. prediction
 			post <- predict(res, type = "raw")
@@ -358,7 +361,8 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 				break
 			} else {
 				w[[i+1]] <- weights
-				res <- nnet.default(x = x, y = y, weights = weights, ...)
+				# res <- nnet.default(x = x, y = y, weights = weights, ...)
+				res <- nnetRep(reps, x = x, y = y, weights = weights, ...)
 			}
 		}
 		names(w) <- seq_along(w) - 1
@@ -410,7 +414,7 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
     } else
     	stop("argument 'wf' has to be either a character or a function")
 	res <- dannet.fit(x = x, y = y, wf = wf, itr = itr, weights = weights, ...)
-    res <- c(res, list(wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive")))
+    res <- c(res, list(wf = wf, bw = attr(wf, "bw"), k = attr(wf, "k"), nn.only = attr(wf, "nn.only"), adaptive = attr(wf, "adaptive"), reps = reps))
     cl <- match.call()
     cl[[1]] <- as.name("dannet")
     res$call <- cl
