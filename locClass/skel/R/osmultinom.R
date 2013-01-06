@@ -134,10 +134,10 @@
 #' @seealso \code{\link{predict.osmultinom}}, \code{\link{osnnet}}, \code{\link[nnet]{nnet}}.
 #'
 #' @examples
-#'     fit <- osmultinom(Species ~ Sepal.Length + Sepal.Width, data = iris,
-#'                       wf = "gaussian", bw = 0.5)
-#'     pred <- predict(fit)
-#'     mean(pred != iris$Species)
+#' fit <- osmultinom(Species ~ Sepal.Length + Sepal.Width, data = iris,
+#'     wf = "gaussian", bw = 0.5)
+#' pred <- predict(fit)
+#' mean(pred != iris$Species)
 #'
 #' @keywords neural
 #'
@@ -550,8 +550,8 @@ predict.osmultinom <- function(object, newdata, type = c("class", "probs"), ...)
 	#dimnames(res) <- list(rn, colnames(object$y))
    	
 # print(keep)
-    z <- matrix(NA, length(rn), ncol(res), dimnames = list(rn, colnames(object$y)))
-    z[keep, ] <- res
+    z <- matrix(NA, length(rn), ncol(res[[1]]), dimnames = list(rn, colnames(object$y)))
+    z[keep, ] <- res[[1]]
     
     switch(type, class = {
         if (length(object$lev1) > 2L) z <- factor(object$lev1[max.col(z)], levels = object$lev)
