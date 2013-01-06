@@ -183,7 +183,7 @@ SEXP predossvm (SEXP s_y,
 	}*/
 	
 	/* set up weight function */
-	typedef void (*wf_ptr_t) (double*, double*, int, double*, int);
+	typedef void (*wf_ptr_t) (double*, double*, int*, double*, int*);
 	// signature: *weights, *dist, N, *bw, k
 	wf_ptr_t wf = NULL;
 	if (isInteger(s_wf)) {
@@ -281,7 +281,7 @@ SEXP predossvm (SEXP s_y,
 			if (isInteger(s_wf)) {
 				// case 1: wf is integer
 				// calculate weights by reading number and calling corresponding C function
-				wf (caseweights, dist, trr, REAL(s_bw), INTEGER(s_k)[0]);
+				wf (caseweights, dist, &trr, REAL(s_bw), INTEGER(s_k));
 			} else if (isFunction(s_wf)) {
 				// case 2: wf is R function
 				// calculate case weights by calling R function

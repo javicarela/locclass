@@ -855,7 +855,7 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 	Sdata *Fmins = REAL(s_Fmins);
 	
 	/* select weight function */
-	typedef void (*wf_ptr_t) (double*, double*, int, double*, int);// *w, *dist, N, *bw, k
+	typedef void (*wf_ptr_t) (double*, double*, int*, double*, int*);// *w, *dist, *N, *bw, *k
 	wf_ptr_t wf = NULL;
 	if (isInteger(s_wf)) {
 		const int wf_nr = INTEGER(s_wf)[0];
@@ -917,7 +917,7 @@ SEXP predosnnet (SEXP s_n, SEXP s_nconn, SEXP s_conn, SEXP s_decay, SEXP s_nsuni
 		if (isInteger(s_wf)) {
 			// case 1: wf is integer
 			// calculate weights by reading number and calling corresponding C function
-			wf (weights, dist, *ntr, REAL(s_bw), INTEGER(s_k)[0]);
+			wf (weights, dist, ntr, REAL(s_bw), INTEGER(s_k));
 		} else if (isFunction(s_wf)) {
 			// case 2: wf is R function
 			// calculate weights by calling R function
