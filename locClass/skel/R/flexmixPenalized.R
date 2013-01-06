@@ -31,13 +31,50 @@
 setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLsvm"), function(model, components, ...) {
 	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
 	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
-	reg <- matrix(sapply(ll, function(x) return(x[["reg"]])), nrow = nrow(model@y))
+	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
+print(reg)
 	return(list(lpost = lpost, reg =reg))
 })
 
 
 
-#' @rdname flexmixSVM
+#' @rdname FLXdeterminePostunscaled
+#' @aliases FLXdeterminePostunscaled,FLXMCLmultinom-method
+#' @import flexmix
+#' @export
+#'
+#' @docType methods
+
+setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLmultinom"), function(model, components, ...) {
+	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
+	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
+	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
+print(reg)
+	return(list(lpost = lpost, reg = reg))
+})
+
+
+
+#' @title Internal Functions
+#'
+#' @rdname FLXdeterminePostunscaled
+#' @aliases FLXdeterminePostunscaled,FLXMCLnnet-method
+#' @import flexmix
+#' @export
+#'
+#' @docType methods
+
+setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLnnet"), function(model, components, ...) {
+	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
+	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
+	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
+print(reg)
+	return(list(lpost = lpost, reg = reg))
+})
+
+
+
+#' @rdname flexmixPenalized
 #' @aliases flexmix,formula,ANY,ANY,ANY,FLXMCLsvm-method
 #' @import flexmix
 #' @export
@@ -50,7 +87,7 @@ function(formula, data=list(), k=NULL, cluster=NULL,
          model=NULL, concomitant=NULL, control=NULL, weights=NULL)
 {
   mycall = match.call()
-  z <- flexmixSVM(formula=formula, data=data, k=k, cluster=cluster, 
+  z <- flexmixPenalized(formula=formula, data=data, k=k, cluster=cluster, 
                model=list(model), concomitant=concomitant,
                control=control, weights=weights)
   z@call <- mycall
@@ -59,10 +96,54 @@ function(formula, data=list(), k=NULL, cluster=NULL,
 
 
 
-#' Extension of function \code{\link[flexmix]{flexmix}} in package \pkg{flexmix} that allows to fit mixtures of Support Vector Machines. 
+#' @rdname flexmixPenalized
+#' @aliases flexmix,formula,ANY,ANY,ANY,FLXMCLmultinom-method
+#' @import flexmix
+#' @export
+#'
+#' @docType methods
+
+setMethod("flexmix",
+          signature(formula = "formula", model="FLXMCLmultinom"),
+function(formula, data=list(), k=NULL, cluster=NULL, 
+         model=NULL, concomitant=NULL, control=NULL, weights=NULL)
+{
+  mycall = match.call()
+  z <- flexmixPenalized(formula=formula, data=data, k=k, cluster=cluster, 
+               model=list(model), concomitant=concomitant,
+               control=control, weights=weights)
+  z@call <- mycall
+  z
+})
+
+
+
+#' @rdname flexmixPenalized
+#' @aliases flexmix,formula,ANY,ANY,ANY,FLXMCLnnet-method
+#' @import flexmix
+#' @export
+#'
+#' @docType methods
+
+setMethod("flexmix",
+          signature(formula = "formula", model="FLXMCLnnet"),
+function(formula, data=list(), k=NULL, cluster=NULL, 
+         model=NULL, concomitant=NULL, control=NULL, weights=NULL)
+{
+  mycall = match.call()
+  z <- flexmixPenalized(formula=formula, data=data, k=k, cluster=cluster, 
+               model=list(model), concomitant=concomitant,
+               control=control, weights=weights)
+  z@call <- mycall
+  z
+})
+
+
+
+#' Extension of function \code{\link[flexmix]{flexmix}} in package \pkg{flexmix} that allows to fit mixtures of penalized classifiers. 
 #' Not to be called by the user.
 #'
-#' @title Mixtures of Support Vector Machines
+#' @title Mixtures of Penalized Classification Methods
 #'
 # @param formula A symbolic description of the model to be fit. The general form is \code{y~x|g} where \code{y} is the response, \code{x} the set of predictors and \code{g} an optional grouping factor for repeated measurements.
 # @param data An optional data frame containing the variables in the model.
@@ -75,29 +156,29 @@ function(formula, data=list(), k=NULL, cluster=NULL,
 #' @import flexmix
 #' @export
 #'
-#' @rdname flexmixSVM
+#' @rdname flexmixPenalized
 #'
 #' @docType methods
 
-setGeneric("flexmixSVM",
+setGeneric("flexmixPenalized",
            function(formula, data=list(), k=NULL,
                     cluster=NULL, model=NULL, concomitant=NULL, control=NULL,
                     weights = NULL)
-           standardGeneric("flexmixSVM"))
+           standardGeneric("flexmixPenalized"))
 
 
 
-#' @rdname flexmixSVM
-#' @aliases flexmixSVM,formula,ANY,ANY,ANY,list-method
+#' @rdname flexmixPenalized
+#' @aliases flexmixPenalized,formula,ANY,ANY,ANY,list-method
 #' @import flexmix
 #' @export
 #'
 #' @docType methods
 #'
-#' @usage \S4method{flexmixSVM}{formula,ANY,ANY,ANY,list}(formula, data=list(), k=NULL, cluster=NULL,
+#' @usage \S4method{flexmixPenalized}{formula,ANY,ANY,ANY,list}(formula, data=list(), k=NULL, cluster=NULL,
 #'         model=NULL, concomitant=NULL, control=NULL, weights=NULL)
 
-setMethod("flexmixSVM",
+setMethod("flexmixPenalized",
           signature(formula = "formula", model="list"),
 function(formula, data=list(), k=NULL, cluster=NULL,
          model=NULL, concomitant=NULL, control=NULL, weights=NULL)
@@ -141,7 +222,7 @@ function(formula, data=list(), k=NULL, cluster=NULL,
                                      groups = groups)
     
 
-    z <- FLXfitSVM(model=model, concomitant=concomitant, control=control,
+    z <- FLXfitPenalized(model=model, concomitant=concomitant, control=control,
                 postunscaled=postunscaled, groups=groups, weights = weights)
     
     z@formula = formula
@@ -152,12 +233,12 @@ function(formula, data=list(), k=NULL, cluster=NULL,
 
 
 
-#' Extension of function \code{\link[flexmix]{FLXfit}} in package \pkg{flexmix} that allows to fit mixtures of Support Vector Machines.
+#' Extension of function \code{\link[flexmix]{FLXfit}} in package \pkg{flexmix} that allows to fit mixtures of penalized classifiers.
 #' Not to be called by the user.
 #'
-#' @title Mixtures of Support Vector Machines
+#' @title Mixtures of Penalized Classifiers
 #'
-# @param model List of \code{FLXM} objects where at least one is a \code{FLXMCLsvm} object.
+# @param model List of \code{FLXM} objects where at least one is a \code{FLXMCLsvm}, \code{FLXMCLmultinom}, or \code{FLXMCLnnet} object.
 # @param concomitant Object of class \code{FLXP}.
 # @param control Object of class \code{FLXcontrol}.
 # @param weights A numeric vector of weights to be used in the fitting process.
@@ -167,27 +248,27 @@ function(formula, data=list(), k=NULL, cluster=NULL,
 #' @import flexmix
 #' @export
 #'
-#' @rdname FLXfitSVM
+#' @rdname FLXfitPenalized
 #'
 #' @docType methods
 
-setGeneric("FLXfitSVM",
+setGeneric("FLXfitPenalized",
            function(model, concomitant, control,
                     postunscaled=NULL, groups, weights)
-           standardGeneric("FLXfitSVM"))
+           standardGeneric("FLXfitPenalized"))
 
 
 
-#' @rdname FLXfitSVM
-#' @aliases FLXfitSVM,list-method
+#' @rdname FLXfitPenalized
+#' @aliases FLXfitPenalized,list-method
 #' @import flexmix
 #' @export
 #'
 #' @docType methods
 #'
-#' @usage \S4method{FLXfitSVM}{list}(model, concomitant, control, postunscaled=NULL, groups, weights)
+#' @usage \S4method{FLXfitPenalized}{list}(model, concomitant, control, postunscaled=NULL, groups, weights)
 
-setMethod("FLXfitSVM", signature(model="list"),
+setMethod("FLXfitPenalized", signature(model="list"),
 function(model, concomitant, control, postunscaled=NULL, groups, weights)
 {
   ### initialize
@@ -242,19 +323,22 @@ function(model, concomitant, control, postunscaled=NULL, groups, weights)
         model <- lapply(model, FLXremoveComponent, nok)
       }
       components <- lapply(seq_along(model), function(i) FLXmstep(model[[i]], postscaled, components[[i]]))
-      postunscaled <- reg <- matrix(0, nrow = N, ncol = k)
+      postunscaled <- matrix(0, nrow = N, ncol = k)
+      reg <- 0
       for (n in seq_along(model)) {
       	helper <- FLXdeterminePostunscaled(model[[n]], components[[n]])
         postunscaled <- postunscaled + helper$lpost							# posterior
-        reg <- reg + helper$reg												# regularization term
+        reg <- reg + helper$reg												# regularization term, skalar
       }
- # cat("postscaled\n")
- # print(head(postunscaled))
- # cat("reg\n")
- # print(head(reg))
+ cat("postscaled\n")
+ print(head(postunscaled))
+ cat("reg\n")
+ print(head(reg))
+ cat("prior\n")
+ print(colSums(prior))
       if(length(group)>0) {
         postunscaled <- groupPosteriors(postunscaled, group)
-        reg <- groupPosteriors(reg, group)									# necessary ???
+        #reg <- groupPosteriors(reg, group)									# necessary ???
       }
       ### E-Step
       ## Code changed thanks to Nicolas Picard
@@ -276,8 +360,8 @@ function(model, concomitant, control, postunscaled=NULL, groups, weights)
       }
       ### check convergence
       llh.old <- llh
-      llh <- if (is.null(weights)) sum(flexmix:::log_row_sums(logpostunscaled[groupfirst,,drop=FALSE]) + rowSums(reg[groupfirst,,drop=FALSE]))
-             else sum(flexmix:::log_row_sums(logpostunscaled[groupfirst,,drop=FALSE])*weights[groupfirst] + rowSums(reg[groupfirst,,drop=FALSE]))
+      llh <- if (is.null(weights)) sum(flexmix:::log_row_sums(logpostunscaled[groupfirst,,drop=FALSE])) + reg # + rowSums(reg[groupfirst,,drop=FALSE]))
+             else sum(flexmix:::log_row_sums(logpostunscaled[groupfirst,,drop=FALSE])*weights[groupfirst]) + reg #rowSums(reg[groupfirst,,drop=FALSE]))
       # llh <- if (is.null(weights)) sum(log_row_sums(logpostunscaled[groupfirst,,drop=FALSE]))
              # else sum(log_row_sums(logpostunscaled[groupfirst,,drop=FALSE])*weights[groupfirst])
       if(is.na(llh) | is.infinite(llh))
