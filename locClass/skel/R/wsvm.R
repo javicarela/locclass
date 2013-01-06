@@ -502,7 +502,9 @@ function (x,
         		lev1 <- lev[counts > 0]
     		}
 			if (length(lev1) == 1L)
-				stop("training data from only one class")
+				stop("need training data from at least two classes")
+			if (sum(table(y[case.weights != 0]) > 0) <= 1)
+				stop("need training data with positive 'case.weights' from at least two classes")
 ###            
             y <- as.integer(y)
             if (!is.null(class.weights)) {
