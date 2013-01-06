@@ -179,10 +179,10 @@
 #' @seealso \code{\link{predict.ossvm}}.
 #'
 #' @examples
-#'      fit <- ossvm(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, 
-#'                   kernel = "polynomial", coef0 = 0.5)
-#'      pred <- predict(fit)
-#'      mean(pred != iris$Species)
+#' fit <- ossvm(Species ~ ., data = iris, wf = "gaussian", bw = 0.5, 
+#'     kernel = "polynomial", coef0 = 0.5)
+#' pred <- predict(fit)
+#' mean(pred != iris$Species)
 #'
 #' @keywords classif regression
 #'
