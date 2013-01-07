@@ -124,7 +124,6 @@ test_that("mobMultinomModel throws a warning if grouping variable is numeric", {
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
 	fit <- mob(Petal.Width ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = TRUE, decay = 0.5,
 		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)) 
-	## Error in root.matrix(crossprod(process)) : matrix is not positive semidefinite
 })
 
 
@@ -248,7 +247,7 @@ test_that("predict.multinomModel works correctly with formula interface and with
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
 	ran <- sample(1:150,100)
 	## formula, data
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[ran,], model = multinomModel, trace = TRUE, Hess = TRUE, 
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[ran,], model = multinomModel, trace = TRUE, Hess = TRUE, decay = 0.1,
 		control = mob_control(objfun = deviance, minsplit = 50, verbose = TRUE))	
   	pred <- predict(fit)
   	pred <- predict(fit, out = "posterior")
