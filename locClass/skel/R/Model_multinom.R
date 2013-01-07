@@ -407,11 +407,16 @@ predict.multinomModel <- function(object, out = c("class", "posterior"), newdata
 		},
 		posterior = {
 			post <- NextMethod(object, type = "probs", newdata, ...)
-			if (nrow(newdata) == 1)
+			if (nrow(newdata) == 1) {
 				post <- t(as.matrix(post))
-			if (!is.matrix(post))
+				if (ncol(post) == 1)
+					post <- cbind(1 - post, post)
+				colnames(post) <- object$lev #?
+			}
+			if (!is.matrix(post)) {
 				post = cbind(1 - post, post)
-			colnames(post) <- object$lev
+				colnames(post) <- object$lev
+			}
 			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		})
 	return(pred)

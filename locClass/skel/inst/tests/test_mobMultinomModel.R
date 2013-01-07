@@ -309,6 +309,7 @@ test_that("predict.multinomModel works with one single predictor variable", {
 
 test_that("predict.multinomModel works with one single test observation", {
 	data(iris)
+	# 3 classes
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Width, data = iris[ran,], model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20))	
@@ -316,6 +317,22 @@ test_that("predict.multinomModel works with one single test observation", {
 	expect_equal(length(pred), 1)
   	pred <- predict(fit, newdata = iris[5,], out = "posterior")
 	expect_equal(dim(pred[[1]]), c(1, 3))
+	# 3 classes, 1 missing
+	fit <- mob(Species ~ . | Sepal.Width, data = iris[1:100,], model = multinomModel, trace = FALSE,
+		control = mob_control(objfun = deviance, minsplit = 20))	
+  	pred <- predict(fit, newdata = iris[5,])
+	expect_equal(length(pred), 1)
+  	pred <- predict(fit, newdata = iris[5,], out = "posterior") #namen fehlen
+	expect_equal(dim(pred[[1]]), c(1, 2))
+	# 2 classes
+	library(locClassData)
+	data <- flashData(500)
+	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = as.data.frame(data), model = multinomModel, trace = FALSE,
+		control = mob_control(objfun = deviance, minsplit = 200))	
+	pred <- predict(fit, newdata = as.data.frame(data)[5,])
+	expect_equal(length(pred), 1)
+  	pred <- predict(fit, newdata = as.data.frame(data)[5,], out = "posterior")
+	expect_equal(dim(pred[[1]]), c(1, 2))
 })	
 
 
