@@ -16,7 +16,7 @@
 #' @param x An object of class "nnet".
 #' @param weights A vector of observation weights.
 #' @param out Should class labels or posterior probabilities be returned?
-#' @param \dots Further arguments.
+#' @param \dots Further arguments (e.g. to \code{\link[nnet]{nnet}} and \code{\link{nnetRep}}).
 #'
 #' @return 
 #' \code{reweight}: The re-weighted fitted "nnetModel" object. \cr
@@ -33,7 +33,6 @@
 #'
 #' @examples
 #' library(locClassData)
-#' library(party)
 #'
 #' data <- vData(500)
 #' x <- seq(0,1,0.05)
@@ -53,6 +52,9 @@
 #' ## predict node membership
 #' splits <- predict(fit, newdata = grid, type = "node")
 #' contour(x, x, matrix(splits, length(x)), levels = min(splits):max(splits), add = TRUE, lty = 2)
+#'
+#' ## training error
+#' mean(predict(fit) != data$y)
 #'
 #' @rdname nnetModel
 #'
@@ -138,6 +140,11 @@ nnetModel <- new("StatModel",
         		dimnames(x) <- list(names(cl), levels(cl))
        	 		x
     		}
+			mynnetRep <- function (reps = 1, ...) {
+				fit <- lapply(1:reps, function(z) mynnet.default(...))
+				m <- which.min(sapply(fit, function(x) x$value))
+				return(fit[[m]])
+			}
 			y <- object@get("responseMatrix")
 #cat("y----\n")
 #print(str(y))
@@ -155,27 +162,33 @@ nnetModel <- new("StatModel",
 #       print("2 classes")
             		y <- as.vector(unclass(y)) - 1
             		if (is.null(weights)) {
-            			z <- mynnet.default(object@get("designMatrix"), y, entropy = TRUE, ...)
+            			z <- mynnetRep(x = object@get("designMatrix"), y = y, entropy = TRUE, ...)
+            			# z <- mynnet.default(object@get("designMatrix"), y, entropy = TRUE, ...)
 				    } else {
-            			z <- mynnet.default(object@get("designMatrix"), y, weights = weights, entropy = TRUE, ...)
+            			z <- mynnetRep(x = object@get("designMatrix"), y = y, weights = weights, entropy = TRUE, ...)
+            			# z <- mynnet.default(object@get("designMatrix"), y, weights = weights, entropy = TRUE, ...)
 				    }
 				    z$lev <- lev
 				} else {
 #		print("more than 2 classes")
             		y <- class.ind(y)
             		if (is.null(weights)) {
-            			z <- mynnet.default(object@get("designMatrix"), y, softmax = TRUE, ...)
+            			z <- mynnetRep(x = object@get("designMatrix"), y = y, softmax = TRUE, ...)
+              			# z <- mynnet.default(object@get("designMatrix"), y, softmax = TRUE, ...)
 				    } else {
-            			z <- mynnet.default(object@get("designMatrix"), y, weights = weights, softmax = TRUE, ...)
+            			z <- mynnetRep(x = object@get("designMatrix"), y = y, weights = weights, softmax = TRUE, ...)
+            			# z <- mynnet.default(object@get("designMatrix"), y, weights = weights, softmax = TRUE, ...)
 				    }
 				    z$lev <- lev
        			 }
 			} else {
 #    	print("y not a factor")
 	    		if (is.null(weights)) {
-    	   			z <- mynnet.default(object@get("designMatrix"), y, ...)
+           			z <- mynnetRep(x = object@get("designMatrix"), y = y, ...)
+    	   			# z <- mynnet.default(object@get("designMatrix"), y, ...)
     			} else {
-        			z <- mynnet.default(object@get("designMatrix"), y, weights = weights, ...) 
+            		z <- mynnetRep(x = object@get("designMatrix"), y = y, weights = weights, ...)
+          			# z <- mynnet.default(object@get("designMatrix"), y, weights = weights, ...) 
     			}
     		}
     		class(z) <- c("nnetModel", "nnet")
@@ -216,7 +229,7 @@ nnetModel <- new("StatModel",
 	
 reweight.nnetModel <- function (object, weights, ...) {
     fit <- nnetModel@fit
-    do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs))
+    try(do.call("fit", c(list(object = object$ModelEnv, weights = weights), object$addargs)))
 }
 
 
@@ -227,6 +240,7 @@ reweight.nnetModel <- function (object, weights, ...) {
 #' @S3method deviance nnet
 #' @importFrom stats deviance
 
+## negative log likelihood + weight decay term
 deviance.nnet <- function (object, ...) {
 	return(object$value)
 }
@@ -240,18 +254,18 @@ deviance.nnet <- function (object, ...) {
 #' @importFrom sandwich estfun
 
 estfun.nnet <- function(x, ...) {
-	# print(rowSums(x$gradient[,29:33]))
-	# print(x$gradient)
-	# print(colSums(x$gradient))
-	# print(str(x))
-	# print(x$weights)
-	# n <- sum(x$weights)
-	# print(n)
-	# print(cp <- crossprod((x$gradient[x$weights > 0,])/sqrt(n)))
-	# print(solve(cp))
-	# e <- eigen(crossprod((x$gradient[x$weights > 0,])/sqrt(n)), only.values = TRUE)$values
-	# print(e)
-	# print(eigen(cov(x$gradient[x$weights > 0,]), only.values = TRUE))
+# print(x$wts)
+# print(x$gr[x$wts != 0])
+# print(colSums(x$gradient))
+# print(head(x$gradient))
+# print(x$convergence) ## 0 if converged, 1 if maxit is reached
+# print(cor(x$gradient[x$weights>0,,drop = FALSE]))
+# print("covariance")
+# print(z <- crossprod(x$gradient[x$weights>0,,drop = FALSE]/sqrt(sum(x$weights))))
+# print(eigen(z, symmetric = TRUE, only.values = TRUE)$values)
+# print("Hessian") ## approximately equal to unnormalized covariance
+# print(x$Hessian)
+# print(eigen(x$Hessian))
 	return(x$gradient)
 }
 
@@ -271,11 +285,10 @@ predict.nnetModel <- function(object, out = c("class", "posterior"), ...) {
 		},
 		posterior = {
 			post <- NextMethod(object, type = "raw", ...)
-			if (ncol(post) == 1)
+			if (ncol(post) == 1) {
 				post = cbind(1 - post, post)
-			#print(str(post))
-			#print(object$lev)
-			colnames(post) <- object$lev
+				colnames(post) <- object$lev
+			}
 			lapply(seq_len(nrow(post)), function(i) post[i,, drop = FALSE])
 		})
 	return(pred)
@@ -432,10 +445,11 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
     tmp <- y - tmp
     dimnames(tmp) <- list(rownames(x), colnames(y))
     net$residuals <- tmp
+    # z <- .C("VR_nnGradient", as.integer(ntr), Z, weights, as.double(net$wts), dfn = double(length(net$wts) * ntr))
     z <- .C("VR_dfunc2", as.double(net$wts), dfn = double(length(net$wts) * ntr))
 	net$gradient <- matrix(z$dfn, nrow = ntr, byrow = TRUE)[,mask]
-    #z <- .C("VR_dfunc", as.double(net$wts), df = double(length(net$wts)), fp = as.double(1))
-	#net$gr <- z$df
+# z <- .C("VR_dfunc", as.double(net$wts), df = double(length(net$wts)), fp = as.double(1))
+# net$gr <- z$df
     .C("VR_unset_net")
     if (entropy) 
         net$lev <- c("0", "1")
@@ -455,18 +469,27 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
 norm.net <- nnet:::norm.net
 
 
+#' @noRd
+# replace small negative eigenvalues by their absolute value
+# FIXME: check that negative eigen values are really small
 
-# root.matrix <- function (X) {
-    # if ((ncol(X) == 1) && (nrow(X) == 1)) 
-        # return(sqrt(X))
-    # else {
-        # X.eigen <- eigen(X, symmetric = TRUE)
-		# zero.values <- sapply(X.eigen$values, all.equal, current = 0)
-		# X.eigen$values[zero.values == "TRUE" & X.eigen$values < 0] <- 0
-        # if (any(X.eigen$values < 0)) 
-            # stop("matrix is not positive semidefinite")
-        # sqomega <- sqrt(diag(X.eigen$values))
-        # V <- X.eigen$vectors
-        # return(V %*% sqomega %*% t(V))
-    # }
-# }
+root.matrix <- function (X) {
+	if ((ncol(X) == 1) && (nrow(X) == 1)) 
+		return(sqrt(X))
+	else {
+		X.eigen <- eigen(X, symmetric = TRUE)
+# print(X.eigen$values)
+		index <- X.eigen$values < 0 
+		if (any(index)) {
+			warning("matrix is not positive semidefinite")
+			X.eigen$values[index] <- pmin(min(X.eigen$values[!index]), abs(X.eigen$values[index]))
+		}
+# print(X.eigen$values)
+		sqomega <- sqrt(diag(X.eigen$values))
+		V <- X.eigen$vectors
+# print(X)
+# omega <- diag(X.eigen$values)
+# print(b<<-V %*% omega %*% t(V))
+		return(V %*% sqomega %*% t(V))
+	}
+}
