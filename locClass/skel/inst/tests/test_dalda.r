@@ -19,7 +19,8 @@ test_that("dalda: misspecified arguments", {
 	# missing quotes
 	expect_error(dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, method = ML))
 	# method as vector
-	expect_that(dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, method = c("ML","unbiased")), throws_error("'arg' must be of length 1"))
+	expect_error(dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, method = c("ML","unbiased")))
+	# expect_that(dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, method = c("ML","unbiased")), throws_error("'arg' must be of length 1"))
 })
 
 
@@ -107,9 +108,9 @@ test_that("dalda breaks out of for-loop if only one class is left", {
 	expect_that(fit <- dalda(Species ~ ., data = iris, wf = "gaussian", bw = 10, k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_equal(fit$itr, 3)
 	expect_equal(length(fit$weights), 4)
-	expect_that(fit <- dalda(Species ~ ., data = iris, wf = "gaussian", k = 10, subset = 1:100), gives_warning(c("groups versicolor, virginica are empty or weights in these groups are all zero", "training data from only one group, breaking out of iterative procedure")))
-	expect_equal(fit$itr, 1)
-	expect_equal(length(fit$weights), 2)
+	expect_that(fit <- dalda(Species ~ ., data = iris, wf = "biweight", bw = 0.2, subset = 1:100), gives_warning("training data from only one group, breaking out of iterative procedure"))
+	expect_equal(fit$itr, 0)
+	expect_equal(length(fit$weights), 1)
 })
 #sapply(fit$weights, function(x) return(list(sum(x[1:50]), sum(x[51:100]), sum(x[101:150]))))
 
@@ -495,7 +496,7 @@ test_that("dalda: weighting schemes work", {
 	expect_equal(fit1$bw, NULL)
 	expect_true(fit1$nn.only)
 	expect_true(fit1$adaptive)
-	a <- rep(51, 3) ###
+	a <- rep(50, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 

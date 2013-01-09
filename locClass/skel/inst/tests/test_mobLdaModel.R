@@ -54,14 +54,14 @@ test_that("multi-class problem", {
 
 test_that("mobLdaModel throws a warning if grouping variable is numeric", {
 	expect_that(fit <- mob(Petal.Width ~ . | Sepal.Length, data = iris, model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)), gives_warning("'grouping' was coerced to a factor"))
+		control = mob_control(objfun = deviance, minsplit = 20)), gives_warning("'grouping' was coerced to a factor"))
 	### try-error in estfun.wlda: covariance is singular
 })
 
 
 test_that("mobLdaModel works if only one predictor variable is given", {
 	expect_warning(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)))
+		control = mob_control(objfun = deviance, minsplit = 20)))
 	## warnings about empty classes in some nodes
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(ncol(terminal[[1]]$model$means), 1)
@@ -148,7 +148,7 @@ test_that("predict.ldaModel: retrieving training data works", {
 test_that("predict.ldaModel works with missing classes in the training data", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:100,], model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))					
+		control = mob_control(objfun = deviance, minsplit = 20))
 	## sporadic try-errors in reweight: training data from only one group 
 	pred <- predict(fit, newdata = iris[-ran,])
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")
@@ -160,7 +160,7 @@ test_that("predict.ldaModel works with missing classes in the training data", {
 test_that("predict.ldaModel works with one single predictor variable", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ Sepal.Width | Sepal.Width, data = iris[ran,], model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 20))
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(ncol(terminal[[1]]$model$means), 1)
 	expect_equal(dim(terminal[[1]]$model$cov), c(1,1))
@@ -171,7 +171,7 @@ test_that("predict.ldaModel works with one single predictor variable", {
 test_that("predict.ldaModel works with one single test observation", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Width, data = iris[ran,], model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 20))
   	pred <- predict(fit, newdata = iris[5,])
 	expect_equal(length(pred), 1)
   	pred <- predict(fit, newdata = iris[5,], out = "posterior")

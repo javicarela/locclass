@@ -43,16 +43,16 @@ test_that("dasvm works if only one predictor variable is given", {
 test_that("dasvm: training data from only one class", {
 	data(iris)
 	## y factor
-	expect_that(dasvm(Species ~ ., data = iris, bw = 2, subset = 1:50), throws_error("training data from only one class"))
-	expect_that(dasvm(y = iris$Species, x = iris[,-5], bw = 2, subset = 1:50), throws_error("training data from only one class"))
+	expect_that(dasvm(Species ~ ., data = iris, bw = 2, subset = 1:50), throws_error("need training data from at least two classes"))
+	expect_that(dasvm(y = iris$Species, x = iris[,-5], bw = 2, subset = 1:50), throws_error("need training data from at least two classes"))
 	## y integer & type = C-classification
 	irisint <- iris
 	irisint$Species <- as.numeric(irisint$Species)
-	expect_that(dasvm(Species ~ ., data = irisint, bw = 2, subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
-	expect_that(dasvm(y = irisint$Species, x = irisint[,-5], bw = 2, subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(dasvm(Species ~ ., data = irisint, bw = 2, subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
+	expect_that(dasvm(y = irisint$Species, x = irisint[,-5], bw = 2, subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
 	## y integer & type = nu-classification
-	expect_that(dasvm(Species ~ ., data = irisint, bw = 2, subset = 1:50, type = "nu-classification"), throws_error("training data from only one class"))
-	expect_that(dasvm(y = irisint$Species, x = irisint[,-5], bw = 2, subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(dasvm(Species ~ ., data = irisint, bw = 2, subset = 1:50, type = "nu-classification"), throws_error("need training data from at least two classes"))
+	expect_that(dasvm(y = irisint$Species, x = irisint[,-5], bw = 2, subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
 })
 
 

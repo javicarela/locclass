@@ -305,7 +305,7 @@ test_that("ossvm: labels vector set correctly",{
 	pred1 <- predict(fit1, newdata = iris[n,], probability = TRUE, decision.values = TRUE)
 	fit2 <- ossvm(Species ~ ., data = iris, probability = TRUE, wf = "rectangular", k = k, scale = FALSE)
 	pred2 <- predict(fit2, newdata = iris[n,], probability = TRUE, decision.values = TRUE)
-	expect_equal(pred1, pred2)	
+	expect_equal(pred1, pred2)				# not exactly equal
 
 	## all classes, but different order 1
 	data(iris)
@@ -323,7 +323,7 @@ test_that("ossvm: labels vector set correctly",{
 	fit2 <- ossvm(Species ~ ., data = iris, probability = TRUE, wf = "rectangular", k = k, scale = FALSE)
 	pred2 <- predict(fit2, newdata = iris[n,], probability = TRUE, decision.values = TRUE)
 	expect_equivalent(pred1, pred2)	
-	expect_equal(attr(pred1, "probabilities"), attr(pred2, "probabilities")[,3:1, drop = FALSE])	
+	expect_equal(attr(pred1, "probabilities"), attr(pred2, "probabilities")[,3:1, drop = FALSE])				# not exactly equal	
 	expect_equal(as.vector(attr(pred1, "decision.values")), -as.vector(attr(pred2, "decision.values")[,3:1]))	
 		
 	## all classes, but different order 2

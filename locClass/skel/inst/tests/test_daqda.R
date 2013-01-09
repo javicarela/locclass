@@ -107,7 +107,7 @@ test_that("daqda breaks out of for-loop if only one class is left", {
 	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
 	expect_equal(fit$itr, 3)
 	expect_equal(length(fit$weights), 4)
-	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", k = 10, subset = 1:100), gives_warning(c("group virginica is empty or weights in this group are all zero", "groups versicolor, virginica are empty or weights in these groups are all zero", "training data from only one group, breaking out of iterative procedure")))
+	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", k = 10, subset = 1:100), gives_warning("training data from only one group, breaking out of iterative procedure"))
 	expect_equal(fit$itr, 0)
 	expect_equal(length(fit$weights), 1)
 })

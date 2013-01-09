@@ -40,14 +40,15 @@ test_that("multi-class problem", {
 
 
 test_that("mobSvmModel throws a warning if grouping variable is numeric", {
-	fit <- mob(Petal.Width ~ . | Sepal.Length, data = iris, model = svmModel, kernel = "linear", fitted = FALSE,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)) 
+	iris$Species <- as.numeric(iris$Species)
+	fit <- mob(Species ~ . | Sepal.Length, data = iris, model = svmModel, kernel = "linear", fitted = FALSE,
+		control = mob_control(objfun = deviance, minsplit = 20)) 
 })
 
 
 test_that("mobSvmModel works if only one predictor variable is given", {
 	expect_that(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = svmModel, kernel = "linear", fitted = FALSE,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)), gives_warning("some groups are empty"))
+		control = mob_control(objfun = deviance, minsplit = 20)), gives_warning("some groups are empty"))
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(length(terminal[[1]]$model$scale[[1]]), 1)
 })
@@ -101,7 +102,7 @@ test_that("predict.svmModel works correctly with formula interface and with miss
 	ran <- sample(1:150,100)
 	## formula, data
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[ran,], model = svmModel, kernel = "linear", fitted = FALSE,
-		probability = TRUE, control = mob_control(objfun = deviance, minsplit = 2, verbose = TRUE))	
+		probability = TRUE, control = mob_control(objfun = deviance, minsplit = 2))	
   	pred <- predict(fit)
   	pred <- predict(fit, out = "posterior")
 	expect_equal(sapply(pred, sum), rep(1, 100))
@@ -140,7 +141,7 @@ test_that("predict.svmModel: retrieving training data works", {
 test_that("predict.svmModel works with missing classes in the training data", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:100,], model = svmModel, kernel = "linear", fitted = FALSE,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))					
+		control = mob_control(objfun = deviance, minsplit = 20))					
 	pred <- predict(fit, newdata = iris[-ran,])
 	expect_equal(length(unique(pred)), 2)
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")

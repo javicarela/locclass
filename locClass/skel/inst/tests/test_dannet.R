@@ -214,7 +214,7 @@ test_that("dannet: NA handling works correctly", {
 	expect_that(fit1 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -226,7 +226,7 @@ test_that("dannet: NA handling works correctly", {
   	expect_that(fit1 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, size = 2, weights = rep(1:3, 50), na.action = na.omit, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, weights = rep(1:3, 50), trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -267,7 +267,7 @@ test_that("dannet: NA handling works correctly", {
   	expect_that(fit1 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -279,7 +279,7 @@ test_that("dannet: NA handling works correctly", {
 	expect_that(fit1 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, size = 2, weights = rep(1:3, 50), na.action = na.omit, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, size = 2, weights = rep(1:3, 50), trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -319,7 +319,7 @@ test_that("dannet: NA handling works correctly", {
   	expect_that(fit1 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = weights, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -347,7 +347,7 @@ test_that("dannet: NA handling works correctly", {
   	expect_that(fit1 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16,27)], fit2[-16])
+	expect_equal(fit1[-c(16,28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -359,7 +359,7 @@ test_that("dannet: NA handling works correctly", {
   	expect_that(fit1 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit, size = 2, trace = FALSE), gives_warning("group virginica is empty"))
 	set.seed(120)
   	expect_that(fit2 <- dannet(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50), size = 2, trace = FALSE), gives_warning("group virginica is empty"))
-	expect_equal(fit1[-c(16, 27)], fit2[-16])
+	expect_equal(fit1[-c(16, 28)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -401,7 +401,7 @@ test_that("dannet: try all weight functions", {
   	fit4 <- dannet(x = iris[,-5], y = iris$Species, wf = gaussian(0.5), size = 2, trace = FALSE)    
 	expect_equal(fit1[-16], fit2[-16])
 	expect_equal(fit3[-16], fit4[-16])
-	expect_equal(fit2[-c(16, 25, 27)], fit4[-c(16, 26)])
+	expect_equal(fit2[-c(16, 26, 28)], fit4[-c(16, 27)])
 	
 	set.seed(120)
   	fit1 <- dannet(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 60, size = 2, trace = FALSE)    
@@ -413,7 +413,7 @@ test_that("dannet: try all weight functions", {
   	fit4 <- dannet(x = iris[,-5], y = iris$Species, wf = gaussian(0.5, 60), size = 2, trace = FALSE)
 	expect_equal(fit1[-16], fit2[-16])
 	expect_equal(fit3[-16], fit4[-16])
-	expect_equal(fit2[-c(16, 25, 27)], fit4[-c(16, 26)])
+	expect_equal(fit2[-c(16, 26, 28)], fit4[-c(16, 27)])
 	a <- rep(60, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
@@ -515,7 +515,7 @@ test_that("dannet: local solution with rectangular window function and large bw 
 	Wts <- runif(19,-0.7,0.7)
 	fit1 <- nnet(Species ~ ., data = iris, size = 2, Wts = Wts, trace = FALSE)
 	fit2 <- dannet(Species ~ ., data = iris, size = 2, wf = "rectangular", bw = 10, Wts = Wts, trace = FALSE)
-	expect_equal(fit1[-16], fit2[-c(16:24)])   
+	expect_equal(fit1[-16], fit2[-c(16:25)])   
 	a <- rep(1,150)
 	names(a) <- 1:150
 	expect_equal(fit2$weights[[1]], a)                                             
@@ -896,10 +896,10 @@ test_that("dannet: print.dannet works correctly with formula and data.frame inte
 	ran <- sample(1:150,100)
 	## formula, data
 	fit <- dannet(formula = Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = ran, size = 2, trace = FALSE)
-	print(fit)
+	# print(fit)
 	## y, x
 	fit <- dannet(x = iris[,-5], y = iris$Species, wf = "gaussian", bw = 2, subset = ran, size = 2, trace = FALSE)  
-	print(fit)
+	# print(fit)
 })
 
 

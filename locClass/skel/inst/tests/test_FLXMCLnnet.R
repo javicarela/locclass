@@ -3,11 +3,11 @@ context("FLXMCLnnet")
 test_that("FLXMCLnnet: misspecified arguments", {
 	# wrong variable names
 	cluster <- kmeans(iris[,1:4], centers = 3)$cluster
-	expect_that(fit <- flexmix(Species ~ V1, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'V1' nicht gefunden"))
-	expect_that(fit <- flexmix(Species ~ Sepal.Length, data = iris, concomitant = FLXPmultinom(~ V1), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'V1' nicht gefunden"))
-	expect_that(fit <- flexmix(y ~ Sepal.Length, data = iris, concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'y' nicht gefunden"))
+	expect_that(fit <- flexmix(Species ~ V1, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'V1' nicht gefunden"))
+	expect_that(fit <- flexmix(Species ~ Sepal.Length, data = iris, concomitant = FLXPmultinom(~ V1), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'V1' nicht gefunden"))
+	expect_that(fit <- flexmix(y ~ Sepal.Length, data = iris, concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("Objekt 'y' nicht gefunden"))
 	# wrong class
-	expect_error(fit <- flexmix(iris, data = iris, concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")))
+	expect_error(fit <- flexmix(iris, data = iris, concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")))
 	# target variable also in x
 	# expect_error(mob(Species ~ Species + Sepal.Length | Sepal.Width, data = iris, model = constantModel,
 	#	control = mob_control(objfun = deviance, minsplit = 20)))	## funktioniert, sollte aber nicht
@@ -21,7 +21,7 @@ test_that("FLXMCLnnet: arguments are passed to nnet",{
 
 	## size, trace
 	Wts <- runif(20, -0.7, 0.7)
-	fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLnnet(size = 1, trace = TRUE, Wts = Wts, decay = 0.1), cluster = cluster, control = list(iter.max = 50, classify = "weighted", verb = 1))
+	fit <- flexmix(Species ~ Sepal.Width, data = iris, model = FLXMCLnnet(size = 1, trace = FALSE, Wts = Wts, decay = 0.1), cluster = cluster, control = list(iter.max = 50, classify = "weighted", verb = 1))
 	expect_equal(fit@components[[1]][[1]]@parameters$n[2], 1)
 	
 	## decay ###
@@ -77,8 +77,8 @@ test_that("FLXMCLnnet with several options works",{
 	# # not monotone at all
 	
 	## weighted, FLXPmultinom
-	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = TRUE, Wts = Wts), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1, tolerance = 10^-4))
-	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = TRUE, reps = 5), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1, tolerance = 10^-4))
+	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = FALSE, Wts = Wts), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1, tolerance = 10^-4))
+	fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = FALSE, reps = 5), cluster = cluster, control = list(iter.max = 200, classify = "weighted", verb = 1, tolerance = 10^-4))
 	# not monotone
 	# monotone with Wts
 				
@@ -130,7 +130,7 @@ test_that("FLXMCLnnet ist set up correctly", {
 	# ## > 2 classes, numeric target variable
 	# iris$Species <- as.numeric(iris$Species)
 	# cluster <- kmeans(iris[,1:4], centers = 2)$cluster
-	# expect_that(fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("currently only classification is supported, 'y' was coerced to a factor"))
+	# expect_that(fit <- flexmix(Species ~ Sepal.Width, data = iris, concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("currently only classification is supported, 'y' was coerced to a factor"))
 	# m <- nnet(Species ~ Sepal.Width, data = iris, size = 1)
 	# y <- fit@model[[1]]@y
 	# expect_equal(ncol(y),3)
@@ -139,7 +139,7 @@ test_that("FLXMCLnnet ist set up correctly", {
 	# # expect_true(attr(y, "is.matrix"))
 	# # x <- fit@model[[1]]@x
 	# # expect_true(all(m$wts[!attr(x, "mask")] == 0))		
-}
+})
 
 
 test_that("FLXMCLnnet: Local and global solution coincide if only one cluster is given", {
@@ -164,7 +164,7 @@ test_that("FLXMCLnnet works if only one predictor variable is given", {
 
 test_that("FLXMCLnnet: training data from only one class", {
 	cluster <- kmeans(iris[1:50,1:4], centers = 3)$cluster
-	expect_that(fit <- flexmix(Species ~ Sepal.Width + Sepal.Length, data = iris[1:50,], concomitant = FLXPmultinom(~ Sepal.Width + Sepal.Length), model = FLXMCLnnet(size = 1), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("'softmax = TRUE' requires at least two response categories"))
+	expect_that(fit <- flexmix(Species ~ Sepal.Width + Sepal.Length, data = iris[1:50,], concomitant = FLXPmultinom(~ Sepal.Width + Sepal.Length), model = FLXMCLnnet(size = 1, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("'softmax = TRUE' requires at least two response categories"))
 })
 
 
@@ -174,7 +174,7 @@ test_that("FLXMCLnnet: missing classes in individual clusters", {
 	Glass[,1:9] <- scale(Glass[,1:9])
 	set.seed(120)
 	cluster <- kmeans(Glass[-c(177:182),1:9], centers = 2)$cluster
-	expect_that(fit <- flexmix(Type ~ Na, data = Glass[-c(177:182),], concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.01), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1)), gives_warning("groups 1 3 are empty"))
+	expect_that(fit <- flexmix(Type ~ Na, data = Glass[-c(177:182),], concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.01, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1)), gives_warning("groups 1 3 are empty"))
 	pred <- mypredict(fit, aggregate = FALSE)
 	expect_equal(colnames(pred$Comp.1), as.character(c(1:3,5:7)))
 	expect_equal(colnames(pred$Comp.2), as.character(c(1:3,5:7)))
@@ -189,8 +189,8 @@ test_that("FLXMCLnnet: removing clusters works", {
 	cluster <- kmeans(data$x, centers = 10)$cluster
 	tr2 <- flexmix(y ~ ., data = as.data.frame(data), concomitant = FLXPmultinom(~ x.1 + x.2), model = FLXMCLnnet(size = 1, trace = FALSE, reps = 5, decay = 0.05), cluster = cluster, control = list(classify = "weighted", iter.max = 200, verb = 1))
 ## Convergence!!!
-	expect_equal(length(tr2@components), 7)
-	expect_equal(ncol(tr2@posterior$scaled), 7)
+	expect_equal(length(tr2@components), 6)
+	expect_equal(ncol(tr2@posterior$scaled), 6)
 })
 
 
@@ -218,7 +218,7 @@ test_that("predict FLXMCLnnet works correctly with missing newdata", {
 test_that("predict FLXMCLnnet works with missing classes in the training data", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[1:100,1], centers = 2)$cluster
-	expect_that(tr2 <- flexmix(Species ~ Sepal.Width, data = iris[1:100,], concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5), cluster = cluster, control = list(iter.max = 200)), gives_warning("group virginica is empty"))
+	expect_that(tr2 <- flexmix(Species ~ Sepal.Width, data = iris[1:100,], concomitant = FLXPmultinom(~ Sepal.Length), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5, trace = FALSE), cluster = cluster, control = list(iter.max = 200)), gives_warning("group virginica is empty"))
 	pred <- mypredict(tr2, aggregate = FALSE)
 	expect_equal(ncol(pred[[1]]), 3) #!!!
 	expect_true(all(pred[[1]][,"virginica"] == 0))
@@ -231,7 +231,7 @@ test_that("predict FLXMCLnnet works with missing classes in the training data", 
 test_that("predict FLXMCLnnet works with one single predictor variable", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5, trace = FALSE), cluster = cluster, control = list(iter.max = 200))
 	pred <- mypredict(tr2, newdata = iris[-ran,], aggregate = FALSE)
 	pred <- mypredict(tr2, aggregate = TRUE)
 })
@@ -240,7 +240,7 @@ test_that("predict FLXMCLnnet works with one single predictor variable", {
 test_that("predict FLXMCLnnet works with one single test observation", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width), model = FLXMCLnnet(size = 1, decay = 0.1, reps = 5, trace = FALSE), cluster = cluster, control = list(iter.max = 200))
   	pred <- mypredict(tr2, newdata = iris[5,])
 	expect_equal(dim(pred[[1]]), c(1,3))
   	pred <- mypredict(tr2, newdata = iris[5,], aggregate = TRUE)
@@ -251,7 +251,7 @@ test_that("predict FLXMCLnnet works with one single test observation", {
 test_that("predict FLXMCLnnet: NA handling in newdata works", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width + Petal.Width), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.1), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Length + Sepal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width + Petal.Width), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.1, trace = FALSE), cluster = cluster, control = list(iter.max = 200))
 
 	## NAs in explanatory variables are ok
 	irisna <- iris
@@ -269,7 +269,7 @@ test_that("predict FLXMCLnnet: NA handling in newdata works", {
 test_that("predict FLXMCLnnet: misspecified arguments", {
 	ran <- sample(1:150,100)
 	cluster <- kmeans(iris[ran,1:4], centers = 2)$cluster
-	tr2 <- flexmix(Species ~ Sepal.Width + Petal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width + Petal.Width), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.1), cluster = cluster, control = list(iter.max = 200))
+	tr2 <- flexmix(Species ~ Sepal.Width + Petal.Width, data = iris[ran,], concomitant = FLXPmultinom(~ Sepal.Width + Petal.Width), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.1, trace = FALSE), cluster = cluster, control = list(iter.max = 200))
     # errors in newdata
     expect_error(mypredict(tr2, newdata = TRUE))
     expect_error(mypredict(tr2, newdata = -50:50))
@@ -286,15 +286,15 @@ test_that("predict FLXMCLnnet: misspecified arguments", {
 
 
 # cluster <- kmeans(d$x, center = 2)$cluster
-# model <- FLXMCLnnet(size = 1)
+# model <- FLXMCLnnet(size = 1, trace = FALSE)
 # res <- flexmix(y ~ ., data = as.data.frame(d), concomitant = FLXPmultinom(~ x.1 + x.2), model = model, cluster = cluster)
 # res
 
-# # model <- FLXMCLnnet(size = 1)
+# # model <- FLXMCLnnet(size = 1, trace = FALSE)
 # # res <- flexmix(y ~ ., data = as.data.frame(d), concomitant = FLXPmultinom(~ x.1), model = model, k = 2)
 # # res
 
-# # model <- FLXMCLnnet(size = 1)
+# # model <- FLXMCLnnet(size = 1, trace = FALSE)
 # # res <- flexmix(y ~ ., data = as.data.frame(d), concomitant = FLXPmultinom(~ x.1), model = model, k = 2, control = list(classify = "hard"))
 # # res
 # # res <- flexmix(y ~ ., data = as.data.frame(d), concomitant = FLXPmultinom(~ x.1), model = model, cluster = res@cluster)

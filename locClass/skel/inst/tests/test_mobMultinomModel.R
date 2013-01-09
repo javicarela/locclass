@@ -4,17 +4,17 @@ test_that("mobMultinomModel: misspecified arguments", {
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
 	# wrong variable names
-	expect_error(mob(Species ~ V1 | Sepal.Length, data = irisscale, model = multinomModel,
+	expect_error(mob(Species ~ V1 | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
-	expect_error(mob(Species ~ Sepal.Length | V1, data = irisscale, model = multinomModel,
+	expect_error(mob(Species ~ Sepal.Length | V1, data = irisscale, model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
-	expect_error(mob(y ~ Sepal.Length | Sepal.Width, data = irisscale, model = multinomModel,
+	expect_error(mob(y ~ Sepal.Length | Sepal.Width, data = irisscale, model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
 	# wrong class
 	expect_error(mob(iris, data = irisscale, model = multinomModel,
 		control = mob_control(objfun = deviance, minsplit = 20)))
 	# target variable also in x
-	# expect_error(mob(Species ~ Species + Sepal.Length | Sepal.Width, data = iris, model = multinomModel,
+	# expect_error(mob(Species ~ Species + Sepal.Length | Sepal.Width, data = iris, model = multinomModel, trace = FALSE,
 	#	control = mob_control(objfun = deviance, minsplit = 20)))	## funktioniert, sollte aber nicht
 })
 
@@ -25,8 +25,8 @@ test_that("binary problem", {
 	## decay = 0
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 200))
-	print(tr <- mean(predict(fit) != data$y))
-	print(ba <- mean(vBayesClass(data$x) != data$y))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(vBayesClass(data$x) != data$y)
 	expect_true(tr < ba + 0.05)
 	## gradient
 	pr <- predict(fit, out = "posterior")
@@ -44,8 +44,8 @@ test_that("binary problem", {
 	decay <- 0.5
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = multinomModel, trace = FALSE, decay = decay,
 		control = mob_control(objfun = deviance, minsplit = 200))
-	print(tr <- mean(predict(fit) != data$y))
-	print(ba <- mean(vBayesClass(data$x) != data$y))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(vBayesClass(data$x) != data$y)
 	expect_true(tr < ba + 0.05)	
 	## gradient
 	pr <- predict(fit, out = "posterior")
@@ -71,8 +71,8 @@ test_that("multi-class problem", {
 	## decay = 0
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 200))
-	print(tr <- mean(predict(fit) != data$y))
-	print(ba <- mean(xor3BayesClass(data$x) != data$y))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(xor3BayesClass(data$x) != data$y)
 	expect_true(tr < ba + 0.05)
 	## gradient
 	pr <- predict(fit, out = "posterior")
@@ -94,8 +94,8 @@ test_that("multi-class problem", {
 	decay = 0.5
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = multinomModel, trace = FALSE, decay = decay,
 		control = mob_control(objfun = deviance, minsplit = 200))
-	print(tr <- mean(predict(fit) != data$y))
-	print(ba <- mean(xor3BayesClass(data$x) != data$y))
+	tr <- mean(predict(fit) != data$y)
+	ba <- mean(xor3BayesClass(data$x) != data$y)
 	expect_true(tr < ba + 0.05)	
 	## gradient
 	pr <- predict(fit, out = "posterior")
@@ -122,16 +122,16 @@ test_that("multi-class problem", {
 test_that("mobMultinomModel throws a warning if grouping variable is numeric", {
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
-	fit <- mob(Petal.Width ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = TRUE, decay = 0.5,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)) 
+	fit <- mob(Petal.Width ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE, decay = 0.5,
+		control = mob_control(objfun = deviance, minsplit = 20)) 
 })
 
 
 test_that("mobMultinomModel works if only one predictor variable is given", {
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
-	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = irisscale, model = multinomModel, trace = TRUE,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))
+	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE,
+		control = mob_control(objfun = deviance, minsplit = 20))
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(terminal[[1]]$model$coefnames, c("(Intercept)", "Sepal.Width"))
 })
@@ -156,7 +156,7 @@ test_that("mobMulitnomModel: Local and global solution coincide if minsplit is l
 test_that("mobMultinomModel: training data from only one class", {
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
-	expect_that(z <- mob(Species ~ Sepal.Width | Sepal.Length, data = irisscale[1:50,], model = multinomModel,
+	expect_that(z <- mob(Species ~ Sepal.Width | Sepal.Length, data = irisscale[1:50,], model = multinomModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)), throws_error("need two or more classes to fit a multinom model"))
 	## error in global fit
 })
@@ -168,11 +168,11 @@ test_that("mobMultinomModel: neural network is set up correctly", {
 	# 2 classes
 	library(mlbench)
 	data(Ionosphere)
-	fit <- mob(Class ~ . | V1, data = Ionosphere[,-2], model = multinomModel, trace = TRUE, Hess = TRUE,
+	fit <- mob(Class ~ . | V1, data = Ionosphere[,-2], model = multinomModel, trace = FALSE, Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])	
-	m <- multinom(Class ~ . , data = Ionosphere[,-2], trace = TRUE, Hess = TRUE)
+	m <- multinom(Class ~ . , data = Ionosphere[,-2], trace = FALSE, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
 	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
@@ -181,22 +181,22 @@ test_that("mobMultinomModel: neural network is set up correctly", {
 	# > 2 classes
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = TRUE, Hess = TRUE,
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE, Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 10))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Species ~ . , data = irisscale, trace = TRUE, Hess = TRUE)
+	m <- multinom(Species ~ . , data = irisscale, trace = FALSE, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
 	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
 	expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
 
 	# 1 class missing
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[1:100,], model = multinomModel, trace = TRUE, Hess = TRUE,
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[1:100,], model = multinomModel, trace = FALSE, Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Species ~ . , data = irisscale[1:100,], trace = TRUE, Hess = TRUE)
+	m <- multinom(Species ~ . , data = irisscale[1:100,], trace = FALSE, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
 	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
@@ -206,11 +206,11 @@ test_that("mobMultinomModel: neural network is set up correctly", {
 	data(Glass)
 	Glassscale <- Glass
 	Glassscale[,1:9] <- scale(Glass[,1:9], sapply(Glass[,1:9], min), scale = sapply(Glass[,1:9], max) - sapply(Glass[,1:9], min))
-	fit <- mob(Type ~ . | ., data = Glassscale, model = multinomModel, trace = TRUE, Hess = TRUE, decay = 0.2,
+	fit <- mob(Type ~ . | ., data = Glassscale, model = multinomModel, trace = FALSE, Hess = TRUE, decay = 0.2,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Type ~ . , data = Glassscale, trace = TRUE, Hess = TRUE, decay = 0.2)
+	m <- multinom(Type ~ . , data = Glassscale, trace = FALSE, Hess = TRUE, decay = 0.2)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
 	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
@@ -223,8 +223,8 @@ test_that("mobMultinomModel: arguments are passed to multinom",{
 	iris[,1:4] <- scale(iris[,1:4])
 
 	## trace
-	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = multinomModel, trace = TRUE,
-		control = mob_control(objfun = deviance, minsplit = 20))
+	# fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = multinomModel, trace = TRUE,
+		# control = mob_control(objfun = deviance, minsplit = 20))
 
 	## decay
 	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = multinomModel, trace = FALSE, decay = 0.1,
@@ -247,8 +247,8 @@ test_that("predict.multinomModel works correctly with formula interface and with
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
 	ran <- sample(1:150,100)
 	## formula, data
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[ran,], model = multinomModel, trace = TRUE, Hess = TRUE, decay = 0.1,
-		control = mob_control(objfun = deviance, minsplit = 50, verbose = TRUE))	
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[ran,], model = multinomModel, trace = FALSE, decay = 0.1,
+		control = mob_control(objfun = deviance, minsplit = 50))
   	pred <- predict(fit)
   	pred <- predict(fit, out = "posterior")
   	p <- matrix(0, length(pred), 3)
@@ -287,7 +287,7 @@ test_that("predict.multinomModel works with missing classes in the training data
 	data(iris)
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:100,], model = multinomModel, trace = FALSE, decay = 0.1,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))					
+		control = mob_control(objfun = deviance, minsplit = 20))
 	pred <- predict(fit, newdata = iris[-ran,])
 	expect_equal(length(unique(pred)), 2)
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")

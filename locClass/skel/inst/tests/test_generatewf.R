@@ -161,7 +161,6 @@ test_that("generatewf: R and C implementations of weight functions give equal re
 		w2 <- get(name, mode = "function")(bw = bw)(dist)	
 # plot(dist, w2, main = name)
 		w3 <- locClass:::generatewf(name, bw = bw)(dist)
-		print(w1 == w3)
 		expect_equal(w1, w2)
 		expect_equal(w1, w3)
 	}
@@ -187,7 +186,6 @@ test_that("generatewf: R and C implementations of weight functions give equal re
 		w2 <- get(name, mode = "function")(bw = bw, k = k)(dist)	
 # plot(dist, w2, main = name)
 		w3 <- locClass:::generatewf(name, bw = bw, k = k, n = N)(dist)
-		print(w1 == w3)
 		expect_equal(w1, w2)
 		expect_equal(w1, w3)
 	}
@@ -213,7 +211,6 @@ test_that("generatewf: R and C implementations of weight functions give equal re
 		w2 <- get(name, mode = "function")(k = k)(dist)	
 # plot(dist, w2, main = name)
 		w3 <- locClass:::generatewf(name, k = k, n = N)(dist)
-		print(w1 == w3)
 		expect_equal(w1, w2)
 		expect_equal(w1, w3)
 	}
@@ -239,7 +236,6 @@ test_that("generatewf: R and C implementations of weight functions give equal re
 		w2 <- get(name, mode = "function")(k = k, nn.only = FALSE)(dist)	
 # plot(dist, w2, main = name)
 		w3 <- locClass:::generatewf(name, k = k, n = N, nn.only = FALSE)(dist)
-		print(w1 == w3)
 		expect_equal(w1, w2)
 		expect_equal(w1, w3)
 	}	

@@ -23,19 +23,19 @@ test_that("wsvm works if only one predictor variable is given", {
 test_that("wsvm: training data from only one class", {
 	data(iris)
 	## y factor
-	expect_that(wsvm(Species ~ ., data = iris, subset = 1:50), throws_error("training data from only one class"))
+	expect_that(wsvm(Species ~ ., data = iris, subset = 1:50), throws_error("need training data from at least two classes"))
 	#expect_that(wsvm(Species ~ ., data = iris, subset = 1), throws_error("training data from only one class"))
-	expect_that(wsvm(y = iris$Species, x = iris[,-5], subset = 1:50), throws_error("training data from only one class"))
+	expect_that(wsvm(y = iris$Species, x = iris[,-5], subset = 1:50), throws_error("need training data from at least two classes"))
 	## y integer & type = C-classification
 	irisint <- iris
 	irisint$Species <- as.numeric(irisint$Species)
-	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
 	#expect_that(wsvm(Species ~ ., data = irisint, subset = 1, type = "C-classification"), throws_error("training data from only one class"))
-	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
 	## y integer & type = nu-classification
-	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "nu-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(Species ~ ., data = irisint, subset = 1:50, type = "nu-classification"), throws_error("need training data from at least two classes"))
 	#expect_that(wsvm(Species ~ ., data = irisint, subset = 1, type = "nu-classification"), throws_error("training data from only one class"))
-	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("training data from only one class"))
+	expect_that(wsvm(y = irisint$Species, x = irisint[,-5], subset = 1:50, type = "C-classification"), throws_error("need training data from at least two classes"))
 })
 
 

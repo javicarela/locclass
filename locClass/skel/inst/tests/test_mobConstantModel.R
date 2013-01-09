@@ -42,7 +42,7 @@ test_that("multi-class problem", {
 
 test_that("mobConstantModel throws a warning if grouping variable is numeric", {
 	expect_that(fit <- mob(Petal.Width ~ . | Sepal.Length, data = iris, model = constantModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)), gives_warning("'grouping' was coerced to a factor"))
+		control = mob_control(objfun = deviance, minsplit = 20)), gives_warning("'grouping' was coerced to a factor"))
 })
 
 
@@ -79,7 +79,7 @@ test_that("predict.constantModel works correctly with formula interface and with
 	ran <- sample(1:150,100)
 	## formula, data
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[ran,], model = constantModel,
-		control = mob_control(objfun = deviance, minsplit = 5, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 5))
   	pred <- predict(fit)
 	mean(pred != as.numeric(iris$Species[ran]))
   	pred <- predict(fit, out = "posterior")
@@ -100,7 +100,7 @@ test_that("predict.constantModel: retrieving training data works", {
 	## no subset
 	# formula, data
 	fit <- mob(Species ~ . | Sepal.Length, data = iris, model = constantModel,
-		control = mob_control(objfun = deviance, minsplit = 2, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 2,))
   	pred1 <- predict(fit)
   	pred2 <- predict(fit, newdata = iris)
   	expect_equal(pred1, pred2)
@@ -118,7 +118,7 @@ test_that("predict.constantModel: retrieving training data works", {
 test_that("predict.constantModel works with missing classes in the training data", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:60,], model = constantModel,
-		control = mob_control(objfun = deviance, minsplit = 2, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 2))
 	# leading minor not positive definite: reason: pure terminal node
 	pred <- predict(fit, newdata = iris[-ran,])
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")

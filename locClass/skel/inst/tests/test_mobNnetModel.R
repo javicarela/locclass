@@ -5,17 +5,17 @@ test_that("mobNnetModel: misspecified arguments", {
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
 	# wrong variable names
-	expect_error(mob(Species ~ V1 | Sepal.Length, data = iris, model = nnetModel,
+	expect_error(mob(Species ~ V1 | Sepal.Length, data = iris, model = nnetModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
-	expect_error(mob(Species ~ Sepal.Length | V1, data = iris, model = nnetModel,
+	expect_error(mob(Species ~ Sepal.Length | V1, data = iris, model = nnetModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
-	expect_error(mob(y ~ Sepal.Length | Sepal.Width, data = iris, model = nnetModel,
+	expect_error(mob(y ~ Sepal.Length | Sepal.Width, data = iris, model = nnetModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
 	# wrong class
-	expect_error(mob(iris, data = iris, model = nnetModel,
+	expect_error(mob(iris, data = iris, model = nnetModel, trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)))
 	# target variable also in x
-	# expect_error(mob(Species ~ Species + Sepal.Length | Sepal.Width, data = iris, model = nnetModel,
+	# expect_error(mob(Species ~ Species + Sepal.Length | Sepal.Width, data = iris, model = nnetModel, trace = FALSE,
 	#	control = mob_control(objfun = deviance, minsplit = 20)))	## funktioniert, sollte aber nicht
 })
 
@@ -63,14 +63,14 @@ test_that("mobNnetModel throws a warning if grouping variable is numeric", {
 	data(iris)
 	iris$Species <- as.numeric(iris$Species)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris, model = nnetModel, trace = FALSE, size = 5, decay = 0.1,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)) 
+		control = mob_control(objfun = deviance, minsplit = 20))
 })
 
 
 test_that("mobNnetModel works if only one predictor variable is given", {
 	data(iris)
 	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = nnetModel, trace = FALSE, size = 1, decay = 0.1,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))
+		control = mob_control(objfun = deviance, minsplit = 20))
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(terminal[[1]]$model$coefnames, "Sepal.Width")
 })
@@ -97,7 +97,7 @@ test_that("mobNnetModel: Local and global solution coincide if minsplit is large
 
 test_that("mobNnetModel: training data from only one class", {
 	data(iris)
-	expect_that(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris[1:50,], model = nnetModel, size = 5,
+	expect_that(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris[1:50,], model = nnetModel, size = 5,  trace = FALSE,
 		control = mob_control(objfun = deviance, minsplit = 20)), throws_error("'softmax = TRUE' requires at least two response categories"))
 })
 
@@ -137,7 +137,7 @@ test_that("predict.nnetModel works correctly with formula interface and with mis
 	ran <- sample(1:150,100)
 	## formula, data
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[ran,], model = nnetModel, trace = FALSE, size = 5,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 20))
   	pred <- predict(fit)
   	pred <- predict(fit, out = "posterior")
   	p <- matrix(0, length(pred), 3)
@@ -178,7 +178,7 @@ test_that("predict.nnetModel works with missing classes in the training data", {
 	data(iris)
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:100,], model = nnetModel, trace = FALSE, size = 5,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))					
+		control = mob_control(objfun = deviance, minsplit = 20))
 	# singular
 	pred <- predict(fit, newdata = iris[-ran,])
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")

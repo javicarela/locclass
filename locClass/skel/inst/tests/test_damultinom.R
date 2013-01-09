@@ -27,7 +27,7 @@ test_that("damultinom throws a warning if grouping variable is numeric", {
 
 test_that("dalda: training data from only one class", {
 	data(iris)
-	expect_that(damultinom(Species ~ ., data = iris, bw = 2, subset = 1:50), throws_error("need two or more classes to fit a damultinom model"))
+	expect_that(damultinom(Species ~ ., data = iris, bw = 2, subset = 1:50, trace = FALSE), throws_error("need two or more classes to fit a damultinom model"))
 })
 
 
@@ -125,7 +125,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -135,7 +135,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50), trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -149,7 +149,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -159,7 +159,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50), trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -173,7 +173,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = weights, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -187,7 +187,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -197,7 +197,7 @@ test_that("damultinom: NA handling works correctly", {
 	# check if na.omit works correctly
 	expect_that(fit1 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit, trace = FALSE), gives_warning("group ‘virginica’ is empty"))
 	expect_that(fit2 <- damultinom(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50), trace = FALSE), gives_warning("group ‘virginica’ is empty"))
-	expect_equal(fit1[-c(16, 30)], fit2[-16])
+	expect_equal(fit1[-c(16, 31)], fit2[-16])
 	a <- rep(50, 4)
 	names(a) <- 0:3
 	expect_equal(sapply(fit1$weights, length), a)
@@ -254,7 +254,7 @@ test_that("damultinom: try all weight functions", {
 	fit1 <- damultinom(formula = Species ~ ., data = iris, wf = "cosine", bw = 5, k = 50, trace = FALSE)
 	fit2 <- damultinom(formula = Species ~ ., data = iris, wf = cosine(5, k = 50), trace = FALSE)
 	expect_equal(fit1[-16], fit2[-16])
-	a <- rep(50, 3)
+	a <- c(50, 51, 50)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 })
@@ -264,7 +264,7 @@ test_that("damultinom: local solution with rectangular window function and large
   	library(nnet)
   	fit1 <- multinom(formula = Species ~ ., data = iris, trace = FALSE)
 	fit2 <- damultinom(formula = Species ~ ., data = iris, wf = rectangular(20), trace = FALSE)
-	expect_equal(fit1[-c(16,18)], fit2[-c(16:23,25)])
+	expect_equal(fit1[-c(16,18)], fit2[-c(16:24,26)])
 	expect_equivalent(as.vector(fit1$weights), fit2$weights[[1]])
 })
 

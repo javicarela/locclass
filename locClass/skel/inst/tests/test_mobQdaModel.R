@@ -41,7 +41,7 @@ test_that("multi-class problem", {
 
 test_that("mobQdaModel throws a warning if grouping variable is numeric", {
 	expect_that(fit <- mob(Petal.Width ~ . | Sepal.Length, data = iris, model = qdaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE)), gives_warning("'grouping' was coerced to a factor"))
+		control = mob_control(objfun = deviance, minsplit = 20)), gives_warning("'grouping' was coerced to a factor"))
 	### try-error in estfun.wqda: covariance singular
 })
 
@@ -116,7 +116,7 @@ test_that("predict.qdaModel: retrieving training data works", {
 	## no subset
 	# formula, data
 	fit <- mob(Species ~ . | Sepal.Length, data = iris, model = qdaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))
+		control = mob_control(objfun = deviance, minsplit = 20))
 	## sporadic try-error in deviance.wqda: covariance singular
   	pred1 <- predict(fit)
   	pred2 <- predict(fit, newdata = iris)
@@ -135,7 +135,7 @@ test_that("predict.qdaModel: retrieving training data works", {
 test_that("predict.qdaModel works with missing classes in the training data", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Length, data = iris[1:100,], model = qdaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))					
+		control = mob_control(objfun = deviance, minsplit = 20))
 	pred <- predict(fit, newdata = iris[-ran,])
 	pred <- predict(fit, newdata = iris[-ran,], out = "posterior")
 	# expect_equal(nlevels(pred$class), 3)
@@ -192,7 +192,7 @@ test_that("predict.qdaModel: NA handling in newdata works", {
 test_that("predict.qdaModel: misspecified arguments", {
 	ran <- sample(1:150,100)
 	fit <- mob(Species ~ . | Sepal.Width, data = iris[ran,], model = qdaModel,
-		control = mob_control(objfun = deviance, minsplit = 20, verbose = TRUE))	
+		control = mob_control(objfun = deviance, minsplit = 20))
 	## sporadic try-errors in deviance.wqda: covariance singular
     expect_error(predict(fit, newdata = TRUE))
     expect_error(predict(fit, newdata = -50:50))

@@ -10,7 +10,7 @@ test_that("dalr: misspecified arguments", {
 	expect_error(dalr(formula = iris2, data = iris2, wf = "gaussian", bw = 10))
 	expect_error(dalr(iris2, data = iris2, wf = "gaussian", bw = 10))
 	# target variable also in x
-	expect_error(dalr(Y = iris2$Species, X = iris2, wf = "gaussian", bw = 10))      ## system singular
+	#expect_error(dalr(Y = iris2$Species, X = iris2, wf = "gaussian", bw = 10))      ## system singular
 	expect_warning(dalr(Species ~ Species + Petal.Width, data = iris2, wf = "gaussian", bw = 10))           ## warning, Species on RHS removed
 	# missing x
 	expect_error(dalr(Y = iris2$Species, wf = "gaussian", bw = 10))
