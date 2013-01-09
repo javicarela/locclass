@@ -33,13 +33,13 @@
 SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw, SEXP s_k, SEXP s_method, SEXP s_env)
 {
 	const R_len_t p = ncols(s_test);			// dimensionality
-	const R_len_t N_learn = nrows(s_learn);		// # training observations
+	R_len_t N_learn = nrows(s_learn);			// # training observations
 	const R_len_t N_test = nrows(s_test);		// # test observations
 	const R_len_t K = nlevels(s_grouping);		// # classes
 	double *test = REAL(s_test);				// pointer to test data set
 	double *learn = REAL(s_learn);				// pointer to training data set
 	int *g = INTEGER(s_grouping);				// pointer to class labels
-	const int k = INTEGER(s_k)[0];				// number of nearest neighbors
+	int *k = INTEGER(s_k);						// pointer to number of nearest neighbors
 	const int method = INTEGER(s_method)[0];	// method for scaling the covariance matrices
 	//Rprintf("K: %u\n", K);
 	
@@ -118,7 +118,7 @@ SEXP predosqda(SEXP s_test, SEXP s_learn, SEXP s_grouping, SEXP s_wf, SEXP s_bw,
 			if (isInteger(s_wf)) {
 				// case 1: wf is integer
 				// calculate weights by reading number and calling corresponding C function
-				wf (weights, dist, &N_learn, REAL(s_bw), &k);
+				wf (weights, dist, &N_learn, REAL(s_bw), k);
 			} else if (isFunction(s_wf)) {
 				// case 2: wf is R function
 				// calculate weights by calling R function
