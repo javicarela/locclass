@@ -18,10 +18,10 @@ test_that("mobSvmModel: mlr interface code works", {
 	# mean(pr1$data$truth != pr1$data$response)
 	# predictNode(tr1)
 	
-	lrn <- makeLearner("classif.mobSvmModel", predict.type = "prob", kernel = "linear", minsplit = 200)
+	lrn <- makeLearner("classif.mobSvmModel", predict.type = "prob", kernel = "linear", minsplit = 200, fitted = FALSE)
 	tr1 <- train(lrn, task = task)
 	pr1 <- predict(tr1, task = task)
-	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = svmModel, kernel = "linear", probability = TRUE,
+	tr2 <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = d, model = svmModel, kernel = "linear", fitted = FALSE, probability = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 200))
 	pr2 <- predict(tr2, out = "posterior", newdata = d, probability = TRUE)
 	p = matrix(0, length(pr2), nlevels(d$y))
