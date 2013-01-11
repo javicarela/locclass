@@ -469,9 +469,18 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
 norm.net <- nnet:::norm.net
 
 
-#' @noRd
-# replace small negative eigenvalues by their absolute value
-# FIXME: check that negative eigen values are really small
+#' Computes the root of a symmetric and positive semidefinite matrix.
+#'
+#' Eigenvalues smaller than zero are replaced by the minimum of the smallest positive eigenvalue and their absolute value.
+#' 
+#' @title Root of a Matrix
+#'
+#' @param X A symmetric and positive semidefinite matrix.
+#'
+#' @return A symmetric matrix of same dimension as \code{X}.
+#'
+#' @export
+# FIXME: check that negative eigenvalues are really small
 
 root.matrix <- function (X) {
 	if ((ncol(X) == 1) && (nrow(X) == 1)) 
