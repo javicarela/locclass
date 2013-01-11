@@ -47,165 +47,187 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 			# window functions with infinite support are cut depending on nn.only
 			wfunc <- switch(wf,
         		biweight = function(x) {
-            		ax <- abs(x)
-            		sax <- sort(ax)
-            		bw <- sax[k] + 1e-06
-        			ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+            		weights <- numeric(length(ax))
+    	        	weights[ind] <- 15/16 * (1 - (ax[ind]/bw)^2)^2/bw
+    	        	weights
+					###
             		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-            		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-        			# ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
-            		# ax <- abs(x)
-            		# bw <- sort(ax)[k+1] + .Machine$double.eps
+            		# sax <- sort(ax)
+            		# bw <- sax[k] + 1e-06
         			# ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
         		},
         		cauchy = if (nn.only) {
-        			function(x) {
+	        		function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
-    	        		sax <- sort(ax)
-        	    		bw <- sax[k] + 1e-06
+   		        		sax <- sort(ax)
+       		    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 						ind <- ax < bw
-            			weights <- numeric(length(ax))
-    	        		weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
-        	    		weights
+						untied <- sum(ind)
+						if (untied > k) {
+							indTied <- ax == sax[k]
+							s <- sample(which(indTied), size = untied - k)
+							ind[s] <- FALSE
+						}
+						weights <- numeric(length(ax))
+						weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
+						weights
+						###
 	            		# ax <- abs(x)
-	            		# sax <- unique(sort(ax))
-    	        		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+    	        		# sax <- sort(ax)
+        	    		# bw <- sax[k] + 1e-06
 						# ind <- ax < bw
             			# weights <- numeric(length(ax))
     	        		# weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
         	    		# weights
-	            		# ax <- abs(x)
-            			# ord <- order(ax)
-        	    		# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-            			# weights <- numeric(length(ord))
-    	        		# weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
-        	    		# weights
-        				# ax <- abs(x)
-            			# ord <- order(ax)
-            			# bw <- ax[ord[k+1]] + .Machine$double.eps
-            			# weights <- numeric(length(ord))
-    	        		# weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
-        	    		# weights
         			}
         		} else {
         			function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
     	        		sax <- sort(ax)
-        	    		bw <- sax[k] + 1e-06
+        	    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+
         				1/(pi * (1 + (ax/bw)^2) * bw)        				
+						###
 	            		# ax <- abs(x)
-	            		# sax <- unique(sort(ax))
-	            		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+    	        		# sax <- sort(ax)
+        	    		# bw <- sax[k] + 1e-06
         				# 1/(pi * (1 + (ax/bw)^2) * bw)        				
-        				# bw <- sort(abs(x))[k+1] + .Machine$double.eps
-        				# 1/(pi * (1 + (x/bw)^2) * bw)
         			}
         		},
       		  	cosine = function(x) {
-            		ax <- abs(x)
-   	        		sax <- sort(ax)
-       	    		bw <- sax[k] + 1e-06
-            		ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-            		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-            		# ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
-      		  		# ax <- abs(x)
-            		# bw <- sort(ax)[k+1] + .Machine$double.eps
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+					weights <- numeric(length(ax))
+					weights[ind] <- (1 + cos(pi * ax[ind]/bw))/(2 * bw)
+					weights
+            		###
+            		# ax <- abs(x)
+   	        		# sax <- sort(ax)
+       	    		# bw <- sax[k] + 1e-06
             		# ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
             	},
        		 	epanechnikov = function(x) {
-            		ax <- abs(x)
-   	        		sax <- sort(ax)
-       	    		bw <- sax[k] + 1e-06
-            		ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-            		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-            		# ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+					weights <- numeric(length(ax))
+					weights[ind] <- 3/4 * (1 - (ax[ind]/bw)^2)/bw
+					weights
+					###
             		# ax <- abs(x)
-            		# bw <- sort(ax)[k+1] + .Machine$double.eps
+   	        		# sax <- sort(ax)
+       	    		# bw <- sax[k] + 1e-06
             		# ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
         		},
         		exponential = if (nn.only) {
         			function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
    		        		sax <- sort(ax)
-       		    		bw <- sax[k] + 1e-06
+       		    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 						ind <- ax < bw
+						untied <- sum(ind)
+						if (untied > k) {
+							indTied <- ax == sax[k]
+							s <- sample(which(indTied), size = untied - k)
+							ind[s] <- FALSE
+						}
             			weights <- numeric(length(ax))
         				weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
         				weights
+						###
 	            		# ax <- abs(x)
-	            		# sax <- unique(sort(ax))
-    	        		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+   		        		# sax <- sort(ax)
+       		    		# bw <- sax[k] + 1e-06
 						# ind <- ax < bw
             			# weights <- numeric(length(ax))
         				# weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
         				# weights
-        				# ax <- abs(x)
-        				# ord <- order(ax)
-	            		# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-        				# weights <- numeric(length(ord))
-        				# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
-        				# weights
-        				# ax <- abs(x)
-        				# ord <- order(ax)
-        				# bw <- ax[ord[k+1]] + .Machine$double.eps
-        				# weights <- numeric(length(ord))
-        				# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
-        				# weights
         			}
         		} else {
         			function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
    		        		sax <- sort(ax)
-       		    		bw <- sax[k] + 1e-06
+       		    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
         				0.5 * exp(-ax/bw)/bw
-	      		  		# ax <- abs(x)
-	            		# sax <- unique(sort(ax))
-        	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-        				# 0.5 * exp(-ax/bw)/bw
-            			# ax <- abs(x)
-            			# bw <- sort(ax)[k+1] + .Machine$double.eps
+						###
+	            		# ax <- abs(x)
+   		        		# sax <- sort(ax)
+       		    		# bw <- sax[k] + 1e-06
         				# 0.5 * exp(-ax/bw)/bw
         			}
         		},
         		gaussian = if (nn.only) { ###
         			function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
    		        		sax <- sort(ax)
-       		    		bw <- sax[k] + 1e-06
+       		    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 						ind <- ax < bw
+						untied <- sum(ind)
+						if (untied > k) {
+							indTied <- ax == sax[k]
+							s <- sample(which(indTied), size = untied - k)
+							ind[s] <- FALSE
+						}
             			weights <- numeric(length(ax))
-    	        		weights[ind] <- dnorm(x[ind], sd = bw)
-    	        		weights
+        				weights[ind] <- dnorm(x[ind], sd = bw)
+        				weights
+        				###
 	            		# ax <- abs(x)
-	            		# sax <- unique(sort(ax))
-    	        		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+   		        		# sax <- sort(ax)
+       		    		# bw <- sax[k] + 1e-06
 						# ind <- ax < bw
             			# weights <- numeric(length(ax))
     	        		# weights[ind] <- dnorm(x[ind], sd = bw)
     	        		# weights
-        				# ax <- abs(x)
-        				# ord <- order(ax)
-	            		# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-            			# weights <- numeric(length(ord))
-    	        		# weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
-    	        		# weights
-        				# ax <- abs(x)
-        				# ord <- order(ax)
-        				# bw <- ax[ord[k+1]] + .Machine$double.eps
-            			# weights <- numeric(length(ord))
-    	        		# weights[ord[1:(k+1)]] <- dnorm(x[ord[1:(k+1)]], sd = bw)
-    	        		# weights
         			}
         		} else {
         			function(x) {
+						if (any(x < 0))
+							stop("'x' must be positive")
 	            		ax <- abs(x)
    		        		sax <- sort(ax)
-       		    		bw <- sax[k] + 1e-06
+       		    		bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
         				dnorm(x, sd = bw)
 	      		  		# ax <- abs(x)
 	            		# sax <- unique(sort(ax))
@@ -216,42 +238,69 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
         			}
         		},
         		optcosine = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		bw <- sax[k] + 1e-06
-         	  	 	ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-       	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-         	  	 	# ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
-        			# ax <- abs(x)
-        			# bw <- sort(ax)[k+1] + .Machine$double.eps
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- pi/4 * cos(pi * x[ind]/(2 * bw))/bw
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# bw <- sax[k] + 1e-06
          	  	 	# ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
          	  	},
         		rectangular = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		bw <- sax[k] + 1e-06
-            		ifelse(ax < bw, 0.5/bw, 0)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-       	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-            		# ifelse(ax < bw, 0.5/bw, 0)
-        			# ax <- abs(x)
-        			# bw <- sort(ax)[k+1] + .Machine$double.eps
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- 0.5/bw
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# bw <- sax[k] + 1e-06
             		# ifelse(ax < bw, 0.5/bw, 0)
             	},
        		 	triangular = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		bw <- sax[k] + 1e-06
-           		 	ifelse(ax < bw, (1 - ax/bw)/bw, 0)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-       	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-           		 	# ifelse(ax < bw, (1 - ax/bw)/bw, 0)
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- (1 - ax[ind]/bw)/bw
+       				weights
+					###
             		# ax <- abs(x)
-        			# bw <- sort(ax)[k+1] + .Machine$double.eps
+	        		# sax <- sort(ax)
+   		    		# bw <- sax[k] + 1e-06
            		 	# ifelse(ax < bw, (1 - ax/bw)/bw, 0)
         		})
         	if (wf %in% c("cauchy", "exponential", "gaussian"))
@@ -277,23 +326,49 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 				warning("argument 'nn.only' is ignored")
 			## window functions with fixed bandwidth
 			wfunc <- switch(wf,
-        		biweight = function(x)
-            		ifelse(abs(x) < bw, 15/16 * (1 - (x/bw)^2)^2/bw, 0),
-        		cauchy = function(x) 
-        			1/(pi * (1 + (x/bw)^2) * bw),
-      		  	cosine = function(x)
-            		ifelse(abs(x) < bw, (1 + cos(pi * x/bw))/(2 * bw), 0),
-       		 	epanechnikov = function(x)
-            		ifelse(abs(x) < bw, 3/4 * (1 - (x/bw)^2)/bw, 0),
-        		exponential = function(x)
-        			0.5 * exp(-abs(x)/bw)/bw,
-        		gaussian = function(x) 
-        			dnorm(x, sd = bw),
-        		optcosine = function(x)
-         	  	 	ifelse(abs(x) < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0),
-        		rectangular = function(x)
-            		ifelse(abs(x) < bw, 0.5/bw, 0),
+        		biweight = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
+            		ifelse(abs(x) < bw, 15/16 * (1 - (x/bw)^2)^2/bw, 0)
+            	},
+        		cauchy = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")        			
+        			1/(pi * (1 + (x/bw)^2) * bw)
+        		},
+      		  	cosine = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")      		  		
+            		ifelse(abs(x) < bw, (1 + cos(pi * x/bw))/(2 * bw), 0)
+            	},
+       		 	epanechnikov = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
+            		ifelse(abs(x) < bw, 3/4 * (1 - (x/bw)^2)/bw, 0)
+            	},
+        		exponential = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
+        			0.5 * exp(-abs(x)/bw)/bw
+        		},
+        		gaussian = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")        			
+        			dnorm(x, sd = bw)
+        		},
+        		optcosine = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")        			
+         	  	 	ifelse(abs(x) < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
+         	  	 },
+        		rectangular = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
+            		ifelse(abs(x) < bw, 0.5/bw, 0)
+            	},
        		 	triangular = function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
             		ax <- abs(x)
            		 	ifelse(ax < bw, (1 - ax/bw)/bw, 0)
         		})
@@ -318,191 +393,228 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 			## window functions with fixed bandwidth and nn.only
     		wfunc <- switch(wf,
         		biweight = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
-    	        	weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
         	    	# weights
-	            	# ax <- abs(x)
-            		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 15/16 * (1 - (ax[ord[1:k]]/bw)^2)^2/bw, 0)
-        	    	# weights
         		},
         		cauchy = function(x) {
-            		ax <- x^2
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
-    	        	weights[ind] <- 1/(pi * (1 + ax[ind]/bw^2) * bw)
-        	    	weights
-	            	# ax <- x^2
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
+       				weights
+					###
+            		# ax <- x^2
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
-    	        	# weights[ind] <- 1/(pi * (1 + ax[ind]/bw^2) * bw)
-        	    	# weights
-        			# qx <- x^2
-            		# ord <- order(qx)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- 1/(pi * (1 + qx[ord[1:k]]/bw^2) * bw)
+    	        	# weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
         	    	# weights
         		},
       		  	cosine = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- ifelse(ax[ind] < bw, (1 + cos(pi * x[ind]/bw))/(2 * bw), 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, (1 + cos(pi * x[ind]/bw))/(2 * bw), 0)
         	    	# weights
-      		  		# ax <- abs(x)
-            		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, (1 + cos(pi * x[ord[1:k]]/bw))/(2 * bw), 0)
-        	    	# weights
             	},
        		 	epanechnikov = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- ifelse(ax[ind] < bw, 3/4 * (1 - (ax[ind]/bw)^2)/bw, 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, 3/4 * (1 - (ax[ind]/bw)^2)/bw, 0)
         	    	# weights
-            		# ax <- abs(x)
-       		 		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 3/4 * (1 - (ax[ord[1:k]]/bw)^2)/bw, 0)
-        	    	# weights
         		},
         		exponential = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
         	    	# weights
-        			# ax <- abs(x)
-       		 		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
-        	    	# weights
         		},
         		gaussian = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- dnorm(x[ind], sd = bw)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- dnorm(x[ind], sd = bw)
         	    	# weights
-       		 		# ord <- order(abs(x))
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
-        	    	# weights
         		},
         		optcosine = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- ifelse(ax[ind] < bw, pi/4 * cos(pi * x[ind]/(2 * bw))/bw, 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, pi/4 * cos(pi * x[ind]/(2 * bw))/bw, 0)
         	    	# weights
-        			# ax <- abs(x)
-       		 		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, pi/4 * cos(pi * x[ord[1:k]]/(2 * bw))/bw, 0)
-        	    	# weights
          	  	},
         		rectangular = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- ifelse(ax[ind] < bw, 0.5/bw, 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, 0.5/bw, 0)
         	    	# weights
-        			# ax <- abs(x)
-       		 		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 0.5/bw, 0)
-        	    	# weights
             	},
        		 	triangular = function(x) {
-            		ax <- abs(x)
-	        		sax <- sort(ax)
-   		    		knnbw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+	            	ax <- abs(x)
+   		        	sax <- sort(ax)
+       		    	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < knnbw
-            		weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
     	        	weights[ind] <- ifelse(ax[ind] < bw, (1 - ax[ind]/bw)/bw, 0)
-        	    	weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+       				weights
+					###
+            		# ax <- abs(x)
+	        		# sax <- sort(ax)
+   		    		# knnbw <- sax[k] + 1e-06
 					# ind <- ax < knnbw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- ifelse(ax[ind] < bw, (1 - ax[ind]/bw)/bw, 0)
-        	    	# weights
-            		# ax <- abs(x)
-       		 		# ord <- order(ax)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, (1 - ax[ord[1:k]]/bw)/bw, 0)
         	    	# weights
         		})
         		attributes(wfunc) <- list(name = wf, bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -511,9 +623,9 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 	return(wfunc)
 }
 
-#' The window function generates functions that are used in various local classification methods.
+#' The window functions generating functions that are used in various local classification methods.
 #'
-#' The window function generates functions are used to initialize a window function. These functions can be passed as
+#' These functions are used to initialize window functions that can be passed as
 #' \code{wf} argument to various local classification methods.
 #'
 #' If only \code{bw} is given a window function with fixed bandwidth is returned.
@@ -526,7 +638,7 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #' the \code{k} nearest neighbors.
 #' 
 #' Parts of the source code are based on the function \link[stats]{density} in package \pkg{stats}. Concerning the \code{"cosine"} and \code{"optcosine"} windows, it applies
-#' what is said in the documentation of \link[stats]{density}: \code{"cosine"} is smoother than \code{"optcosine"}, which is the usual 'cosine' kernel in the literature.
+#' the same as for \link[stats]{density}: \code{"cosine"} is smoother than \code{"optcosine"}, which is the usual 'cosine' kernel in the literature.
 #' \code{"cosine"} is the version used by the S programming language.
 #'
 #' @title Generation of Window Functions
@@ -536,39 +648,42 @@ generatewf <- function(wf = c("biweight", "cauchy", "cosine", "epanechnikov", "e
 #' @param nn.only (Logical. Only required for window functions with infinite support.) Should only the k nearest neighbors or all observations receive positive weights? Defaults to \code{TRUE}.
 #'
 #' @return Returns an object of class \code{"function"}. The resulting \code{function} implements the desired window function and depends on one
-#' argument \code{x} that is usually some sort of distance.
+#' argument \code{x} that is usually some sort of distance (and assumed to be positive).
 #' The returned function has several attributes, depending on which arguments are specified.
 #' \describe{
 #'   \item{\code{"name"}}{The name of the window function.}
-#'   \item{\code{"bw"}}{(If corresponding argument is given.) The chosen bandwidth.}
-#' 	 \item{\code{"k"}}{(If corresponding argument is given.) The chosen number of nearest neighbors.}
+#'   \item{\code{"bw"}}{(If the corresponding argument is given.) The chosen bandwidth.}
+#' 	 \item{\code{"k"}}{(If the corresponding argument is given.) The chosen number of nearest neighbors.}
 #'   \item{\code{"nn.only"}}{(Logical. Only if \code{k} was specified.) \code{TRUE} if only the k nearest neighbors are used. 
 #'     (\code{nn.only} is always \code{TRUE} except for window functions with infinite support.)}
 #'   \item{\code{"adaptive"}}{(Logical.) \code{TRUE} in case of an adaptive bandwidth, \code{FALSE} if the bandwidth is fixed.}
 #'	}
 #'
 #'
-#' @seealso Documentation for various local classification methods, e.g. \code{\link{dalda}} or \code{\link{oslda}}, and \link[stats]{density}.
+#' @seealso Documentation of various local classification methods, e.g. \code{\link{dalda}} or \code{\link{oslda}}, and \link[stats]{density}.
 #'
 #' @examples
+#' x <- seq(0,1,0.01)
+#' 
 #' ## fixed bandwidth
 #' gwf <- gaussian(bw = 1)
 #' gwf
+#' curve(gwf(x))
 #'
-#' ## adaptive bandwidth, only the 100 nearest neighbors receive positive weights
-#' gwf <- gaussian(k = 100)
+#' ## adaptive bandwidth, only the 50 nearest neighbors receive positive weights
+#' gwf <- gaussian(k = 50)
 #' gwf
-#' gwf(1:150)
+#' curve(gwf(x))
 #'
 #' ## adaptive bandwidth, all observations have positive weights
-#' gwf <- gaussian(k = 100, nn.only = FALSE)
+#' gwf <- gaussian(k = 50, nn.only = FALSE)
 #' gwf
-#' gwf(1:150)
+#' curve(gwf(x))
 #' 
 #' ## fixed bandwidth, only the 100 nearest neighbors get positive weights
-#' gwf <- gaussian(k = 100, bw = 1)
+#' gwf <- gaussian(k = 50, bw = 1)
 #' gwf
-#' gwf(1:150)
+#' curve(gwf(x))
 #'
 #' @rdname wfs
 #'
@@ -595,17 +710,26 @@ biweight <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
       		bi <- function(x) {
-            	ax <- abs(x)
-            	sax <- sort(ax)
-            	bw <- sax[k] + 1e-06
-        		ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
-           		# ax <- abs(x)
-           		# sax <- unique(sort(ax))
-           		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-       			# ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
-       			# ax <- abs(x)
-       			# bw <- sort(ax)[k+1] + .Machine$double.eps
-   				# ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)  
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+            	weights[ind] <- 15/16 * (1 - (ax[ind]/bw)^2)^2/bw
+            	weights
+				###
+            	# ax <- abs(x)
+            	# sax <- sort(ax)
+            	# bw <- sax[k] + 1e-06
+        		# ifelse(ax < bw, 15/16 * (1 - (ax/bw)^2)^2/bw, 0)
    			}
 		    attributes(bi) <- list(name = "biweight", k = k, nn.only = TRUE, adaptive = TRUE)
 		}
@@ -621,8 +745,11 @@ biweight <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-			bi = function(x)
+			bi = function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
             	ifelse(abs(x) < bw, 15/16 * (1 - (x/bw)^2)^2/bw, 0)
+            }
 		    attributes(bi) <- list(name = "biweight", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -638,24 +765,28 @@ biweight <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
         	bi <- function(x) {
-            	ax <- abs(x)
-            	sax <- sort(ax)
-            	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-            	weights <- numeric(length(ax))
-    	        weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
-        	    weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-    	        # knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+       			weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
+       			weights
+				###
+            	# ax <- abs(x)
+            	# sax <- sort(ax)
+            	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
             	# weights <- numeric(length(ax))
     	        # weights[ind] <- ifelse(ax[ind] < bw, 15/16 * (1 - (ax[ind]/bw)^2)^2/bw, 0)
-        	    # weights
-	            # ax <- abs(x)
-            	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-    	        # weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 15/16 * (1 - (ax[ord[1:k]]/bw)^2)^2/bw, 0)
         	    # weights
         	}
         	attributes(bi) <- list(name = "biweight", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -691,45 +822,42 @@ cauchy <- function(bw, k, nn.only = TRUE) {
 			# window functions with infinite support are cut depending on nn.only
         	if (nn.only) {
         		cau <- function(x) {
-	            	ax <- abs(x)
-    	        	sax <- sort(ax)
-        	    	bw <- sax[k] + 1e-06
+					if (any(x < 0))
+						stop("'x' must be positive")
+		            ax <- abs(x)
+   			        sax <- sort(ax)
+   	    		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < bw
-        	    	weights <- numeric(length(ax))
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+   	        		weights <- numeric(length(ax))
    	        		weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
-       	    		weights
-		            # ax <- abs(x)
-		            # sax <- unique(sort(ax))
-   		 	        # bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+   	    	     	weights
+					###
+	            	# ax <- abs(x)
+    	        	# sax <- sort(ax)
+        	    	# bw <- sax[k] + 1e-06
 					# ind <- ax < bw
         	    	# weights <- numeric(length(ax))
    	        		# weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
        	    		# weights
-            		# ax <- abs(x)
-           			# ord <- order(ax)
-       	    		# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-           			# weights <- numeric(length(ord))
-   	        		# weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
-       	    		# weights
-        			# ax <- abs(x)
-        			# ord <- order(ax)
-        			# bw <- ax[ord[k+1]] + .Machine$double.eps
-        			# weights <- numeric(length(ord))
-        			# weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
-        			# weights
         		}
         	} else {
         		cau <- function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
 	            	ax <- abs(x)
     	        	sax <- sort(ax)
-        	    	bw <- sax[k] + 1e-06
-					1/(pi * (1 + (ax/bw)^2) * bw)
+        	    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+        			1/(pi * (1 + (ax/bw)^2) * bw)        				
+					###
 	            	# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-	            	# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-					# 1/(pi * (1 + (ax/bw)^2) * bw)
-  					# ax <- abs(x)
-       				# bw <- sort(ax)[k+1] + .Machine$double.eps
+    	        	# sax <- sort(ax)
+        	    	# bw <- sax[k] + 1e-06
 					# 1/(pi * (1 + (ax/bw)^2) * bw)
         		}
         	}
@@ -747,8 +875,11 @@ cauchy <- function(bw, k, nn.only = TRUE) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-			cau <- function(x)
+			cau <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
 				1/(pi * (1 + (x/bw)^2) * bw)
+			}
 			attributes(cau) <- list(name = "cauchy", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -764,25 +895,29 @@ cauchy <- function(bw, k, nn.only = TRUE) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
 			cau <- function(x) { 
-            	ax <- abs(x)
-   	        	sax <- sort(ax)
-       	    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-       	    	weights <- numeric(length(ax))
-	       		weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-				# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+       			weights <- numeric(length(ax))
+       			weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
+  				weights
+				###
+            	# ax <- abs(x)
+   	        	# sax <- sort(ax)
+       	    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
        	    	# weights <- numeric(length(ax))
 	       		# weights[ind] <- 1/(pi * (1 + (ax[ind]/bw)^2) * bw)
         		# weights
-				# ax <- abs(x)
-            	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-				# weights[ord[1:k]] <- 1/(pi * (1 + (ax[ord[1:k]]/bw)^2) * bw)
-				# weights
 			}
 			attributes(cau) <- list(name = "cauchy", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
 		}
@@ -814,17 +949,26 @@ cosine <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
     		cosi <- function(x) {
-            	ax <- abs(x)
-   	        	sax <- sort(ax)
-       	    	bw <- sax[k] + 1e-06
-            	ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
-				# ax <- abs(x)
-           		# sax <- unique(sort(ax))
-            	# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+				weights <- numeric(length(ax))
+				weights[ind] <- (1 + cos(pi * ax[ind]/bw))/(2 * bw)
+				weights
+    			###
+            	# ax <- abs(x)
+   	        	# sax <- sort(ax)
+       	    	# bw <- sax[k] + 1e-06
             	# ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
-				# ax <- abs(x)
-       			# bw <- sort(ax)[k+1] + .Machine$double.eps
-        		# ifelse(ax < bw, (1 + cos(pi * ax/bw))/(2 * bw), 0)
     		}    
     		attributes(cosi) <- list(name = "cosine", k = k, nn.only = TRUE, adaptive = TRUE)
 		}
@@ -840,8 +984,11 @@ cosine <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-    		cosi <- function(x)
+    		cosi <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
         		ifelse(abs(x) < bw, (1 + cos(pi * x/bw))/(2 * bw), 0)
+        	}
     		attributes(cosi) <- list(name = "cosine", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -857,24 +1004,28 @@ cosine <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
     		cosi <- function(x) {
-            	ax <- abs(x)
-   	        	sax <- sort(ax)
-       	    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		       	sax <- sort(ax)
+       		   	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-       	    	weights <- numeric(length(ax))
-        		weights[ind] <- ifelse(ax[ind] < bw, (1 + cos(pi * x[ind]/bw))/(2 * bw), 0)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-				# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+         		weights <- numeric(length(ax))
+    	       	weights[ind] <- ifelse(ax[ind] < bw, (1 + cos(pi * x[ind]/bw))/(2 * bw), 0)
+       			weights
+ 				###
+            	# ax <- abs(x)
+   	        	# sax <- sort(ax)
+       	    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
        	    	# weights <- numeric(length(ax))
         		# weights[ind] <- ifelse(ax[ind] < bw, (1 + cos(pi * x[ind]/bw))/(2 * bw), 0)
-        		# weights
-				# ax <- abs(x)
-            	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, (1 + cos(pi * x[ord[1:k]]/bw))/(2 * bw), 0)
         		# weights
     		}    
     		attributes(cosi) <- list(name = "cosine", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -907,16 +1058,25 @@ epanechnikov <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
     		epan <- function(x) {
-            	ax <- abs(x)
-   	        	sax <- sort(ax)
-       	    	bw <- sax[k] + 1e-06
-        		ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
-  		  		# ax <- abs(x)
-         		# sax <- unique(sort(ax))
-        		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-        		# ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
-        		# ax <- abs(x)
-       			# bw <- sort(ax)[k+1] + .Machine$double.eps
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		    bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+				weights <- numeric(length(ax))
+				weights[ind] <- 3/4 * (1 - (ax[ind]/bw)^2)/bw
+				weights
+				###
+            	# ax <- abs(x)
+   	        	# sax <- sort(ax)
+       	    	# bw <- sax[k] + 1e-06
         		# ifelse(ax < bw, 3/4 * (1 - (ax/bw)^2)/bw, 0)
     		}
     		attributes(epan) <- list(name = "epanechnikov", k = k, nn.only = TRUE, adaptive = TRUE)
@@ -933,8 +1093,11 @@ epanechnikov <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-    		epan <- function(x)
+    		epan <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
         		ifelse(abs(x) < bw, 3/4 * (1 - (x/bw)^2)/bw, 0)
+        	}
     		attributes(epan) <- list(name = "epanechnikov", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -950,24 +1113,28 @@ epanechnikov <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
     		epan <- function(x) {
-            	ax <- abs(x)
-   	        	sax <- sort(ax)
-       	    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-       	    	weights <- numeric(length(ax))
-        		weights[ind] <- ifelse(ax[ind] < bw, 3/4 * (1 - (ax[ind]/bw)^2)/bw, 0)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-				# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+       			weights <- numeric(length(ax))
+    	       	weights[ind] <- ifelse(ax[ind] < bw, 3/4 * (1 - (ax[ind]/bw)^2)/bw, 0)
+       			weights
+				###
+            	# ax <- abs(x)
+   	        	# sax <- sort(ax)
+       	    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
        	    	# weights <- numeric(length(ax))
         		# weights[ind] <- ifelse(ax[ind] < bw, 3/4 * (1 - (ax[ind]/bw)^2)/bw, 0)
-        		# weights
-        		# ax <- abs(x)
-            	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 3/4 * (1 - (ax[ord[1:k]]/bw)^2)/bw, 0)
         		# weights
     		}
     		attributes(epan) <- list(name = "epanechnikov", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -1003,45 +1170,42 @@ exponential <- function(bw, k, nn.only = TRUE) {
 			# window functions with infinite support are cut depending on nn.only
         	if (nn.only) {
         		expo <- function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
 	            	ax <- abs(x)
    		        	sax <- sort(ax)
-       		    	bw <- sax[k] + 1e-06
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < bw
-            		weights <- numeric(length(ax))
-        			weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
-        			weights
-	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
+           			weights <- numeric(length(ax))
+       				weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
+       				weights
+					###
+	           		# ax <- abs(x)
+   	        		# sax <- sort(ax)
+   		    		# bw <- sax[k] + 1e-06
 					# ind <- ax < bw
-            		# weights <- numeric(length(ax))
-        			# weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
-        			# weights
-       				# ax <- abs(x)
-       				# ord <- order(ax)
-            		# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-       				# weights <- numeric(length(ord))
-       				# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
+           			# weights <- numeric(length(ax))
+       				# weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
        				# weights
-        			# ax <- abs(x)
-        			# ord <- order(ax)
-        			# bw <- ax[ord[k+1]] + .Machine$double.eps
-        			# weights <- numeric(length(ord))
-        			# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
-        			# weights
         		}
         	} else {
         		expo <- function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
 	            	ax <- abs(x)
    		        	sax <- sort(ax)
-       		    	bw <- sax[k] + 1e-06
-       				0.5 * exp(-ax/bw)/bw
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-       	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-       				# 0.5 * exp(-ax/bw)/bw
-            		# ax <- abs(x)
-            		# bw <- sort(ax)[k+1] + .Machine$double.eps
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+        			0.5 * exp(-ax/bw)/bw
+					###
+	            	# ax <- abs(x)
+   		        	# sax <- sort(ax)
+       		    	# bw <- sax[k] + 1e-06
         			# 0.5 * exp(-ax/bw)/bw
         		}
         	}
@@ -1061,8 +1225,11 @@ exponential <- function(bw, k, nn.only = TRUE) {
 			if (!missing(nn.only))
 				warning("argument 'nn.only' is ignored")
 			## window functions with fixed bandwidth
-			expo <- function(x)
+			expo <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
         		0.5 * exp(-abs(x)/bw)/bw
+        	}
 			attributes(expo) <- list(name = "exponential", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			if (!missing(nn.only))
@@ -1081,24 +1248,28 @@ exponential <- function(bw, k, nn.only = TRUE) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
 			expo <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
 	            ax <- abs(x)
    		        sax <- sort(ax)
-       		    knnbw <- sax[k] + 1e-06
+       		    knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
            		weights <- numeric(length(ax))
-        		weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
-        		weights	
-            	# ax <- abs(x)
-            	# sax <- unique(sort(ax))
-   	        	# knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+    	        weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
+       			weights
+				###
+	            # ax <- abs(x)
+   		        # sax <- sort(ax)
+       		    # knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
            		# weights <- numeric(length(ax))
         		# weights[ind] <- 0.5 * exp(-ax[ind]/bw)/bw
-        		# weights	
-        		# ax <- abs(x)
-            	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- 0.5 * exp(-ax[ord[1:k]]/bw)/bw
         		# weights	
 			}
 			attributes(expo) <- list(name = "exponential", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -1134,43 +1305,43 @@ gaussian <- function(bw, k, nn.only = TRUE) {
 			# window functions with infinite support are cut depending on nn.only
         	if (nn.only) {
         		gauss <- function(x) {###
+					if (any(x < 0))
+						stop("'x' must be positive")
 	            	ax <- abs(x)
    		        	sax <- sort(ax)
-       		    	bw <- sax[k] + 1e-06
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 					ind <- ax < bw
+					untied <- sum(ind)
+					if (untied > k) {
+						indTied <- ax == sax[k]
+						s <- sample(which(indTied), size = untied - k)
+						ind[s] <- FALSE
+					}
             		weights <- numeric(length(ax))
-    	        	weights[ind] <- dnorm(x[ind], sd = bw)
-    	        	weights
+        			weights[ind] <- dnorm(x[ind], sd = bw)
+        			weights
+        			###
 	            	# ax <- abs(x)
-	            	# sax <- unique(sort(ax))
-    	        	# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+   		        	# sax <- sort(ax)
+       		    	# bw <- sax[k] + 1e-06
 					# ind <- ax < bw
             		# weights <- numeric(length(ax))
     	        	# weights[ind] <- dnorm(x[ind], sd = bw)
     	        	# weights
-        			# ax <- abs(x)
-        			# ord <- order(ax)
-	            	# bw <- ax[ord[k]] + min((ax[ord[k+1]] - ax[ord[k]])/2, 1e-06)
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
-    	        	# weights
-        			# ax <- abs(x)
-        			# ord <- order(ax)
-        			# bw <- ax[ord[k+1]] + .Machine$double.eps
-            		# weights <- numeric(length(ord))
-    	        	# weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
-        	    	# weights
         		}
         	} else {
         		gauss <- function(x) {
+					if (any(x < 0))
+						stop("'x' must be positive")
 	            	ax <- abs(x)
    		        	sax <- sort(ax)
-       		    	bw <- sax[k] + 1e-06
-       				dnorm(x, sd = bw)
-      		  		# ax <- abs(x)
-            		# sax <- unique(sort(ax))
-       	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-       				# dnorm(x, sd = bw)
+       		    	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+        			dnorm(x, sd = bw)
+					###
+	      		  	# ax <- abs(x)
+	            	# sax <- unique(sort(ax))
+        	    	# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+        			# dnorm(x, sd = bw)
         			# bw <- sort(abs(x))[k+1] + .Machine$double.eps
         			# dnorm(x, sd = bw)
         		}
@@ -1191,8 +1362,11 @@ gaussian <- function(bw, k, nn.only = TRUE) {
 			if (!missing(nn.only))
 				warning("argument 'nn.only' is ignored")
 			## window functions with fixed bandwidth
-    		gauss <- function(x)
+    		gauss <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
     			dnorm(x, sd = bw)
+    		}
 			attributes(gauss) <- list(name = "gaussian", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			if (!missing(nn.only))
@@ -1211,24 +1385,29 @@ gaussian <- function(bw, k, nn.only = TRUE) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
         	gauss <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		    knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-            	weights <- numeric(length(ax))
-    	        weights[ind] <- dnorm(x[ind], sd = bw)
-        	    weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-    	        # knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+    	       	weights[ind] <- dnorm(x[ind], sd = bw)
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
             	# weights <- numeric(length(ax))
-    	        # weights[ind] <- dnorm(x[ind], sd = bw)
-        	    # weights
-       		 	# ord <- order(abs(x))
-            	# weights <- numeric(length(ord))
-    	        # weights[ord[1:k]] <- dnorm(x[ord[1:k]], sd = bw)
-        	    # weights
+    	       	# weights[ind] <- dnorm(x[ind], sd = bw)
+        	   	# weights
         	}
 			attributes(gauss) <- list(name = "gaussian", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
 		}
@@ -1260,17 +1439,26 @@ optcosine <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
 		    optcos <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	bw <- sax[k] + 1e-06
-          	 	ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
-  		  		# ax <- abs(x)
-         		# sax <- unique(sort(ax))
-       			# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-          	 	# ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
-		    	# ax <- abs(x)
-		    	# bw <- sort(ax)[k+1] + .Machine$double.eps
-        		# ifelse(ax < bw, pi/4 * cos(pi * ax/(2 * bw))/bw, 0)
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+       			weights[ind] <- pi/4 * cos(pi * x[ind]/(2 * bw))/bw
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# bw <- sax[k] + 1e-06
+         	  	# ifelse(ax < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
     		}    
     		attributes(optcos) <- list(name = "optcosine", k = k, nn.only = TRUE, adaptive = TRUE)
 		}
@@ -1286,8 +1474,11 @@ optcosine <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-		    optcos <- function(x)
-        		ifelse(abs(x) < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0) 
+		    optcos <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
+        		ifelse(abs(x) < bw, pi/4 * cos(pi * x/(2 * bw))/bw, 0)
+        	}
     		attributes(optcos) <- list(name = "optcosine", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -1303,24 +1494,28 @@ optcosine <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
 		    optcos <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		    knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-            	weights <- numeric(length(ax))
-        		weights[ind] <- ifelse(ax[ind] < bw, pi/4 * cos(pi * x[ind]/(2 * bw))/bw, 0)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-    	        # knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+    	        weights[ind] <- ifelse(ax[ind] < bw, pi/4 * cos(pi * x[ind]/(2 * bw))/bw, 0)
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
             	# weights <- numeric(length(ax))
         		# weights[ind] <- ifelse(ax[ind] < bw, pi/4 * cos(pi * x[ind]/(2 * bw))/bw, 0)
-        		# weights
-		    	# ax <- abs(x)
-       		 	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, pi/4 * cos(pi * x[ord[1:k]]/(2 * bw))/bw, 0)
         		# weights
     		}    
     		attributes(optcos) <- list(name = "optcosine", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -1353,17 +1548,26 @@ rectangular <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
     		rect <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	bw <- sax[k] + 1e-06
-        		ifelse(ax < bw, 0.5/bw, 0)
-  		  		# ax <- abs(x)
-         		# sax <- unique(sort(ax))
-   	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
-        		# ifelse(ax < bw, 0.5/bw, 0)
-		    	# ax <- abs(x)
-		    	# bw <- sort(ax)[k+1] + .Machine$double.eps
-        		# ifelse(ax < bw, 0.5/bw, 0)
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		       	sax <- sort(ax)
+       		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+       			weights[ind] <- 0.5/bw
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# bw <- sax[k] + 1e-06
+            	# ifelse(ax < bw, 0.5/bw, 0)
     		}    
     		attributes(rect) <- list(name = "rectangular", k = k, nn.only = TRUE, adaptive = TRUE)
 		}
@@ -1379,8 +1583,11 @@ rectangular <- function(bw, k) {
     		stop("'bw' must be positive")
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
-    		rect <- function(x)
+    		rect <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
         		ifelse(abs(x) < bw, 0.5/bw, 0)
+        	}
     		attributes(rect) <- list(name = "rectangular", bw = bw, adaptive = FALSE)
 		} else {			# bw and k given -> fixed bandwidth with nn.only
 			# checks on k
@@ -1396,24 +1603,28 @@ rectangular <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
     		rect <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		    knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-            	weights <- numeric(length(ax))
-        		weights[ind] <- ifelse(ax[ind] < bw, 0.5/bw, 0)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-    	        # knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+    	        weights[ind] <- ifelse(ax[ind] < bw, 0.5/bw, 0)
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
             	# weights <- numeric(length(ax))
         		# weights[ind] <- ifelse(ax[ind] < bw, 0.5/bw, 0)
-        		# weights
-		    	# ax <- abs(x)
-       		 	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, 0.5/bw, 0)
         		# weights
     		}    
     		attributes(rect) <- list(name = "rectangular", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)
@@ -1446,17 +1657,26 @@ triangular <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with adaptive bandwidth
 		    triangle <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	bw <- sax[k] + 1e-06
-       		 	ifelse(ax < bw, (1 - ax/bw)/bw, 0)
- 		  		# ax <- abs(x)
-         		# sax <- unique(sort(ax))
-   	    		# bw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		       	sax <- sort(ax)
+       		   	bw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
+				ind <- ax < bw
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+           		weights <- numeric(length(ax))
+       			weights[ind] <- (1 - ax[ind]/bw)/bw
+       			weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# bw <- sax[k] + 1e-06
        		 	# ifelse(ax < bw, (1 - ax/bw)/bw, 0)
-       			# ax <- abs(x)
-		    	# bw <- sort(ax)[k+1] + .Machine$double.eps
-        		# ifelse(ax < bw, (1 - ax/bw)/bw, 0)
     		}
     		attributes(triangle) <- list(name = "triangular", k = k, nn.only = TRUE, adaptive = TRUE)
 		}
@@ -1473,6 +1693,8 @@ triangular <- function(bw, k) {
 		if (missing(k)) {	# only bw given -> fixed bandwidth, ignore nn.only
 			## window functions with fixed bandwidth
 		    triangle <- function(x) {
+				if (any(x < 0))
+					stop("'x' must be positive")
        			ax <- abs(x)
         		ifelse(ax < bw, (1 - ax/bw)/bw, 0)
     		}
@@ -1491,24 +1713,28 @@ triangular <- function(bw, k) {
 				warning("'k' should be a natural number and is rounded off")
 			## window functions with fixed bandwidth and nn.only
 		    triangle <- function(x) {
-            	ax <- abs(x)
-	        	sax <- sort(ax)
-   		    	knnbw <- sax[k] + 1e-06
+				if (any(x < 0))
+					stop("'x' must be positive")
+	            ax <- abs(x)
+   		        sax <- sort(ax)
+       		    knnbw <- sax[k]/(1 - .Machine$double.neg.eps)   ## => sax[k]/bw = 1 - .Machine$double.neg.eps < 1 => sax[k] gets a small positiv weight
 				ind <- ax < knnbw
-            	weights <- numeric(length(ax))
-        		weights[ind] <- ifelse(ax[ind] < bw, (1 - ax[ind]/bw)/bw, 0)
-        		weights
-	            # ax <- abs(x)
-	            # sax <- unique(sort(ax))
-    	        # knnbw <- sax[k] + min((sax[k+1] - sax[k])/2, 1e-06)
+				untied <- sum(ind)
+				if (untied > k) {
+					indTied <- ax == sax[k]
+					s <- sample(which(indTied), size = untied - k)
+					ind[s] <- FALSE
+				}
+       			weights <- numeric(length(ax))
+            	weights[ind] <- ifelse(ax[ind] < bw, (1 - ax[ind]/bw)/bw, 0)
+   				weights
+				###
+            	# ax <- abs(x)
+	        	# sax <- sort(ax)
+   		    	# knnbw <- sax[k] + 1e-06
 				# ind <- ax < knnbw
             	# weights <- numeric(length(ax))
         		# weights[ind] <- ifelse(ax[ind] < bw, (1 - ax[ind]/bw)/bw, 0)
-        		# weights
-       			# ax <- abs(x)
-       		 	# ord <- order(ax)
-            	# weights <- numeric(length(ord))
-        		# weights[ord[1:k]] <- ifelse(ax[ord[1:k]] < bw, (1 - ax[ord[1:k]]/bw)/bw, 0)
         		# weights
     		}
     		attributes(triangle) <- list(name = "triangular", bw = bw, k = k, nn.only = TRUE, adaptive = FALSE)

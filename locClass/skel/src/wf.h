@@ -1,4 +1,5 @@
-/*  copyright (C) 2011 J. Schiffner
+/*  
+ *	Copyright (C) 2011-2013 J. Schiffner
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +27,11 @@
 #include <R_ext/Lapack.h>
 #include <R_ext/BLAS.h>
 #include <math.h>
+
+
+/* sample */
+
+void sample (int *, int *, int *, int *);
 
 
 /* weight functions */
