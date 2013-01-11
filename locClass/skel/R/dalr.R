@@ -341,7 +341,7 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
         ww[[1]] <- fit$weights
         names(pw[[1]]) <- names(ww[[1]]) <- rownames(X)
 	    for (i in seq_len(itr)) {
-            pw[[i+1]] <- wf(fit$fitted.values - thr) 
+            pw[[i+1]] <- wf(abs(fit$fitted.values - thr))
 			pw[[i+1]] <- pw[[i+1]]/sum(pw[[i+1]]) * n     # rescale weights such that they sum up to n        
             if (all(pw[[i+1]] == 0))
             	stop("all 'weights' are zero")
