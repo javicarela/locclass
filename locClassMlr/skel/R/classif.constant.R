@@ -75,9 +75,9 @@ trainLearner.classif.constant <- function(.learner, .task, .subset,  ...) {
 #' @param .newdata [\code{data.frame}]\cr
 #'   New data to predict. Does not include target column.
 #' @param \dots [any]\cr
-#'   Additional parameters, which need to be passed to the underlying predict function.
-#' @return Either a factor for type \dQuote{response} or a matrix for
-#'   type \dQuote{prob}. In the latter case the columns must be named with the class labels.
+#'   Additional parameters, which need to be passed to the underlying \code{predict} function.
+#' @return Either a factor for type \code{"response"} or a matrix for
+#'   type \code{"prob"}. In the latter case the columns must be named with the class labels.
 #'
 #' @aliases predictLearner predictLearner.classif.constant
 #'
