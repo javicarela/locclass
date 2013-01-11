@@ -19,7 +19,7 @@ test_that("mobMultinomModel: misspecified arguments", {
 })
 
 
-test_that("binary problem", {
+test_that("mobMultinomModel: binary problem", {
 	library(locClassData)
 	data <- vData(500)
 	## decay = 0
@@ -65,7 +65,7 @@ test_that("binary problem", {
 })
 
 
-test_that("multi-class problem", {
+test_that("mobMultinomModel: multi-class problem", {
 	library(locClassData)
 	data <- xor3Data(1000)
 	## decay = 0
@@ -86,8 +86,10 @@ test_that("multi-class problem", {
 	S <- unique(splits)
 	for (s in S) {
 		gr1 <- (delta[,rep(1:2, each = 3)] * cbind(1, data$x)[,rep(1:3, 2)])[splits == s,]
+# print(head(gr1))
 		dimnames(gr1) <- NULL
 		gr2 <- nodes(fit, s)[[1]]$model$gradient[splits == s,]
+# print(head(gr2))
 		expect_equal(gr1, gr2)
 	}
 	## decay > 0
@@ -113,7 +115,9 @@ test_that("multi-class problem", {
 		dimnames(gr1) <- NULL
 		reg <- as.vector(t(2 * decay/sum(weights(model)) * coef(model)))
 		gr1 <- t(t(gr1) + reg)	
+# print(head(gr1))
 		gr2 <- model$gradient[splits == s,]
+# print(head(gr2))
 		expect_equal(gr1, gr2)
 	}	
 })

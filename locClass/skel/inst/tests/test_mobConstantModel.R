@@ -17,7 +17,7 @@ test_that("mobConstantModel: misspecified arguments", {
 })
 
 
-test_that("binary problem", {
+test_that("mobConstantModel: binary problem", {
 	library(locClassData)
 	data <- vData(500)
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = constantModel,
@@ -28,7 +28,7 @@ test_that("binary problem", {
 })
 
 
-test_that("multi-class problem", {
+test_that("mobConstantModel: multi-class problem", {
 	library(locClassData)
 	data <- xor3Data(1000)
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = constantModel,

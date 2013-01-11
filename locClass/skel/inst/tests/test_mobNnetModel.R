@@ -236,7 +236,7 @@ test_that("predict.nnetModel: NA handling in newdata works", {
 	irisna[1:17,1:3] <- NA
 	fit <- mob(Species ~ . | Sepal.Width, data = iris[ran,], model = nnetModel, trace = FALSE, size = 5, decay = 0.1,
 		control = mob_control(objfun = deviance, minsplit = 30))
-	expect_that(pred <- predict(fit, newdata = irisna), throws_error("VECTOR_ELT() can only be applied to a 'list', not a 'NULL'"))
+	expect_error(pred <- predict(fit, newdata = irisna))
 })
 
 

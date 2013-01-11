@@ -130,8 +130,8 @@ test_that("dasvm breaks out of for-loop if only one class is left", {
 test_that("dasvm: subsetting works", {
 	data(iris)
 	# formula, data
-	expect_that(fit1 <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80), gives_warning("some groups are empty"))
-	expect_that(fit2 <- dasvm(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2), gives_warning("some groups are empty"))
+	expect_that(fit1 <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- dasvm(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-1],fit2[-1])
 	a <- rep(1,80)
 	names(a) <- 1:80
@@ -182,8 +182,8 @@ test_that("dasvm: NA handling works correctly", {
 	# na.fail
 	expect_that(dasvm(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- dasvm(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("some groups are empty"))
-	expect_that(fit2 <- dasvm(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("some groups are empty"))
+	expect_that(fit1 <- dasvm(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- dasvm(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	attr(fit1$case.weights, "na.action") <- NULL
 	expect_equal(fit1[-c(1,28)], fit2[-c(1,28)])
 	a <- rep(50, 4)
@@ -761,7 +761,7 @@ test_that("predict.dasvm: retrieving training data works", {
 test_that("predict.dasvm works with missing classes in the training data", {
 	data(iris)
 	ran <- sample(1:150,100)
-	expect_that(fit <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1:100, probability = TRUE), gives_warning("some groups are empty"))
+	expect_that(fit <- dasvm(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1:100, probability = TRUE), gives_warning("group virginica is empty"))
 	pred <- predict(fit, newdata = iris[-ran,-5], probability = TRUE, decision.values = TRUE)
 	expect_equal(nlevels(pred), 3)
 	expect_equal(ncol(attr(pred, "probabilities")), 2)

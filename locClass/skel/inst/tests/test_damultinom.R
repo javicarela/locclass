@@ -254,7 +254,7 @@ test_that("damultinom: try all weight functions", {
 	fit1 <- damultinom(formula = Species ~ ., data = iris, wf = "cosine", bw = 5, k = 50, trace = FALSE)
 	fit2 <- damultinom(formula = Species ~ ., data = iris, wf = cosine(5, k = 50), trace = FALSE)
 	expect_equal(fit1[-16], fit2[-16])
-	a <- c(50, 51, 50)
+	a <- rep(50, 3)
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 })

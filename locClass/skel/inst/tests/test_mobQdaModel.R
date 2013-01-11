@@ -17,7 +17,7 @@ test_that("mobQdaModel: misspecified arguments", {
 })
 
 
-test_that("binary problem", {
+test_that("mobQdaModel: binary problem", {
 	library(locClassData)
 	data <- vData(500)
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = qdaModel,
@@ -28,7 +28,7 @@ test_that("binary problem", {
 })
 
 
-test_that("multi-class problem", {
+test_that("mobQdaModel: multi-class problem", {
 	library(locClassData)
 	data <- xor3Data(1000)
 	fit <- mob(y ~ x.1 + x.2 | x.1 + x.2, data = data, model = qdaModel,
@@ -168,6 +168,7 @@ test_that("predict.qdaModel works with one single test observation", {
 
 
 test_that("predict.qdaModel: NA handling in newdata works", {
+	set.seed(123)
 	## NAs in explanatory variables are ok
 	ran <- sample(1:150,100)
 	irisna <- iris
@@ -184,7 +185,7 @@ test_that("predict.qdaModel: NA handling in newdata works", {
 	fit <- mob(Species ~ . | Sepal.Width, data = iris[ran,], model = qdaModel,
 		control = mob_control(objfun = deviance, minsplit = 30))
 	## sporadic try-errors in deviance.wqda: covariance singular
-	expect_error(pred <- predict(fit, newdata = irisna)) 
+	expect_error(pred <- predict(fit, newdata = irisna))
 	## error: VECTOR_ELT() can only be applied to a 'list', not a 'NULL'
 })
 
