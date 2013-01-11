@@ -7,7 +7,7 @@ makeRLearner.classif.osnnet = function() {
 		package = "locClass",
 		par.set = makeParamSet(
 			makeIntegerLearnerParam(id = "reps", default = 1, lower = 1),
-			makeIntegerLearnerParam(id = "size", default = 3L, lower = 0L, pass.default = TRUE),
+			makeIntegerLearnerParam(id = "size", default = 3L, lower = 0L),
 			# contrasts?
 			makeNumericVectorLearnerParam(id = "Wts"),
 			# makeLogicalVectorLearnerParam(id = "mask"),

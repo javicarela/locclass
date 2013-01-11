@@ -7,7 +7,7 @@ makeRLearner.classif.nnetRep = function() {
 		package = "locClass",
 		par.set = makeParamSet(
 			makeIntegerLearnerParam(id="reps", default=1L, lower=1L),		
-			makeIntegerLearnerParam(id="size", default=3L, lower=0L, pass.default=TRUE),
+			makeIntegerLearnerParam(id="size", default=3L, lower=0L),
 			# contrasts?
 			makeNumericVectorLearnerParam(id = "Wts"),
 			# makeLogicalVectorLearnerParam(id = "mask"),

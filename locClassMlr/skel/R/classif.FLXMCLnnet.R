@@ -23,7 +23,7 @@ makeRLearner.classif.FLXMCLnnet = function() {
 			# contrasts?
 			## nnet
 			makeIntegerLearnerParam(id = "reps", default = 1, lower = 1),
-       	 	makeIntegerLearnerParam(id = "size", default = 3L, lower=0L, pass.default=TRUE),
+       	 	makeIntegerLearnerParam(id = "size", default = 3L, lower=0L),
        	 	makeNumericVectorLearnerParam(id = "Wts"),
        		#makeLogicalVectorLearnerParam(id = "mask"),#???
         	# linout hard coded

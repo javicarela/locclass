@@ -17,7 +17,7 @@ makeRLearner.classif.mobNnetModel = function() {
 			# verbose?
 			## nnet parameters
 			makeIntegerLearnerParam(id = "reps", default = 1, lower = 1),
-   		    makeIntegerLearnerParam(id = "size", default = 3L, lower=0L, pass.default = TRUE),
+   		    makeIntegerLearnerParam(id = "size", default = 3L, lower=0L),
 			# contrasts?
        	 	makeNumericVectorLearnerParam(id = "Wts"),
        		# makeLogicalVectorLearnerParam(id = "mask"),#???
