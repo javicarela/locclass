@@ -522,7 +522,7 @@ function (x,
                 lev <- levels(y)
 ###
     			if (length(lev) == 1L)
-    				stop("training data from only one class")
+    				stop("need training data from at least two classes")
 ###            
                 y <- as.integer(y)
             } else lev <- unique(y)
