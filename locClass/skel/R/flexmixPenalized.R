@@ -32,7 +32,7 @@ setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLsvm"), function(m
 	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
 	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
 	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
-print(reg)
+# print(reg)
 	return(list(lpost = lpost, reg =reg))
 })
 
@@ -49,7 +49,7 @@ setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLmultinom"), funct
 	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
 	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
 	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
-print(reg)
+# print(reg)
 	return(list(lpost = lpost, reg = reg))
 })
 
@@ -68,7 +68,7 @@ setMethod("FLXdeterminePostunscaled", signature(model = "FLXMCLnnet"), function(
 	ll <- lapply(components, function(x) x@logLik(model@x, model@y))
 	lpost <- matrix(sapply(ll, function(x) return(x[["lpost"]])), nrow = nrow(model@y))
 	reg <- sum(sapply(ll, function(x) return(x[["reg"]])))
-print(reg)
+# print(reg)
 	return(list(lpost = lpost, reg = reg))
 })
 
@@ -330,12 +330,12 @@ function(model, concomitant, control, postunscaled=NULL, groups, weights)
         postunscaled <- postunscaled + helper$lpost							# posterior
         reg <- reg + helper$reg												# regularization term, skalar
       }
- cat("postscaled\n")
- print(head(postunscaled))
- cat("reg\n")
- print(head(reg))
- cat("prior\n")
- print(colSums(prior))
+ # cat("postscaled\n")
+ # print(head(postunscaled))
+ # cat("reg\n")
+ # print(head(reg))
+ # cat("prior\n")
+ # print(colSums(prior))
       if(length(group)>0) {
         postunscaled <- groupPosteriors(postunscaled, group)
         #reg <- groupPosteriors(reg, group)									# necessary ???
