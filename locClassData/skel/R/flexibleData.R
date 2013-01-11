@@ -146,7 +146,8 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 			prob <- sapply(1:K, function(k) dmvnorm(muMix[(K+1):centersMix, 1:dUseful, drop = FALSE], mean = muMix[k, 1:dUseful, drop = FALSE]))
 			prob <- prior * prob/rowSums(prior * prob)
 			classes[(K+1):centersMix] <- apply(prob, 1, function(x) sample(1:K, size = 1, prob = x))			
-## FIXME alternative: sample
+## FIXME alternative: sample, entspricht gleichverteilung, jegrößer man die varianz beim nv-ansatz wählt, desto näher kommt man der gleichverteilung...
+## neuer parameter der funktion? im vp?
 #			classes[(K+1):centersMix] <- sample(1:K, size = centersMix-K, replace = TRUE, prob = prior)
 		}
 	} else {												# if dUseful = 0 the class labels of the mixture components are sampled randomly
@@ -173,7 +174,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 
 
 
-#' @param p Either a \code{list} that contains the distribution parameters or a vector of class prior probabilities.
+#' @param p Object where the method dispatch is based on. Either a \code{list} that contains the distribution parameters or a vector of class prior probabilities.
 #' @param \dots Further arguments.
 #'
 #' @rdname flexibleData
