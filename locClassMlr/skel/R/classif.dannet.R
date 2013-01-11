@@ -8,12 +8,13 @@ makeRLearner.classif.dannet = function() {
 		par.set = makeParamSet(
 			## dannet
 			makeDiscreteLearnerParam(id = "wf", default = "biweight", values = c("biweight", "cauchy", "cosine", "epanechnikov", "exponential", "gaussian", "optcosine", "rectangular", "triangular")),
-			makeNumericLearnerParam(id = "bw", lower = 0),
-			makeIntegerLearnerParam(id = "k", lower = 1),
+			makeNumericLearnerParam(id = "bw", lower = 0L),
+			makeIntegerLearnerParam(id = "k", lower = 1L),
           	makeLogicalLearnerParam(id = "nn.only", requires = expression(!missing(k))),
-			makeIntegerLearnerParam(id = "itr", default = 3, lower = 1),
+			makeIntegerLearnerParam(id = "itr", default = 3, lower = 1L),
 			# contrasts?
 			## nnet
+			makeIntegerLearnerParam(id = "reps", default = 1L, lower = 1L),
         	makeIntegerLearnerParam(id = "size", default = 3L, lower=0L, pass.default=TRUE),
         	makeNumericVectorLearnerParam(id = "Wts"),
         	#makeLogicalVectorLearnerParam(id = "mask"),#???
