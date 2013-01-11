@@ -17,7 +17,7 @@
 #' A classifier that always predicts the class with the highest weighted prior probability.
 #'
 #' This function is rather a helper function needed to combine mixture models and recursive partitioning with a constant classifier.
-#' The weighted prior probabilities are calculated as:
+#' The weighted prior probabilities are calculated as
 #' \deqn{p_g = \frac{\sum_{n:y_n=g} w_n}{\sum_n w_n}}{p_g = \sum_{n:y_n=g} w_n/\sum_n w_n}
 #'
 #' @title Constant Classifier
