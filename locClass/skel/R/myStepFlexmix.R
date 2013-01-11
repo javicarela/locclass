@@ -103,7 +103,7 @@ myStepFlexmix <- function (..., cluster, verbose = FALSE, drop = TRUE,
     logLiks <- logLiks[is.finite(sapply(z, logLik)), , drop = FALSE]
     z <- z[is.finite(sapply(z, logLik))]
     rownames(logLiks) <- apply(cluster, 2, function(x) length(unique(x)))
-print(logLiks)
+# print(logLiks)
     if (!length(z)) 
         stop("no convergence to a suitable mixture")
     if (drop & (length(z) == 1)) {
