@@ -7,7 +7,7 @@ test_that("FLXMCLconstant: mlr interface works", {
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
 
 	#### model parameters are passed
-	# centers, kernel, cost, degree, coef0, gamma
+	# centers
 	lrn <- makeLearner("classif.FLXMCLconstant", centers = 9)
 	tr1 <- train(lrn, task)
 	expect_equal(length(tr1$learner.model@components), 9)
