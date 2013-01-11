@@ -8,6 +8,23 @@ test_that("mobNnetModel: mlr interface code works", {
 	d <- as.data.frame(d)
 	task <- makeClassifTask(data = d, target = "y")
 
+	# default: reps = 1
+	lrn <- makeLearner("classif.mobNnetModel", size = 1, minsplit = 200, trace = FALSE)
+	tr1 <- train(lrn, task = task)
+	fit <- tr1$learner.model
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$size, 1)	
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$minsplit, 200)	
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$trace, FALSE)	
+	# reps = 2
+	lrn <- makeLearner("classif.mobNnetModel", size = 1, minsplit = 200, trace = FALSE, reps= 2)
+	tr1 <- train(lrn, task = task)
+	fit <- tr1$learner.model
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$reps, 2)	
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$size, 1)	
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$minsplit, 200)	
+	expect_equal(nodes(fit, max(where(fit)))[[1]]$model$addargs$trace, FALSE)	
+
+	
 	Wts <- runif(5, -0.5, 0.5) 
 	
 	## predict.type = "response"

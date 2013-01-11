@@ -6,6 +6,23 @@ test_that("osnnet: mlr interface works", {
 	# missing parameters
 	lrn <- makeLearner("classif.osnnet")
 	expect_that(train(lrn, task), throws_error("'size' is missing"))
+	
+	# default: reps = 1
+	lrn <- makeLearner("classif.osnnet", size = 2, trace = FALSE, bw = 4, wf = "gaussian")
+	tr1 <- train(lrn, task)
+	expect_equal(tr1$learner.model$n[2], 2)
+	expect_equal(tr1$learner.model$trace, FALSE)
+	expect_equal(tr1$learner.model$bw, 4)
+	expect_equal(tr1$learner.model$wf, "gaussian")
+	expect_equal(tr1$learner.model$reps, 1)	
+	# reps = 2
+	lrn <- makeLearner("classif.osnnet", size = 2, trace = FALSE, bw = 4, wf = "gaussian", reps = 2)
+	tr1 <- train(lrn, task)
+	expect_equal(tr1$learner.model$n[2], 2)
+	expect_equal(tr1$learner.model$trace, FALSE)
+	expect_equal(tr1$learner.model$bw, 4)
+	expect_equal(tr1$learner.model$wf, "gaussian")
+	expect_equal(tr1$learner.model$reps, 2)
 
 	Wts <- runif(19, -0.5, 0.5)
 	
