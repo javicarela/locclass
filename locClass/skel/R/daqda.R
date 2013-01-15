@@ -213,6 +213,9 @@ daqda.default <- function(x, grouping, wf = c("biweight", "cauchy", "cosine", "e
 			# 2. calculate weights and fit model	
 			spost <- apply(post, 1, sort, decreasing = TRUE)
 			weights <- wf((spost[1,] - spost[2,]))    	# largest if both probabilities are equal
+			if (all(weights == 0)) {
+				stop("all observation weights are zero")
+			}
 			# 3. check if break
 			freqs <- tapply(weights, grouping, sum)
 # print(w[[i]])

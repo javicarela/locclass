@@ -260,6 +260,9 @@ function (x,
 			# 2. calculate weights and fit model
 			spost <- apply(post, 1, sort, decreasing = TRUE)
 			weights <- wf((spost[1,] - spost[2,]))    	# largest if both probabilities are equal
+			if (all(weights == 0)) {
+				stop("all observation weights are zero")
+			}
 			weights <- weights/sum(weights) * n			# rescale the weights such that they sum up to n
 			names(weights) <- rownames(x)
 			# 3. check if break		
@@ -305,6 +308,9 @@ function (x,
 				decision <- as.vector(decision)
 				# 2. calculate weights and fit model
 				weights <- wf(abs(decision))    			# largest if decision value = 0
+				if (all(weights == 0)) {
+					stop("all observation weights are zero")
+				}
 				weights <- weights/sum(weights) * n		# rescale the weights such that they sum up to n					
 				names(weights) <- rownames(x)
 				# 3. check if break

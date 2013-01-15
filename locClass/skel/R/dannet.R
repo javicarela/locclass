@@ -336,23 +336,29 @@ dannet.default <- function(x, y, wf = c("biweight", "cauchy", "cosine", "epanech
 			if (any(!is.finite(post)))
 				stop("inifinite, NA or NaN values in 'post', may indiciate numerical problems due to small observation weights, please check your settings of 'bw', 'k' and 'wf'")
 			# 2. calculate weights and fit model
+print(post)
+print(abs(2*as.vector(post) - 1))
 			if (ncol(y) == 1L) {	             		# in this case predict.nnet returns posteriors for only one class
 				weights <- wf(abs(2*as.vector(post) - 1))	# largest if both probabilities are equal
 			} else {
 				spost <- apply(post, 1, sort, decreasing = TRUE)
 				weights <- wf(spost[1,] - spost[2,])    # largest if both probabilities are equal
 			}
+			if (all(weights == 0)) {
+				stop("all observation weights are zero")
+			}
+print(weights)
 			weights <- weights/sum(weights) * ntr     	# rescale weights such that they sum up to ntr
 			names(weights) <- rownames(x)
-# print(weights)			
-# print(y)
+print(weights)			
+print(y)
 # print(ncol(y))
 			# 3. check if break
 			if (ncol(y) == 1L) 
 				freqs <- tapply(weights, y, sum)  
 			else 
 				freqs <- weights %*% y 
-# print(freqs)
+print(freqs)
 			if (any(freqs == 0L))               	# class where all weights are zero
 				warning("for at least one class all weights are zero")
 			if (sum(freqs > 0) <= 1L) { 			# additionally look if only one single class left

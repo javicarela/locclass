@@ -334,6 +334,9 @@ dalr.default <- function(X, Y, thr = 0.5, wf = c("biweight", "cauchy", "cosine",
                 stop(gettextf("number of offsets is %d should equal %d (number of observations)",
                     length(offset), NROW(Y)), domain = NA)
         }
+		if (all(weights == 0)) {
+			stop("all observation weights are zero")
+		}
         weights <- weights/sum(weights) * n     # rescale weights such that they sum up to n
         fit <- glm.fit(x = X, y = Y, weights = weights, family = binomial(), 
             offset = offset, control = control, intercept = intercept, ...)
