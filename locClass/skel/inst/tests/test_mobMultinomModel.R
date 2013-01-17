@@ -90,6 +90,7 @@ test_that("mobMultinomModel: multi-class problem", {
 		dimnames(gr1) <- NULL
 		gr2 <- nodes(fit, s)[[1]]$model$gradient[splits == s,]
 # print(head(gr2))
+# print(nodes(fit, s)[[1]]$model$gr)
 		expect_equal(gr1, gr2)
 	}
 	## decay > 0
@@ -149,7 +150,7 @@ test_that("mobMulitnomModel: Local and global solution coincide if minsplit is l
 		control = mob_control(objfun = deviance, minsplit = 500))
 	w <- multinom(y ~ ., data = as.data.frame(data),  trace = FALSE)
 	expect_equal(fit@tree$model$wts, w$wts)
-	expect_equal(fit@tree$model$fitted.values, w$fitted.values)
+	# expect_equal(fit@tree$model$fitted.values, w$fitted.values)
 	expect_equal(fit@tree$model$deviance, w$deviance)
 	pred <- predict(fit)
 	p <- predict(w, newdata = as.data.frame(data))
@@ -172,53 +173,53 @@ test_that("mobMultinomModel: neural network is set up correctly", {
 	# 2 classes
 	library(mlbench)
 	data(Ionosphere)
-	fit <- mob(Class ~ . | V1, data = Ionosphere[,-2], model = multinomModel, trace = FALSE, Hess = TRUE,
+	fit <- mob(Class ~ . | V1, data = Ionosphere[,-2], model = multinomModel, trace = FALSE, # Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])	
-	m <- multinom(Class ~ . , data = Ionosphere[,-2], trace = FALSE, Hess = TRUE)
+	m <- multinom(Class ~ . , data = Ionosphere[,-2], trace = FALSE)#, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
-	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
-	expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
+	# expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
+	# expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
 	
 	# > 2 classes
 	irisscale <- iris
 	irisscale[,1:4] <- scale(iris[,1:4], sapply(iris[,1:4], min), scale = sapply(iris[,1:4], max) - sapply(iris[,1:4], min))
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE, Hess = TRUE,
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale, model = multinomModel, trace = FALSE, #Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 10))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Species ~ . , data = irisscale, trace = FALSE, Hess = TRUE)
+	m <- multinom(Species ~ . , data = irisscale, trace = FALSE) #, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
-	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
-	expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
+	# expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
+	# expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
 
 	# 1 class missing
-	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[1:100,], model = multinomModel, trace = FALSE, Hess = TRUE,
+	fit <- mob(Species ~ . | Sepal.Length, data = irisscale[1:100,], model = multinomModel, trace = FALSE, #Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Species ~ . , data = irisscale[1:100,], trace = FALSE, Hess = TRUE)
+	m <- multinom(Species ~ . , data = irisscale[1:100,], trace = FALSE) #, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
-	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
-	expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
+	# expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
+	# expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
 
 	## numeric target variable
 	data(Glass)
 	Glassscale <- Glass
 	Glassscale[,1:9] <- scale(Glass[,1:9], sapply(Glass[,1:9], min), scale = sapply(Glass[,1:9], max) - sapply(Glass[,1:9], min))
-	fit <- mob(Type ~ . | ., data = Glassscale, model = multinomModel, trace = FALSE, Hess = TRUE, decay = 0.2,
+	fit <- mob(Type ~ . | ., data = Glassscale, model = multinomModel, trace = FALSE, decay = 0.2, #Hess = TRUE,
 		control = mob_control(objfun = deviance, minsplit = 20))
 	tnodes <- unique(where(fit))
 	term <- nodes(fit, tnodes[1])
-	m <- multinom(Type ~ . , data = Glassscale, trace = FALSE, Hess = TRUE, decay = 0.2)
+	m <- multinom(Type ~ . , data = Glassscale, trace = FALSE, decay = 0.2) #, Hess = TRUE)
 	expect_equal(term[[1]]$model[1:9], m[1:9])
 	expect_equal(term[[1]]$model[c("lev", "rank", "lab", "coefnames", "vcoefnames")], m[c("lev", "rank", "lab", "coefnames", "vcoefnames")])	
-	expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
-	expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
+	# expect_equal(dim(m$Hessian), dim(term[[1]]$model$Hessian))
+	# expect_equal(dimnames(m$Hessian), dimnames(term[[1]]$model$Hessian))
 	
 })
 

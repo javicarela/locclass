@@ -320,13 +320,17 @@ bpass(Sdata *goal, Sdata wx)
 }
 
 void
-VR_dfunc(double *p, double *df, double *fp)
+VR_dfunc(Sint *ntr, Sdata *train, Sdata *weights, double *inwts, Sdata *df, Sdata *fp)
 {
     int   i, j;
     double sum1;
-	
+
+	NTrain = *ntr;
+	TrainIn = train;
+	TrainOut = train + Ninputs * NTrain;
+	Weights = weights;
     for (i = 0; i < Nweights; i++)
-		wts[i] = p[i];
+		wts[i] = inwts[i];
     for (j = 0; j < Nweights; j++)
 		Slopes[j] = 2 * Decay[j] * wts[j];
     TotalError = 0.0;
@@ -338,7 +342,7 @@ VR_dfunc(double *p, double *df, double *fp)
     }
     sum1 = 0.0;
     for (i = 0; i < Nweights; i++)
-		sum1 += Decay[i] * p[i] * p[i];
+		sum1 += Decay[i] * inwts[i] * inwts[i];
     *fp = TotalError + sum1;
     for (j = 0; j < Nweights; j++)
 		df[j] = Slopes[j];
@@ -346,29 +350,48 @@ VR_dfunc(double *p, double *df, double *fp)
 }
 
 
+
 void
-VR_dfunc2(double *p, double *dfn)
+VR_dfunc2(Sint *ntr, Sdata *train, Sdata *weights, double *inwts, Sdata *dfn)
 {
     int   i, j;
+
+	NTrain = *ntr;
+	TrainIn = train;
+	TrainOut = train + Ninputs * NTrain;
+	Weights = weights;
+    for (i = 0; i < Nweights; i++)
+		wts[i] = inwts[i];
 	
-	double sumWeights = 0;			// sum of observation weights
+	double sumWeights = 0.0;			// sum of observation weights
 	for (i = 0; i < NTrain; i++)
 		sumWeights += Weights[i];
-
-// Rprintf("Decay %f\n", Decay[1]);
-
-    for (i = 0; i < Nweights; i++)
-		wts[i] = p[i];
+	
+/*	Rprintf("NTrain %d\n", NTrain);
+	Rprintf("sumWeights: %f\n", sumWeights);
+	if (sumWeights == 0.0) {
+		for (i = 0; i < NTrain; i++) {
+			Rprintf("Weights[%d]: %f\n",i, Weights[i]);
+		}
+	}
+*/
     TotalError = 0.0;
     for (i = 0; i < NTrain; i++) {
-		for (j = 0; j < Nweights; j++)
+		for (j = 0; j < Nweights; j++) {
 			Slopes[j] = Weights[i]/sumWeights * 2 * Decay[j] * wts[j];
-		for (j = 0; j < Noutputs; j++)
+			//Rprintf("Slopes[%d]: %f\n", j, Slopes[j]);
+			//Rprintf("Decay[%d]: %f\n", j, Decay[j]);
+		}
+		for (j = 0; j < Noutputs; j++) {
 			toutputs[j] = TrainOut[i + NTrain * j];
+			//Rprintf("toutputs[%d]: %f\n", j, toutputs[j]);
+		}
 		fpass(TrainIn + i, toutputs, Weights[i], NTrain);
 		bpass(toutputs, Weights[i]);
-		for (j = 0; j < Nweights; j++)
+		for (j = 0; j < Nweights; j++) {
 			dfn[j + Nweights * i] = Slopes[j];
+			//Rprintf("Slopes[%d,%d]: %f\n", i, j, Slopes[j]);	
+		}
     }
     Epoch++;
 }
@@ -387,7 +410,7 @@ fminfn(int nn, double *p, void *dummy)
 		for (j = 0; j < Noutputs; j++)
 			toutputs[j] = TrainOut[i + NTrain * j];
 		fpass(TrainIn + i, toutputs, Weights[i], NTrain);
-    }
+	}
 	
     sum1 = 0.0;
     for (i = 0; i < Nweights; i++)

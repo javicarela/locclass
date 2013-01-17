@@ -16,6 +16,7 @@
 #' @param x An object of class "nnet".
 #' @param weights A vector of observation weights.
 #' @param out Should class labels or posterior probabilities be returned?
+#' @param newdata A \code{data.frame} of cases to be classified.
 #' @param \dots Further arguments (e.g. to \code{\link[nnet]{nnet}} and \code{\link{nnetRep}}).
 #'
 #' @return 
@@ -276,15 +277,15 @@ estfun.nnet <- function(x, ...) {
 #' @method predict nnetModel
 #' @S3method predict nnetModel
 
-predict.nnetModel <- function(object, out = c("class", "posterior"), ...) {
+predict.nnetModel <- function(object, out = c("class", "posterior"), newdata, ...) {
 	out <- match.arg(out)
 	pred <- switch(out,
 		class = {
-			cl <- NextMethod(object, type = "class", ...)
+			cl <- NextMethod(object, type = "class", newdata = newdata, ...)
 			factor(cl, levels = object$lev)	
 		},
 		posterior = {
-			post <- NextMethod(object, type = "raw", ...)
+			post <- NextMethod(object, type = "raw", newdata = newdata, ...)
 			if (ncol(post) == 1) {
 				post = cbind(1 - post, post)
 				colnames(post) <- object$lev
@@ -348,6 +349,42 @@ predict.nnetModel <- function(object, out = c("class", "posterior"), ...) {
     # res$xlevels <- .getXlevels(Terms, m)
     # class(res) <- c("nnet.formula", "nnet")
     # res
+# }
+
+
+# nnetScores <- function (net, x, y, weights)
+# {
+    # x <- as.matrix(x)
+    # y <- as.matrix(y)
+    # if (dim(x)[1L] != dim(y)[1L]) 
+        # stop("dims of 'x' and 'y' must match")
+    # nw <- length(net$wts)
+    # decay <- net$decay
+    # if (length(decay) == 1) 
+        # decay <- rep(decay, nw)
+    # .C(VR_set_net, as.integer(net$n), as.integer(net$nconn), 
+        # as.integer(net$conn), as.double(decay), as.integer(net$nsunits), 
+        # as.integer(net$entropy), as.integer(net$softmax), as.integer(net$censored))
+    # ntr <- dim(x)[1L]
+    # if (missing(weights)) 
+        # weights <- rep(1, ntr)
+    # if (length(weights) != ntr || any(weights < 0)) 
+        # stop("invalid weights vector")
+    # Z <- as.double(cbind(x, y))
+    # storage.mode(weights) <- "double"
+    # # z <- matrix(.C(VR_nnHessian, as.integer(ntr), Z, weights, 
+        # # as.double(net$wts), H = double(nw * nw))$H, nw, nw)
+	# z <- .C("VR_dfunc2", as.integer(ntr), Z, weights, 
+		# as.double(net$wts), dfn = double(nw * ntr))
+	# scores <- matrix(z$dfn, nrow = ntr, byrow = TRUE)[,mask]
+# print(sum(weights))
+# print(head(scores))
+# print(any(!is.finite(scores)))
+	# z <- .C("VR_dfunc", as.integer(ntr), Z, weights, 
+		# as.double(net$wts), df = double(nw), fp = as.double(1))
+	# gr <- z$df
+    # .C(VR_unset_net)
+    # list(scores = scores, gradient = gr)
 # }
 
 
@@ -438,17 +475,19 @@ mynnet.default <- function (x, y, weights, size, Wts, mask = rep(TRUE, length(wt
     net$value <- tmp$val
     net$wts <- tmp$wts
     net$convergence <- tmp$ifail
-    tmp <- matrix(.C("VR_nntest", as.integer(ntr), Z, tclass = double(ntr * 
-        nout), as.double(net$wts))$tclass, ntr, nout)
-    dimnames(tmp) <- list(rownames(x), colnames(y))
-    net$fitted.values <- tmp
-    tmp <- y - tmp
-    dimnames(tmp) <- list(rownames(x), colnames(y))
-    net$residuals <- tmp
-    # z <- .C("VR_nnGradient", as.integer(ntr), Z, weights, as.double(net$wts), dfn = double(length(net$wts) * ntr))
-    z <- .C("VR_dfunc2", as.double(net$wts), dfn = double(length(net$wts) * ntr))
+    # tmp <- matrix(.C("VR_nntest", as.integer(ntr), Z, tclass = double(ntr * 
+        # nout), as.double(net$wts))$tclass, ntr, nout)
+    # dimnames(tmp) <- list(rownames(x), colnames(y))
+    # net$fitted.values <- tmp
+    # tmp <- y - tmp
+    # dimnames(tmp) <- list(rownames(x), colnames(y))
+    # net$residuals <- tmp
+    z <- .C("VR_dfunc2", as.integer(ntr), Z, weights, as.double(net$wts), dfn = double(length(net$wts) * ntr))
 	net$gradient <- matrix(z$dfn, nrow = ntr, byrow = TRUE)[,mask]
-# z <- .C("VR_dfunc", as.double(net$wts), df = double(length(net$wts)), fp = as.double(1))
+# print(sum(weights))
+# print(head(net$gradient))
+# print(any(!is.finite(net$gradient)))
+# z <- .C("VR_dfunc", as.integer(ntr), Z, weights, as.double(net$wts), df = double(length(net$wts)), fp = as.double(1))
 # net$gr <- z$df
     .C("VR_unset_net")
     if (entropy) 
