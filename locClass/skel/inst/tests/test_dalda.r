@@ -110,8 +110,8 @@ test_that("dalda breaks out of for-loop if only one class is left", {
 	expect_equal(length(fit$weights), 4)
 	set.seed(123)
 	expect_that(fit <- dalda(Species ~ ., data = iris, wf = "biweight", bw = 0.9, subset = 51:150), gives_warning("training data from only one group, breaking out of iterative procedure"))
-	expect_equal(fit$itr, 0)
-	expect_equal(length(fit$weights), 1)
+	expect_equal(fit$itr, 2)
+	expect_equal(length(fit$weights), 3)
 })
 #sapply(fit$weights, function(x) return(list(sum(x[1:50]), sum(x[51:100]), sum(x[101:150]))))
 
