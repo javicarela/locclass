@@ -25,6 +25,25 @@ test_that("FLXMCLsvm: mlr interface works", {
 	expect_equal(pars$kernel, 2)
 	expect_equal(pars$gamma, 2)
 
+	## tolerance, toleranceMix
+	# only tolerance
+	lrn <- makeLearner("classif.FLXMCLsvm", centers = 3, kernel = "linear", fitted = FALSE, tolerance = 1e-04)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	expect_equal(tr1$learner.model@control@tolerance, 1e-06)
+	
+	# only toleranceMix
+	lrn <- makeLearner("classif.FLXMCLsvm", centers = 3, kernel = "linear", fitted = FALSE, toleranceMix = 1e-03)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	expect_equal(tr1$learner.model@control@tolerance, 1e-03)
+		
+	# both, tolerance and toleranceMix
+	lrn <- makeLearner("classif.FLXMCLsvm", centers = 3, kernel = "linear", fitted = FALSE, tolerance = 1e-04, toleranceMix = 1e-02)
+	tr1 <- train(lrn, task)
+	expect_equal(length(tr1$learner.model@components), 3)
+	expect_equal(tr1$learner.model@control@tolerance, 1e-02)
+
 	
 	#### multiclass problem
 	data <- xor3Data(500)

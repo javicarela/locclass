@@ -14,7 +14,7 @@ makeRLearner.classif.FLXMCLsvm = function() {
 			## control
 			makeIntegerLearnerParam(id = "iter.max", lower = 1L, default = 200L),						
 			makeNumericLearnerParam(id = "minprior", lower = 0, upper = 1, default = 0.05),
-			makeNumericLearnerParam(id = "tolerance", lower = 0, default = 1e-06),	
+			makeNumericLearnerParam(id = "toleranceMix", lower = 0, default = 1e-06),	
 			makeIntegerLearnerParam(id = "verbose", lower = 0L, default = 0L),						
 			makeDiscreteLearnerParam(id = "classify", values = c("auto", "weighted", "hard", "CEM", "random", "SEM"), default = "auto"),
 			makeIntegerLearnerParam(id = "nrep", lower = 1L, default = 1L),
@@ -29,7 +29,7 @@ makeRLearner.classif.FLXMCLsvm = function() {
 			makeNumericLearnerParam(id = "nu", default = 0.5, requires = expression(type == "nu-classification")),
 			# class.weights ?
 			makeNumericLearnerParam(id = "cachesize", default = 40L),
-			###makeNumericLearnerParam(id = "tolerance", default = 0.001, lower = 0), ## same names
+			makeNumericLearnerParam(id = "tolerance", default = 0.001, lower = 0), ## same name as flexmix control parameter
 			# epsilon not needed for classification
 			makeLogicalLearnerParam(id = "shrinking", default = TRUE),
 			# cross ?
@@ -58,8 +58,10 @@ trainLearner.classif.FLXMCLsvm = function(.learner, .task, .subset,  ...) {
 	f2 = as.formula(paste("~ ", paste(getTaskFeatureNames(.task), collapse = "+")))
 	model = FLXMCLsvm(...)
 	mf = match.call()
-	mcontrol = match(c("iter.max", "minprior", "tolerance", "verbose", "classify", "nrep"), names(mf), 0)
+	mcontrol = match(c("iter.max", "minprior", "toleranceMix", "verbose", "classify", "nrep"), names(mf), 0)
 	mfcontrol = mf[c(1, mcontrol)]
+	ind <- which(names(mfcontrol) == "toleranceMix")
+	names(mfcontrol)[ind] <- "tolerance"
 	mfcontrol[[1]] = as.name("list")
 	control = eval(mfcontrol)
 	mfcontrol$tolerance = 10^(-2)	# FIXME: should not be hard-coded
