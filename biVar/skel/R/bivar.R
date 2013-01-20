@@ -30,6 +30,7 @@
 #' @param posterior (Optional.) Matrix of posterior probabilities, either known or estimated. It is assumed that the columns are ordered according
 #'  to the factor levels of \code{grouping}.
 #' @param ybest Prediction from best fitting model on the whole population. Used for calculation of model bias.
+#' @param \dots Currently unused.
 #'
 #' @return A \code{data.frame} containing the following columns:
 #' \item{error}{Estimated misclassification probability.}
@@ -56,6 +57,10 @@
 #'
 #' @export
 
+bivar <- function(y, ...)
+	UseMethod("bivar")
+	
+
 
 ## todo:
 # methods for other input structures for y:
@@ -64,24 +69,65 @@
 # noise estimation (via knn or other methods)
 # further decomposition for local?
 # extensibility for other loss functions
+# 3. table method?
 
-bivar <- function(y, grouping, ybayes, posterior, ybest = NULL) {
+	
+# bivar.ResamplePrediction <- function(y, ...) {
+	
+	
+# }	
+	
+	
+	
+#' @method bivar data.frame
+#' @S3method bivar data.frame
+#'
+#' @rdname bivar
+
+bivar.data.frame <- function(y, ...) {
+	lev <- levels(y[,1])
+	y <- as.data.frame(t(y))
+	y <- lapply(y, function(x) factor(x, levels = lev))
+	res <- bivar.default(y, ...)
+	return(res)
+}
+
+
+
+# @method bivar list
+# @S3method bivar list
+#
+# @rdname bivar
+
+# bivar.list <- function(y, ...) {
+	# y <- as.data.frame(t(sapply(y, table)))										# distribution of y
+	# res <- bivar.default(y, ...)
+	# return(res)	
+# }
+
+
+#' @method bivar default
+#' @S3method bivar default
+#'
+#' @rdname bivar
+
+bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
     lev <- levels(grouping)
     n <- length(grouping)
     if (length(y) != n)
     	stop("'length(y)' must equal 'length(grouping)'")
-    pred <- as.data.frame(t(sapply(y, table)))         # names?                         # distribution of y
+    pred <- as.data.frame(t(sapply(y, table)))	# distribution of y
     p <- rowSums(pred)
     k <- length(lev)
 #    p <- ncol(y)
 #    pred <- as.data.frame(sapply(lev, function(x) rowSums(y == x)))             		# distribution of y
-    ymain <- factor(max.col(pred, ties.method = "random"), levels= 1:k, labels = lev) 	# main prediction
+    ymain <- factor(max.col(pred, ties.method = "random"), levels = 1:k, labels = lev) 	# main prediction
 #print(ymain)
 	#ymain <- factor(lev[max.col(pred)], levels = lev)    
 	#ymain <- factor(max.col(pred, ties.method = "random"), labels = names(pred), levels = seq(along = pred))         # main prediction
     #ymain <- factor(ymain, levels = lev) ## wieso in 2 schritten? klappt das? lev[max.col()]
 #print(ymain)
-    if(any(names(pred) != lev)) 
+    if (any(names(pred) != lev)) 
     	cat("Warnung: Probleme bei Faktorlevels", "\n", "names(pred): ", names(pred), "\n", "lev: ", lev)#?
 	if (missing(posterior)) {		## use empirical distribution of y
         V <- error <- numeric(n)
