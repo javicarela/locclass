@@ -146,7 +146,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 			prob <- sapply(1:K, function(k) dmvnorm(muMix[(K+1):centersMix, 1:dUseful, drop = FALSE], mean = muMix[k, 1:dUseful, drop = FALSE]))
 			prob <- prior * prob/rowSums(prior * prob)
 			classes[(K+1):centersMix] <- apply(prob, 1, function(x) sample(1:K, size = 1, prob = x))			
-## FIXME alternative: sample, entspricht gleichverteilung, jegrößer man die varianz beim nv-ansatz wählt, desto näher kommt man der gleichverteilung...
+## FIXME alternative: sample, entspricht gleichverteilung, je größer man die varianz beim nv-ansatz wählt, desto näher kommt man der gleichverteilung...
 ## neuer parameter der funktion? im vp?
 #			classes[(K+1):centersMix] <- sample(1:K, size = centersMix-K, replace = TRUE, prob = prior)
 		}
@@ -290,12 +290,12 @@ flexibleDataHelper <- function(prior, K, d, nMix, muMix, sigmaMix, lambdaMix, nO
 	}
 	if (nOther > 0) {														# second distribution
 		nOtherk <- as.vector(rmultinom(1, size = nOther, prob = prior))		# required number of observations in single classes
-print(nOtherk)
+# print(nOtherk)
 		otherDataPool <- otherData <- list()
 		otherDataPool$x <- mixtureData(n = nOther*K, prior = 1, mu = list(muOther), sigma = sigmaOther*diag(d), lambda = lambdaOther)$x
 		otherDataPool$y <- mixtureLabels(otherDataPool$x, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
 		nk <- as.vector(table(otherDataPool$y))
-print(nk)
+# print(nk)
 #print(length(nk) == length(nOtherk))
 		z <- 0
 		while (any(nk < nOtherk)) {		# if there are too few observations from at least one class draw more observations until there are enough
@@ -305,11 +305,11 @@ print(nk)
 			otherDataPool$x <- rbind(otherDataPool$x, xnew)
 			otherDataPool$y <- factor(c(otherDataPool$y, ynew), levels = 1:K)
 			nk <- as.vector(table(otherDataPool$y))
-print(nk)
-bay <- mixtureBayesClass(xnew, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
-print(table(bay))
-
-			if (z == 20) stop("adequate sampling from second distribution not feasible")			
+# print(nk)
+# bay <- mixtureBayesClass(xnew, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
+# print(table(bay))
+			if (z == 20)
+				stop("adequate sampling from second distribution not feasible")			
 		}
 #print(z)
 		indexk <- sapply(1:K, function(k) sample(nk[k], size = nOtherk[k]))		
