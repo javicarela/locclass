@@ -140,7 +140,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 	nOther <- n - nMix										# number of observations from second distribution
 	muMix <- matrix(0, centersMix, d)						# centers for first distribution
 	if (dUseful > 0) {										# determine entries of muMix, otherwise all entries of muMix stay zero
-		muMix[, 1:dUseful] <- runif(centersMix*dUseful, -1, 1)		# sample centers from uniform distribution on [-1,1]
+		muMix[, 1:dUseful] <- runif(centersMix*dUseful, -0.5, 0.5)		# sample centers from uniform distribution on [-0.5,0.5]
 		if (centersMix > K) {						# the first K centers get labels 1:K; if centersMix > K the remaining centers have to be labeled
 			## centers near to each other get a higher probability to belong to the same class
 			prob <- sapply(1:K, function(k) dmvnorm(muMix[(K+1):centersMix, 1:dUseful, drop = FALSE], mean = muMix[k, 1:dUseful, drop = FALSE]))
@@ -155,7 +155,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 			classes[(K+1):centersMix] <- sample(1:K, size = centersMix - K, replace = TRUE)
 	} ## FIXME: does not make much sense because all centers are zero
 	muMix <- lapply(1:K, function(k) muMix[classes == k, , drop = FALSE])	# split muMix according to class labels of centers
-	
+	## function that generates random numbers from Dirichlet distribution
 	f <- function(x) {
 		u <- runif(nrow(x), 0, 1)
 		u <- qexp(u)
@@ -165,7 +165,25 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 # print(lambdaMix)
 
 	if (probMix < 1) {										# determine parameters of second distribution and generate data
-		muOther <- matrix(runif(centersOther*d, -1, 1), centersOther, d)
+		muOther <- matrix(0, centersOther, d)
+		nc <- floor(centersOther * 0.5)
+		muOther[1:nc,] <- matrix(runif(nc*d, -0.25, 0.25), nc, d)
+		muOther[(nc+1):centersOther,] <- matrix(runif((centersOther-nc)*d, -1, 1), centersOther-nc, d)		
+		bayesClassOther <- mixtureLabels(muOther, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
+print(bayesClassOther)	
+		z <- 0
+		while (length(unique(as.numeric(bayesClassOther))) < K) {
+			muOther <- matrix(0, centersOther, d)
+			nc <- floor(centersOther * 0.5)
+			muOther[1:nc,] <- matrix(runif(nc*d, -0.25, 0.25), nc, d)
+			muOther[(nc+1):centersOther,] <- matrix(runif((centersOther-nc)*d, -1, 1), centersOther-nc, d)		
+			bayesClassOther <- mixtureLabels(muOther, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
+print(bayesClassOther)				
+			z <- z + 1
+print(z)
+			if (z > 25)
+				break
+		}
 		return(list(prior = prior, K = K, d = d, dUseless = dUseless, probMix = probMix, nMix = nMix, muMix = muMix, sigmaMix = sigmaMix, lambdaMix = lambdaMix, nOther = nOther, muOther = muOther, sigmaOther = sigmaOther))
 	} else {
 		return(list(prior = prior, K = K, d = d, dUseless = dUseless, probMix = probMix, nMix = nMix, muMix = muMix, sigmaMix = sigmaMix, lambdaMix = lambdaMix, nOther = nOther))
@@ -290,35 +308,49 @@ flexibleDataHelper <- function(prior, K, d, nMix, muMix, sigmaMix, lambdaMix, nO
 	}
 	if (nOther > 0) {														# second distribution
 		nOtherk <- as.vector(rmultinom(1, size = nOther, prob = prior))		# required number of observations in single classes
-# print(nOtherk)
+print("nOtherk")
+print(nOtherk)
 		otherDataPool <- otherData <- list()
 		otherDataPool$x <- mixtureData(n = nOther*K, prior = 1, mu = list(muOther), sigma = sigmaOther*diag(d), lambda = lambdaOther)$x
 		otherDataPool$y <- mixtureLabels(otherDataPool$x, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
 		nk <- as.vector(table(otherDataPool$y))
-# print(nk)
-#print(length(nk) == length(nOtherk))
+print("nk")
+print(nk)
+		bayesClassOther <- mixturePosterior(muOther, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
 		z <- 0
 		while (any(nk < nOtherk)) {		# if there are too few observations from at least one class draw more observations until there are enough
 			z <- z + 1
+			maxk <- which(nk < nOtherk) # classes where observations are missing
+print(maxk)
+			lambdaOther <- rowSums(bayesClassOther[, maxk, drop = FALSE])
+print(lambdaOther)
+			lambdaOther <- lambdaOther/sum(lambdaOther)
 			xnew <- mixtureData(n = nOther, prior = 1, mu = list(muOther), sigma = sigmaOther*diag(d), lambda = lambdaOther)$x
 			ynew <- mixtureLabels(xnew, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
 			otherDataPool$x <- rbind(otherDataPool$x, xnew)
 			otherDataPool$y <- factor(c(otherDataPool$y, ynew), levels = 1:K)
 			nk <- as.vector(table(otherDataPool$y))
-# print(nk)
-# bay <- mixtureBayesClass(xnew, prior = prior, mu = muMix, sigma = lapply(sigmaMix, function(x) x*diag(d)), lambda = lambdaMix)
-# print(table(bay))
-			if (z == 20)
+print("nk")
+print(nk)
+print("nOtherk - nk")
+print(nOtherk - nk)
+			if (z > 25)
 				stop("adequate sampling from second distribution not feasible")			
 		}
-#print(z)
-		indexk <- sapply(1:K, function(k) sample(nk[k], size = nOtherk[k]))		
+print(z)
+		indexk <- lapply(1:K, function(k) sample(nk[k], size = nOtherk[k]))
+print("indexk")		
+print(head(indexk))
 		otherData$x <- do.call("rbind", lapply(1:K, function(k) otherDataPool$x[otherDataPool$y == k,, drop = FALSE][indexk[[k]],,drop=FALSE]))
+print("otherData$x")		
 		otherData$y <- factor(rep(1:K, nOtherk), levels = 1:K) 
+print("otherData$y")		
 	}
 	data <- list()
 	data$x <- rbind(mixData$x, otherData$x)
+print("data$x")		
 	data$y <- factor(c(mixData$y, otherData$y), levels = 1:K)
+print("data$y")		
 	return(data)
 }
 
