@@ -356,7 +356,7 @@ SEXP predossvm (SEXP s_y,
 			}*/
 			
 			/* optionally, compute decision values */
-			if (INTEGER(s_decisionvalues)) {
+			if (INTEGER(s_decisionvalues)[0]) {
 				/* test: dec_vector stays zero of nr_class == 1
 				if (nr_class == 1) {
 					svm_predict_values(model, train[n], dec_vector);
