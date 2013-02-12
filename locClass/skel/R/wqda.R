@@ -192,11 +192,6 @@ wqda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
     if (n != length(grouping)) 
         stop("nrow(x) and length(grouping) are different")
     names(weights) <- rownames(x)
-	# remove all observations with weight 0
-    x <- x[weights > 0, , drop = FALSE]
-    grouping <- grouping[weights > 0]
-    w <- weights[weights > 0]
-    n <- nrow(x)
     if (!is.factor(grouping))
         warning("'grouping' was coerced to a factor")
     g <- as.factor(grouping)
@@ -204,20 +199,28 @@ wqda.default <- function(x, grouping, weights = rep(1, nrow(x)), method = c("unb
     counts <- as.vector(table(g))
     if (any(counts == 0)) {
         empty <- lev[counts == 0]
-        warning(sprintf(ngettext(length(empty), "group %s is empty or weights in this group are all zero", 
-            "groups %s are empty or weights in these groups are all zero"), paste(empty, collapse = ", ")), 
+        warning(sprintf(ngettext(length(empty), "group %s is empty", 
+            "groups %s are empty"), paste(empty, collapse = ", ")), 
             domain = NA)
         lev1 <- lev[counts > 0]
         g <- factor(g, levels = lev1)
         counts <- as.vector(table(g))
     }
-    if (length(lev1) == 1L)
+    if (length(lev1) < 2L)
     	stop("training data from only one group given")
+    names(counts) <- lev1
+	# for fitting remove all observations with weight 0
+	index <- weights > 0
+    x <- x[index, , drop = FALSE]
+    g <- g[index]
+    co <- as.vector(table(g))
+	lev1 <- lev1[co > 0]    
+	g <- factor(g, levels = lev1)	
+    w <- weights[index]
 	method <- match.arg(method)
 	class.weights <- tapply(w, g, sum)
-    prior <- class.weights/sum(w)
+    prior <- c(class.weights/sum(w))
     ng <- length(prior)
-    names(counts) <- lev1
     xwt <- w * x
     center <- t(matrix(sapply(lev1, function(z) colSums(xwt[g == z, , drop = FALSE])), ncol = ng, dimnames = list(colnames(x), lev1)))/as.numeric(class.weights)
 	z <- sqrt(w) * (x - center[g, , drop = FALSE])
