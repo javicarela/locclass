@@ -394,7 +394,7 @@ function (x,
     ## scaling, subsetting, and NA handling
     if (sparse) {
         scale <- rep(FALSE, ncol(x))
-        if(!is.null(y)) na.fail(y)
+        if (!is.null(y)) na.fail(y)
         na.fail(case.weights) #?
         x <- SparseM::t(SparseM::t(x)) ## make sure that col-indices are sorted
     } else {
@@ -501,7 +501,7 @@ function (x,
             		domain = NA)
         		lev1 <- lev[counts > 0]
     		}
-			if (length(lev1) == 1L)
+			if (length(lev1) < 2L)
 				stop("need training data from at least two classes")
 			if (sum(table(y[case.weights != 0]) > 0) <= 1)
 				stop("need training data with positive 'case.weights' from at least two classes")
@@ -521,11 +521,12 @@ function (x,
                 y <- as.factor(y)
                 lev <- levels(y)
 ###
-    			if (length(lev) == 1L)
+    			if (length(lev) < 2L)
     				stop("need training data from at least two classes")
 ###            
                 y <- as.integer(y)
-            } else lev <- unique(y)
+            } else
+            	lev <- unique(y)
         }
 
     nclass <- 2
