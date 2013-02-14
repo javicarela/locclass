@@ -81,10 +81,6 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
 		predict <- function(x) {
 # FIXME: does this work if y originally was a matrix?
 			post <- getS3method("predict", "nnet")(fit, newdata = x)
-# cat("post1\n")			
-# print(post)			
-# print(fit$lev)
-# print(fit$lev1)
 			lev <- fit$lev												# contains all levels
 			ng <- length(lev)
 			if (ncol(post) == 1) {										# 2-class case, length(fit$lev1) == 2
@@ -102,42 +98,60 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
 			}
 		}
 		logLik <- function(x, y) {
-			post <- fitted(fit)		## nrow(post) <= nrow(x) because observations with zero weight are removed for training
-# print(head(post))
-# print(head(y))
-			n <- nrow(x)
-			ll <- rep(-100000, n)
+			post <- fitted(fit)
 			lev <- attr(y, "lev")
 			if (!is.null(lev)) {							# y factor
 				if (ncol(post) == 1) {
 					post <- cbind(1-post, post)
 					colnames(post) <- fit$lev1
 				}
-	    		ng <- length(lev)
-# print(head(post))
-				if (ng > ncol(post)) {
-					l <- rep(0, nrow(post))
-					col.index <- match(y[fit$ind], colnames(post), 0)
-					row.index <- which(col.index > 0)
-					l[row.index] <- post[cbind(row.index, col.index[row.index])]
-				} else {
-					l <- post[cbind(rownames(post), as.character(y[fit$ind]))]
-				}
+				ll <- post[cbind(rownames(post), as.character(y))]
 			} else {										# y matrix
 				if (ncol(post) == 1) {
     				post <- cbind(1-post, post)				# post corresponds to higher factor level
-    				l <- post[cbind(1:n, y[fit$ind] + 1)]	# y in {0,1}; y == 1 iff second level, 0 otherwise
+    				ll <- post[cbind(1:nrow(x), y + 1)]			# y in {0,1}; y == 1 iff second level, 0 otherwise
 				} else {
-    				l <- t(post)[as.logical(t(y[fit$ind,]))]
+    				ll <- t(post)[as.logical(t(y))]
 				}
 			}
-# print(head(post))
-	    	l <- ifelse(l == 0, -10000, log(l))
-	    	ll[fit$ind] <- l
-# print(a <- sum(fit$weights*ll[fit$ind]))
-# print(b <- sum(-fit$decay*fit$wts^2))
-# print(a + b)
+	    	ll <- ifelse(ll == 0, -10000, log(ll))
 	    	return(list(lpost = ll, reg = sum(-fit$decay*fit$wts^2)))
+			# post <- fitted(fit)		## nrow(post) <= nrow(x) because observations with zero weight are removed for training
+# # print(head(post))
+# # print(head(y))
+			# n <- nrow(x)
+			# ll <- rep(-100000, n)
+			# lev <- attr(y, "lev")
+			# if (!is.null(lev)) {							# y factor
+				# if (ncol(post) == 1) {
+					# post <- cbind(1-post, post)
+					# colnames(post) <- fit$lev1
+				# }
+	    		# ng <- length(lev)
+# # print(head(post))
+				# if (ng > ncol(post)) {
+					# l <- rep(0, nrow(post))
+					# col.index <- match(y[fit$ind], colnames(post), 0)
+					# row.index <- which(col.index > 0)
+					# l[row.index] <- post[cbind(row.index, col.index[row.index])]
+				# } else {
+					# l <- post[cbind(rownames(post), as.character(y[fit$ind]))]
+				# }
+			# } else {										# y matrix
+				# if (ncol(post) == 1) {
+    				# post <- cbind(1-post, post)				# post corresponds to higher factor level
+    				# l <- post[cbind(1:n, y[fit$ind] + 1)]	# y in {0,1}; y == 1 iff second level, 0 otherwise
+				# } else {
+    				# l <- t(post)[as.logical(t(y[fit$ind,]))]
+				# }
+			# }
+# # print(head(post))
+	    	# l <- ifelse(l == 0, -10000, log(l))
+	    	# ll[fit$ind] <- l
+# # print(a <- sum(fit$weights*ll[fit$ind]))
+# # print(b <- sum(-fit$decay*fit$wts^2))
+# # print(a + b)
+	    	# return(list(lpost = ll, reg = sum(-fit$decay*fit$wts^2)))
 # cat("y\n", y, "\n")
 # print(head(post))
 # print(head(y))
@@ -168,17 +182,20 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
     	}
     	offset <- attr(x, "offset")
     	lev <- lev1 <- attr(y, "lev")
+# print("weight sum")
+# print(tapply(as.vector(w), factor(y, levels = lev), sum))
+# print(as.vector(w))
     	# remove observations with zero weight
-    	ind <- w > 0
-    	if (length(offset) > 0L) {
-    		if (is.matrix(offset))
-    			offset <- offset[ind,]
-			else
-				offset <- offset[ind]
-    	}
-    	x <- x[ind,]
-   		y <- y[ind,]
-    	w <- w[ind]
+    	# ind <- w > 0
+    	# if (length(offset) > 0L) {
+    		# if (is.matrix(offset))
+    			# offset <- offset[ind,]
+			# else
+				# offset <- offset[ind]
+    	# }
+    	# x <- x[ind,]
+   		# y <- y[ind,]
+    	# w <- w[ind]
     	# 
 		if (!is.null(lev)) {
 			y <- factor(y, levels = lev)
@@ -208,7 +225,7 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
 			# counts <- colSums(y)
 			# remove columns of y and offset belonging to empty classes
 			# stop if only one remains
-			# how asses which are the reamining ones?
+			# how asses which are the remaining ones?
 			p <- ncol(y)	# number of classes
 			sY <- y %*% rep(1, p)
 			if (any(sY == 0)) 
@@ -278,7 +295,7 @@ FLXMCLmultinom <- function(formula = . ~ ., censored = FALSE, ...) {
 			fit$lev <- lev
 			fit$lev1 <- lev1
 		}
-		fit$ind <- ind
+		# fit$ind <- ind
 		fit$mask <- mask
 # fit$weights <- w
 # print(fit$value)

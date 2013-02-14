@@ -102,31 +102,39 @@ FLXMCLnnet <- function(formula = . ~ ., size, reps = 1, skip = FALSE, Wts = NULL
 			return(posterior)
 		}
 		logLik <- function(x, y) {
-			post <- fitted(fit)		## nrow(post) <= nrow(x) because observations with zero weight are removed during fitting
-# print(head(post))
-# print(head(y))
-    		ng <- length(attr(y, "lev"))
+			post <- fitted(fit)
 			if (ncol(post) == 1) {
 				post <- cbind(1-post, post)
 				colnames(post) <- fit$lev1
 			}
-# print(head(post))
-			ll <- rep(-10000, nrow(x))
-    		if (ng > ncol(post)) {
-    			l <- rep(0, nrow(post))
-    			col.index <- match(y[fit$ind], colnames(post), 0)
-    			row.index <- which(col.index > 0)
-    			l[row.index] <- post[cbind(row.index, col.index[row.index])]
-    		} else {
-	    		l <- post[cbind(rownames(post), as.character(y[fit$ind]))]
-	    	}
-# print(head(post))
-	    	l <- ifelse(l == 0, -10000, log(l))
-	    	ll[fit$ind] <- l
-# print(a <- sum(fit$weights * ll[fit$ind]))
-# print(b <- sum(-fit$decay * fit$wts^2))
-# print(a + b)
+			ll <- post[cbind(rownames(post), as.character(y))]
+			ll <- ifelse(ll == 0, -10000, log(ll))
 	    	return(list(lpost = ll, reg = sum(-fit$decay*fit$wts^2)))
+			# post <- fitted(fit)		## nrow(post) <= nrow(x) because observations with zero weight are removed during fitting
+# # print(head(post))
+# # print(head(y))
+    		# ng <- length(attr(y, "lev"))
+			# if (ncol(post) == 1) {
+				# post <- cbind(1-post, post)
+				# colnames(post) <- fit$lev1
+			# }
+# # print(head(post))
+			# ll <- rep(-10000, nrow(x))
+    		# if (ng > ncol(post)) {
+    			# l <- rep(0, nrow(post))
+    			# col.index <- match(y[fit$ind], colnames(post), 0)
+    			# row.index <- which(col.index > 0)
+    			# l[row.index] <- post[cbind(row.index, col.index[row.index])]
+    		# } else {
+	    		# l <- post[cbind(rownames(post), as.character(y[fit$ind]))]
+	    	# }
+# # print(head(post))
+	    	# l <- ifelse(l == 0, -10000, log(l))
+	    	# ll[fit$ind] <- l
+# # print(a <- sum(fit$weights * ll[fit$ind]))
+# # print(b <- sum(-fit$decay * fit$wts^2))
+# # print(a + b)
+	    	# return(list(lpost = ll, reg = sum(-fit$decay*fit$wts^2)))
 		}
 		new("FLXcomponent", parameters = list(wts = fit$wts, softmax = fit$softmax, entropy = fit$entropy, 
 			decay = fit$decay, n = fit$n, censored = fit$censored, reps = fit$reps), logLik = logLik, predict = predict, df = fit$df)
@@ -151,11 +159,13 @@ FLXMCLnnet <- function(formula = . ~ ., size, reps = 1, skip = FALSE, Wts = NULL
     	# coerce y to a factor
        	lev <- lev1 <- attr(y, "lev")
 		y <- factor(y, levels = lev)
+# print("weight sum")
+# print(tapply(as.vector(w), factor(y, levels = lev), sum))
 		# remove observations with zero weight
-		ind <- w > 0
-		y <- y[ind]
-		x <- x[ind,,drop = FALSE]
-		w <- w[ind]
+		# ind <- w > 0
+		# y <- y[ind]
+		# x <- x[ind,,drop = FALSE]
+		# w <- w[ind]
 		# are classes missing?
        	counts <- table(y)
 		if (any(counts == 0L)) {
@@ -230,7 +240,7 @@ FLXMCLnnet <- function(formula = . ~ ., size, reps = 1, skip = FALSE, Wts = NULL
 # print(lev1)
     	fit$lev <- lev				## contains all levels
     	fit$lev1 <- lev1			## contains present levels
-    	fit$ind <- ind				## logical, indicating if w > 0
+    	# fit$ind <- ind				## logical, indicating if w > 0
 		fit$df <- length(fit$wts)
 		fit$reps <- reps
 # fit$weights <- w
