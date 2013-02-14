@@ -60,8 +60,8 @@ test_that("mobLdaModel throws a warning if grouping variable is numeric", {
 
 
 test_that("mobLdaModel works if only one predictor variable is given", {
-	expect_warning(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = ldaModel,
-		control = mob_control(objfun = deviance, minsplit = 20)))
+	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = ldaModel,
+		control = mob_control(objfun = deviance, minsplit = 20))
 	## warnings about empty classes in some nodes
 	terminal <- nodes(fit, max(where(fit)))
 	expect_equal(ncol(terminal[[1]]$model$means), 1)

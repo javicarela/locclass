@@ -97,7 +97,7 @@ test_that("FLXMCLlda: missing classes in individual clusters", {
 	data(Glass)
 	set.seed(120)
 	cluster <- kmeans(Glass[,1:9], centers = 2)$cluster
-	expect_that(fit <- flexmix(Type ~ ., data = Glass, model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("groups 1, 3 are empty or weights in these groups are all zero"))
+	fit <- flexmix(Type ~ ., data = Glass, model = FLXMCLlda(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
 	expect_equal(rownames(fit@components$Comp.1[[1]]@parameters$means), as.character(c(1:3,5:7)))
 	expect_equal(names(fit@components$Comp.1[[1]]@parameters$prior), as.character(c(1:3,5:7)))
 	expect_equal(rownames(fit@components$Comp.2[[1]]@parameters$means), as.character(c(2,5:7)))

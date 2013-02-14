@@ -47,8 +47,8 @@ test_that("mobQdaModel throws a warning if grouping variable is numeric", {
 
 
 test_that("mobQdaModel works if only one predictor variable is given", {
-	expect_warning(fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = qdaModel,
-		control = mob_control(objfun = deviance, minsplit = 50)))
+	fit <- mob(Species ~ Sepal.Width | Sepal.Length, data = iris, model = qdaModel,
+		control = mob_control(objfun = deviance, minsplit = 50))
 	## warnings about empty groups
 	## sporadic try-errors in deviance.wqda: covariance singular
 	terminal <- nodes(fit, max(where(fit)))

@@ -71,7 +71,7 @@ test_that("daqda: initial weighting works correctly", {
 	expect_equal(fit1$weights, fit2$weights)
 	## weights and subsetting
 	# formula, data
-	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 11:60), gives_warning("group virginica is empty"))
 	a <- rep(1,50)
 	names(a) <- 11:60
 	expect_equal(fit$weights[[1]], a)
@@ -79,15 +79,15 @@ test_that("daqda: initial weighting works correctly", {
 	a <- rep(1:3,50)[11:60]
 	a <- a/sum(a) * length(a)
 	names(a) <- 11:60
-	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, weights = rep(1:3, 50), subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, weights = rep(1:3, 50), subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit$weights[[1]], a)
 	# x, grouping
-	expect_that(fit <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, subset = 11:60), gives_warning("group virginica is empty"))
 	a <- rep(1,50)
 	names(a) <- 11:60
 	expect_equal(fit$weights[[1]], a)	
 	# x, grouping, weights
-	expect_that(fit <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, weights = rep(1:3, 50), subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 2, weights = rep(1:3, 50), subset = 11:60), gives_warning("group virginica is empty"))
 	a <- rep(1:3,50)[11:60]
 	a <- a/sum(a) * length(a)
 	names(a) <- 11:60
@@ -104,7 +104,7 @@ test_that("daqda: initial weighting works correctly", {
 
 
 test_that("daqda breaks out of for-loop if only one class is left", {
-	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 4, k = 10), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 4, k = 10), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit$itr, 3)
 	expect_equal(length(fit$weights), 4)
 	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", k = 3, subset = 1:100), gives_warning("training data from only one group, breaking out of iterative procedure"))
@@ -117,15 +117,15 @@ test_that("daqda breaks out of for-loop if only one class is left", {
 test_that("daqda: subsetting works", {
 	data(iris)
 	# formula, data
-	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = iris[1:80,], wf = "gaussian", bw = 2), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(1,80)
 	names(a) <- 1:80
 	expect_equal(fit1$weights[[1]], a)
 	# formula, data, weights
-	expect_that(fit1 <- daqda(Species ~ ., data = iris, weights = rep(1:3, each = 50), wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = iris[1:80,], weights = rep(1:3, each = 50)[1:80], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = iris, weights = rep(1:3, each = 50), wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = iris[1:80,], weights = rep(1:3, each = 50)[1:80], wf = "gaussian", bw = 2), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(80, 4)
 	names(a) <- 0:3
@@ -135,15 +135,15 @@ test_that("daqda: subsetting works", {
 	names(b) <- 1:80
 	expect_equal(fit1$weights[[1]], b)
 	# x, grouping
-	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, subset = 1:80), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(1,80)
 	names(a) <- 1:80
 	expect_equal(fit1$weights[[1]], a)
 	# x, grouping, weights
-	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50), subset = 1:80), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50)[1:80]), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50), subset = 1:80), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = iris$Species[1:80], x = iris[1:80,-5], wf = "gaussian", bw = 2, weights = rep(1:3, each = 50)[1:80]), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(80, 4)
 	names(a) <- 0:3
@@ -169,8 +169,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -179,8 +179,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -190,8 +190,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -200,8 +200,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -214,8 +214,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -224,8 +224,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = irisna, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -234,8 +234,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -244,8 +244,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = irisna$Species, x = irisna[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -258,8 +258,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -268,8 +268,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 6:60, weights = weights, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = weights), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -282,8 +282,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -292,8 +292,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-c(9, 18)], fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -302,8 +302,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -312,8 +312,8 @@ test_that("daqda: NA handling works correctly", {
 	# na.fail
 	expect_that(daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.fail), throws_error("missing values in object"))
 	# check if na.omit works correctly
-	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = subset, weights = rep(1:3, 50), na.action = na.omit), gives_warning("group virginica is empty"))
+	expect_that(fit2 <- daqda(grouping = iris$Species, x = iris[,-5], wf = "gaussian", bw = 10, subset = 11:60, weights = rep(1:3, 50)), gives_warning("group virginica is empty"))
 	expect_equal(fit1[-9],fit2[-9])
 	a <- rep(50, 4)
 	names(a) <- 0:3
@@ -330,10 +330,10 @@ test_that("daqda: try all weight functions", {
 	expect_equal(fit3[-9], fit4[-9])
 	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
 	
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5, k = 80)), gives_warning("group setosa is empty or weights in this group are all zero"))   
-	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 0.5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))    
-	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = gaussian(0.5, 80)), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 0.5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(bw = 0.5, k = 80)), gives_warning("for at least one class all weights are zero"))   
+	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "gaussian", bw = 0.5, k = 80), gives_warning("for at least one class all weights are zero"))    
+	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = gaussian(0.5, 80)), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit3[-9], fit4[-9])
 	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
@@ -352,10 +352,10 @@ test_that("daqda: try all weight functions", {
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 80)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "rectangular", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = rectangular(5, 80)), gives_warning("group setosa is empty or weights in this group are all zero"))    
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 80)), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "rectangular", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = rectangular(5, 80)), gives_warning("for at least one class all weights are zero"))    
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit3[-9], fit4[-9])
 	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
@@ -374,10 +374,10 @@ test_that("daqda: try all weight functions", {
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "biweight", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = biweight(5, k = 80)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "biweight", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = biweight(5, 80)), gives_warning("group setosa is empty or weights in this group are all zero"))    
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "biweight", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = biweight(5, k = 80)), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "biweight", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = biweight(5, 80)), gives_warning("for at least one class all weights are zero"))    
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit3[-9], fit4[-9])
 	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
@@ -396,10 +396,10 @@ test_that("daqda: try all weight functions", {
 	names(a) <- 1:3
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "cosine", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = cosine(5, k = 80)), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "cosine", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = cosine(5, 80)), gives_warning("group setosa is empty or weights in this group are all zero"))   
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "cosine", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = cosine(5, k = 80)), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit3 <- daqda(x = iris[,-5], grouping = iris$Species, wf = "cosine", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit4 <- daqda(x = iris[,-5], grouping = iris$Species, wf = cosine(5, 80)), gives_warning("for at least one class all weights are zero"))   
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit3[-9], fit4[-9])
 	expect_equal(fit2[c(1:8,10:15)], fit4[c(1:8,10:15)])
@@ -488,8 +488,8 @@ test_that("daqda: weighting schemes work", {
 	expect_true(!fit1$adaptive)
 
 	# adaptive bw, only knn 
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", k = 50), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(k = 50)), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
@@ -501,8 +501,8 @@ test_that("daqda: weighting schemes work", {
 	expect_equal(sapply(fit1$weights[2:4], function(x) sum(x > 0)), a)
 
 	# fixed bw, only knn
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 80), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 80)), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "rectangular", bw = 5, k = 80), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = rectangular(bw = 5, k = 80)), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 5)
 	expect_equal(fit1$k, 80)
@@ -532,8 +532,8 @@ test_that("daqda: weighting schemes work", {
 	expect_equal(sapply(fit1$weights, function(x) sum(x > 0)), a)
 
 	# adaptive bw, only knn
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", k = 50), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(k = 50)), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, NULL)
 	expect_equal(fit1$k, 50)
@@ -556,8 +556,8 @@ test_that("daqda: weighting schemes work", {
 	expect_equal(sapply(fit1$weights, function(x) sum(x > 0)), a)
 
 	# fixed bw, only knn
-	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 1, k = 50), gives_warning("group setosa is empty or weights in this group are all zero"))
-	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(bw = 1, k = 50)), gives_warning("group setosa is empty or weights in this group are all zero"))
+	expect_that(fit1 <- daqda(formula = Species ~ ., data = iris, wf = "gaussian", bw = 1, k = 50), gives_warning("for at least one class all weights are zero"))
+	expect_that(fit2 <- daqda(formula = Species ~ ., data = iris, wf = gaussian(bw = 1, k = 50)), gives_warning("for at least one class all weights are zero"))
 	expect_equal(fit1[-9], fit2[-9])
 	expect_equal(fit1$bw, 1)
 	expect_equal(fit1$k, 50)
@@ -632,7 +632,7 @@ test_that("predict.daqda: retrieving training data works", {
 test_that("predict.daqda works with missing classes in the training data", {
 	data(iris)
 	ran <- sample(1:150,100)
-	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1:100), gives_warning("group virginica is empty or weights in this group are all zero"))
+	expect_that(fit <- daqda(Species ~ ., data = iris, wf = "gaussian", bw = 10, subset = 1:100), gives_warning("group virginica is empty"))
 	expect_equal(length(fit$prior), 2)
 	a <- rep(50, 2)
 	names(a) <- names(fit$counts)

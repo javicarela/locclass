@@ -104,8 +104,8 @@ test_that("FLXMCLmultinom ist set up correctly", {
 	expect_equal(fit@components$Comp.2[[1]]@parameters$softmax, m$softmax)
 	expect_equal(fit@components$Comp.2[[1]]@parameters$entropy, m$entropy)
 	expect_true(all(m$wts[!fit@components$Comp.2[[1]]@parameters$mask] == 0))
-	expect_equal(fit@components$Comp.1[[1]]@parameters$softmax, FALSE)	# since in component 1 a class is missing
-	expect_equal(fit@components$Comp.1[[1]]@parameters$entropy, TRUE)
+	expect_true(fit@components$Comp.1[[1]]@parameters$softmax)
+	expect_true(!fit@components$Comp.1[[1]]@parameters$entropy)
 	
 	## > 2 classes, numeric target variable
 	iris$Species <- as.numeric(iris$Species)
@@ -120,8 +120,8 @@ test_that("FLXMCLmultinom ist set up correctly", {
 	expect_equal(fit@components$Comp.2[[1]]@parameters$softmax, m$softmax)
 	expect_equal(fit@components$Comp.2[[1]]@parameters$entropy, m$entropy)
 	expect_true(all(m$wts[!fit@components$Comp.1[[1]]@parameters$mask] == 0))
-	expect_equal(fit@components$Comp.1[[1]]@parameters$softmax, FALSE)	# since in component 1 a class is missing
-	expect_equal(fit@components$Comp.1[[1]]@parameters$entropy, TRUE)
+	expect_true(fit@components$Comp.1[[1]]@parameters$softmax)
+	expect_true(!fit@components$Comp.1[[1]]@parameters$entropy)
 })
 
 
@@ -152,11 +152,11 @@ test_that("FLXMCLmultinom: missing classes in individual clusters", {
 	data(Glass)
 	set.seed(120)
 	cluster <- kmeans(Glass[,1:9], centers = 2)$cluster
-	expect_that(fit <- flexmix(Type ~ ., data = Glass, concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLmultinom(trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard")), gives_warning("groups ‘1’ ‘3’ are empty"))
+	fit <- flexmix(Type ~ ., data = Glass, concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLmultinom(trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
 	pred <- mypredict(fit, aggregate = FALSE)
 	expect_equal(colnames(pred$Comp.1), as.character(c(1:3,5:7)))
 	expect_equal(colnames(pred$Comp.2), as.character(c(1:3,5:7)))
-	expect_true(all(pred$Comp.2[,c(1,3)] == 0))
+	expect_equal(pred$Comp.2[,c(1,3)], matrix(0, nrow(pred$Comp.2), 2, dimnames = dimnames(pred$Comp.2[,c(1,3)])))
 })
 
 

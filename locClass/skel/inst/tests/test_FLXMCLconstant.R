@@ -70,14 +70,16 @@ test_that("FLXMCLconstant: Local and global solution coincide if only one cluste
 
 test_that("FLXMCLconstant: training data from only one class", {
 	cluster <- kmeans(iris[1:50,1:4], centers = 3)$cluster
-	fit <- flexmix(Species ~ Sepal.Width + Sepal.Length, data = iris[1:50,], concomitant = FLXPmultinom(~ Sepal.Width + Sepal.Length), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
-	## no error since constant model
+	expect_that(fit <- flexmix(Species ~ Sepal.Width + Sepal.Length, data = iris[1:50,], concomitant = FLXPmultinom(~ Sepal.Width + Sepal.Length), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard")), throws_error("training data from only one group given"))
 })
 
 
 test_that("FLXMCLconstant: missing classes in clusters", {
+	set.seed(123)
 	cluster <- kmeans(iris[,1:4], centers = 3)$cluster
-	expect_warning(tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard")))
+	tr2 <- flexmix(Species ~ ., data = iris, concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(iris)[1:4], collapse = "+")))), model = FLXMCLconstant(), cluster = cluster, control = list(iter.max = 200, classify = "hard"))
+	expect_equal(tr2@components$Comp.1[[1]]@parameters$prior, c(setosa = 1))
+	expect_equal(tr2@components$Comp.2[[1]]@parameters$prior, c(virginica = 1))
 	pred1 <- mypredict(tr2, aggregate = FALSE)
 })
 

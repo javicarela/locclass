@@ -174,11 +174,11 @@ test_that("FLXMCLnnet: missing classes in individual clusters", {
 	Glass[,1:9] <- scale(Glass[,1:9])
 	set.seed(120)
 	cluster <- kmeans(Glass[-c(177:182),1:9], centers = 2)$cluster
-	expect_that(fit <- flexmix(Type ~ Na, data = Glass[-c(177:182),], concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.01, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1)), gives_warning("groups 1 3 are empty"))
+	fit <- flexmix(Type ~ Na, data = Glass[-c(177:182),], concomitant = FLXPmultinom(as.formula(paste("~", paste(colnames(Glass)[1:9], collapse = "+")))), model = FLXMCLnnet(size = 1, reps = 5, decay = 0.01, trace = FALSE), cluster = cluster, control = list(iter.max = 200, classify = "hard", verb = 1))
 	pred <- mypredict(fit, aggregate = FALSE)
 	expect_equal(colnames(pred$Comp.1), as.character(c(1:3,5:7)))
 	expect_equal(colnames(pred$Comp.2), as.character(c(1:3,5:7)))
-	expect_true(all(pred$Comp.1[,c(1,3)] == 0))
+	expect_true(all(pred$Comp.1[,c(1,3)] < 0.01))
 })
 
 
