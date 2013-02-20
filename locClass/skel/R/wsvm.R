@@ -503,8 +503,8 @@ function (x,
     		}
 			if (length(lev1) < 2L)
 				stop("need training data from at least two classes")
-			if (sum(table(y[case.weights != 0]) > 0) <= 1)
-				stop("need training data with positive 'case.weights' from at least two classes")
+			# if (sum(table(y[case.weights != 0]) > 0) <= 1)
+				# stop("need training data with positive 'case.weights' from at least two classes")
 ###            
             y <- as.integer(y)
             if (!is.null(class.weights)) {
@@ -795,8 +795,8 @@ function (object, newdata,
     if (missing(newdata))
         return(fitted(object))
 
-    if (object$tot.nSV < 1)
-        stop("Model is empty!")
+    # if (object$tot.nSV < 1)
+        # stop("Model is empty!")
 
 
     if(inherits(newdata, "Matrix")) {
@@ -911,19 +911,23 @@ function (object, newdata,
     ret2 <- napredict(act, ret2)
 
     if (decision.values) {
-        colns = c()
-        for (i in 1:(object$nclasses - 1))
-            for (j in (i + 1):object$nclasses)
-                colns <- c(colns,
-                           paste(object$levels[object$labels[i]],
-                                 "/", object$levels[object$labels[j]],
-                                 sep = ""))
-        attr(ret2, "decision.values") <-
-            napredict(act,
-                      matrix(ret$dec, nrow = nrow(newdata), byrow = TRUE,
-                             dimnames = list(rowns, colns)
-                             )
-                      )
+	    if (length(ret$dec) == 0) {
+	        attr(ret2, "decision.values") <- NA
+    	} else {
+	        colns = c()
+    	    for (i in 1:(object$nclasses - 1))
+        	    for (j in (i + 1):object$nclasses)
+            	    colns <- c(colns,
+                	           paste(object$levels[object$labels[i]],
+                    	             "/", object$levels[object$labels[j]],
+                        	         sep = ""))
+	        attr(ret2, "decision.values") <-
+    	        napredict(act,
+        	              matrix(ret$dec, nrow = nrow(newdata), byrow = TRUE,
+            	                 dimnames = list(rowns, colns)
+                	             )
+                    	  )
+		}
     }
 
     if (probability && object$type < 2)
