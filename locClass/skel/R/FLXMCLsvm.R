@@ -97,26 +97,33 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 	z@defineComponent <- expression({
 		predict <- function(x) {
 			## returns class membership values, these are not scaled and need not sum to unity
+			nl <- length(fit$labels)						# number of present classes
 			lev <- fit$levels
 			ng <- length(lev)								# number of classes
-			nl <- length(fit$labels)						# number of present classes
 			naidx <- apply(x, 1, function(z) any(is.na(z)))	# obs with missing values
-			decs <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
-			problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# binary classification problems
-			classidx <- lapply(fit$labels, function(k) problems == k)					# problems where class k is involved
-			y <- matrix(sapply(classidx, function(x) colSums(t(x)*c(1,-1))), ncol = nl)	# encoding of class k in individual binary problems
-			classidx <- matrix(sapply(classidx, rowSums), ncol = nl)
-			mode(classidx) <- "logical"
-			colnames(classidx) <- colnames(y) <- fit$labels			
-	        posterior <- matrix(0, nrow(x), ng)				# unscaled posteriors
-    	    rownames(posterior) <- rownames(x)
-        	colnames(posterior) <- lev
-			post <- sapply(as.character(fit$labels), function(z) {
-				H <- 1 - t(y[classidx[,z],z] * t(decs[,classidx[,z], drop = FALSE]))
-				H[H < 0] <- 0								# Hinge loss
-				return(exp(-rowSums(H)))
-			})
-			posterior[!naidx,fit$labels] <- post
+			if (nl == 1) {									# no decision values are returned
+				posterior <- matrix(0, nrow(x), ng)
+	    	    rownames(posterior) <- rownames(x)
+    	    	colnames(posterior) <- lev
+				posterior[,fit$labels] <- 1					# since the only present class is predicted set posterior to largest possible value
+			} else {
+				decs <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
+				problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# binary classification problems
+				classidx <- lapply(fit$labels, function(k) problems == k)					# problems where class k is involved
+				y <- matrix(sapply(classidx, function(x) colSums(t(x)*c(1,-1))), ncol = nl)	# encoding of class k in individual binary problems
+				classidx <- matrix(sapply(classidx, rowSums), ncol = nl)
+				mode(classidx) <- "logical"
+				colnames(classidx) <- colnames(y) <- fit$labels			
+		        posterior <- matrix(0, nrow(x), ng)				# unscaled posteriors
+	    	    rownames(posterior) <- rownames(x)
+	        	colnames(posterior) <- lev
+				post <- sapply(as.character(fit$labels), function(z) {
+					H <- 1 - t(y[classidx[,z],z] * t(decs[,classidx[,z], drop = FALSE]))
+					H[H < 0] <- 0								# Hinge loss
+					return(exp(-rowSums(H)))
+				})
+				posterior[!naidx,fit$labels] <- post
+			}
 			posterior[naidx,] <- NA
 			return(posterior)
 #### old version #############################
@@ -180,26 +187,32 @@ FLXMCLsvm <- function(formula = . ~ ., ...) {
 #lev <- fit$levels
 #ng <- length(lev)
 			y <- factor(y, levels = attr(y, "lev"))
-			l <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
-			nl <- length(fit$labels)						# number of present classes
-			ng <- length(fit$levels)						# number of classes
-			problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# labels involved in particular binary problems
-			npr <- nl*(nl-1)/2								# number of binary classification problems
-			m <- matrix(NA, npr, ng)
-			m[cbind(1:npr,problems[,1])] <- 1
-			m[cbind(1:npr,problems[,2])] <- -1				# y coding matrix
-			yind <- t(m[, as.numeric(y), drop = FALSE])		# -1/1 class indicators for binary problems, n x npr matrix
-			lpost <- 1 - yind * l
-			lpost[lpost < 0] <- 0							# Hinge loss max(1 - yind*l, 0), n x npr matrix
-			lpost <- rowSums(-lpost, na.rm = TRUE)			# sum of negative Hinge loss over all binary problems = log posterior, n x 1 matrix
-# plot(yind,l)
-# print(cbind(y,yind,l)[sample(nrow(x), size = 30),])
-			co <- t(yind) * 0
-			co[,fit$index][!is.na(co[,fit$index])] <- t(fit$coefs)		# coefficients: alpha_n * y_n, npr x n matrix
-			lambda <- 1/(2 * fit$cost)									# regularization parameter
-			reg <- lambda * t(co * (t(l) - fit$rho))					# n x npr matrix
-			# -fit$rho is correct, because obj is -rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE)
-			reg <- sum(-reg, na.rm = TRUE)					# sum of regularization terms over all binary problems
+			nl <- length(fit$labels)							# number of present classes
+			if (nl == 1) {
+				lpost <- rep(0, length(y))
+				reg <- 0
+			} else {
+				l <- attr(getS3method("predict", "wsvm")(fit, newdata = x, decision.values = TRUE, ...), "decision.values")
+				ng <- length(fit$levels)						# number of classes
+				problems <- cbind(rep(fit$labels, nl:1-1), unlist(sapply(2:nl, function(x) fit$labels[x:nl])))	# labels involved in particular binary problems
+				npr <- nl*(nl-1)/2								# number of binary classification problems
+				m <- matrix(NA, npr, ng)
+				m[cbind(1:npr,problems[,1])] <- 1
+				m[cbind(1:npr,problems[,2])] <- -1				# y coding matrix
+				yind <- t(m[, as.numeric(y), drop = FALSE])		# -1/1 class indicators for binary problems, n x npr matrix
+				lpost <- 1 - yind * l
+				lpost[lpost < 0] <- 0							# Hinge loss max(1 - yind*l, 0), n x npr matrix
+				lpost <- rowSums(-lpost, na.rm = TRUE)			# sum of negative Hinge loss over all binary problems = log posterior, n x 1 matrix
+	# print(str(lpost))
+	# plot(yind,l)
+	# print(cbind(y,yind,l)[sample(nrow(x), size = 30),])
+				co <- t(yind) * 0
+				co[,fit$index][!is.na(co[,fit$index])] <- t(fit$coefs)		# coefficients: alpha_n * y_n, npr x n matrix
+				lambda <- 1/(2 * fit$cost)									# regularization parameter
+				reg <- lambda * t(co * (t(l) - fit$rho))					# n x npr matrix
+				# -fit$rho is correct, because obj is -rowSums(abs(co), na.rm = TRUE) + 0.5 * colSums(t(co) * t((t(l) - fit$rho)), na.rm = TRUE)
+				reg <- sum(-reg, na.rm = TRUE)					# sum of regularization terms over all binary problems
+			}
 # cat("sum alpha\n")
 # print(rowSums(abs(co), na.rm = TRUE))
 # cat("regularization\n")
