@@ -284,6 +284,9 @@ estfun.wsvm <- function(x, ...) {
 	xmat <- model.matrix.svmModel(x)
 	n <- nrow(xmat)
 	nl <- x$nclasses 			# number of present classes, nl = 2 for regression, one-class and binary classification problems
+	if (nl == 1) {				# only one class with positive weights
+		d1 <- d2 <- matrix(0, n, 1)
+	} else {
 	d2 <- attr(predict.wsvm(x, newdata = xmat, decision.values = TRUE), "decision.values")	# decision values f(x_n)
 	d1 <- matrix(0, n, nl-1)
 	d1[x$index,] <- -x$coefs	# -alpha_n y_n (correct rows, for nl>2 columns not correct)
@@ -322,6 +325,7 @@ estfun.wsvm <- function(x, ...) {
 		m <- t(t(idx) * m/tab)		# regularization term, n x npr matrix
 		d2 <- d2 + m				# -alpha_n y_n (f(x_n) - beta_0) + ||beta|| * wts/sum(wts)
     }    
+    }
 # print(all(d1 == wts*d1))
 # print(all(d2 == wts*d2))
 # print(colSums(d1))
