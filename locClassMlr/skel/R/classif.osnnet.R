@@ -45,8 +45,8 @@ makeRLearner.classif.osnnet = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.osnnet
 #' @S3method trainLearner classif.osnnet
-trainLearner.classif.osnnet = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.osnnet = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	osnnet(f, data = getTaskData(.task, .subset), ...)
 }
 

@@ -27,8 +27,8 @@ makeRLearner.classif.kda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.kda
 #' @S3method trainLearner classif.kda
-trainLearner.classif.kda = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.kda = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	kda(f, data = getTaskData(.task, .subset), ...)
 }
 

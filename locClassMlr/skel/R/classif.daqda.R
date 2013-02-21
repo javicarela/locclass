@@ -29,11 +29,11 @@ makeRLearner.classif.daqda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.daqda
 #' @S3method trainLearner classif.daqda
-trainLearner.classif.daqda = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-    if (.task$task.desc$has.weights)
-		daqda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.daqda = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+    # if (.task$task.desc$has.weights)
+		# daqda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else  
 		daqda(f, data = getTaskData(.task, .subset), ...)
 }
 

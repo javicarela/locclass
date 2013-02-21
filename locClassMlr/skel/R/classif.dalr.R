@@ -39,11 +39,11 @@ makeRLearner.classif.dalr = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.dalr
 #' @S3method trainLearner classif.dalr
-trainLearner.classif.dalr = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		dalr(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-     else  
+trainLearner.classif.dalr = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# dalr(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+     # else  
 		dalr(f, data = getTaskData(.task, .subset), ...)
 }
 

@@ -49,11 +49,11 @@ makeRLearner.classif.damultinom = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.damultinom
 #' @S3method trainLearner classif.damultinom
-trainLearner.classif.damultinom = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		damultinom(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else
+trainLearner.classif.damultinom = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# damultinom(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else
 		damultinom(f, data = getTaskData(.task, .subset), ...)
 }
 

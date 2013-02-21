@@ -48,11 +48,11 @@ makeRLearner.classif.dasvm = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.dasvm
 #' @S3method trainLearner classif.dasvm
-trainLearner.classif.dasvm = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		dasvm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", case.weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.dasvm = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# dasvm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", case.weights = .task$weights[.subset], ...)
+	# else  
 		dasvm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", ...)
 }
 

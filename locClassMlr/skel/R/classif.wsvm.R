@@ -40,11 +40,11 @@ makeRLearner.classif.wsvm = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.wsvm
 #' @S3method trainLearner classif.wsvm
-trainLearner.classif.wsvm = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		wsvm(f, data = getTaskData(.task, .subset), case.weights = .task$weights[.subset], probability = .learner$predict.type == "prob", ...)
-	else  
+trainLearner.classif.wsvm = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# wsvm(f, data = getTaskData(.task, .subset), case.weights = .task$weights[.subset], probability = .learner$predict.type == "prob", ...)
+	# else  
 		wsvm(f, data = getTaskData(.task, .subset), probability = .learner$predict.type == "prob", ...)
 }
 

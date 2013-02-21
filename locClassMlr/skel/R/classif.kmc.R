@@ -27,8 +27,8 @@ makeRLearner.classif.kmc = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.kmc
 #' @S3method trainLearner classif.kmc
-trainLearner.classif.kmc = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.kmc = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	kmc(f, data = getTaskData(.task, .subset), ...)
 }
 

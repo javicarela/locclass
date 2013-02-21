@@ -41,8 +41,8 @@ makeRLearner.classif.ossvm = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.ossvm
 #' @S3method trainLearner classif.ossvm
-trainLearner.classif.ossvm = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.ossvm = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	ossvm(f, data = getTaskData(.task, .subset), ...)
 }
 

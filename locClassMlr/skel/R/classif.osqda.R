@@ -28,8 +28,8 @@ makeRLearner.classif.osqda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.osqda
 #' @S3method trainLearner classif.osqda
-trainLearner.classif.osqda = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.osqda = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	osqda(f, data = getTaskData(.task, .subset), ...)
 }
 

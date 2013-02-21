@@ -3,11 +3,13 @@ context("FLXMCLconstant: mlr interface code")
 test_that("FLXMCLconstant: mlr interface works", {
 	library(locClassData)
 
+	set.seed(120)
 	data <- xor3Data(500)
 	task <- makeClassifTask(data = as.data.frame(data), target = "y")
 
 	#### model parameters are passed
 	# centers
+	set.seed(120)
 	lrn <- makeLearner("classif.FLXMCLconstant", centers = 9)
 	tr1 <- train(lrn, task)
 	expect_equal(length(tr1$learner.model@components), 9)

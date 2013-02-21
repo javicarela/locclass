@@ -56,8 +56,8 @@ makeRLearner.classif.FLXMCLmultinom = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.FLXMCLmultinom
 #' @S3method trainLearner classif.FLXMCLmultinom
-trainLearner.classif.FLXMCLmultinom = function(.learner, .task, .subset,  ...) {
-	f1 = getTaskFormula(.task)
+trainLearner.classif.FLXMCLmultinom = function(.learner, .task, .subset, .weights, ...) {
+	f1 = as.formula(getTaskFormulaAsString(.task))
 	f2 = as.formula(paste("~ ", paste(getTaskFeatureNames(.task), collapse = "+")))
 	model = FLXMCLmultinom(...)
 	mf = match.call()
@@ -72,17 +72,16 @@ trainLearner.classif.FLXMCLmultinom = function(.learner, .task, .subset,  ...) {
 	mfkmeans$x = getTaskData(.task, .subset, target.extra = TRUE)$data
 	mfkmeans[[1]] = as.name("kmeans")
 	cluster = replicate(5, eval(mfkmeans)$cluster)	# FIXME: 5 should not be hard-coded
-	if (.task$task.desc$has.weights) {
-		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
-		flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
+	if (!missing(.weights)) {
+		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), weights = .weights, concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
+		flexmix(f1, data = getTaskData(.task, .subset), weights = .weights, concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
 		# flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
 		# k = eval(mf$k), cluster = eval(mf$cluster))
 	} else {
 		fit <- myStepFlexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = controlInit, cluster = cluster)
 		flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPmultinom(f2), model = model, control = control, cluster = posterior(fit))
 		# flexmix(f1, data = getTaskData(.task, .subset), concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
-		# k = eval(mf$k), cluster = eval(mf$cluster))
-	
+		# k = eval(mf$k), cluster = eval(mf$cluster))	
 	}
 }
 

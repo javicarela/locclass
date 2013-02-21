@@ -47,8 +47,8 @@ makeRLearner.classif.osmultinom = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.osmultinom
 #' @S3method trainLearner classif.osmultinom
-trainLearner.classif.osmultinom = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
+trainLearner.classif.osmultinom = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
 	osmultinom(f, data = getTaskData(.task, .subset), ...)
 }
 

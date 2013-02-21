@@ -48,11 +48,11 @@ makeRLearner.classif.dannet = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.dannet
 #' @S3method trainLearner classif.dannet
-trainLearner.classif.dannet = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		dannet(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else
+trainLearner.classif.dannet = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# dannet(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else
     	dannet(f, data = getTaskData(.task, .subset), ...)
 }
 

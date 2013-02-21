@@ -40,11 +40,11 @@ makeRLearner.classif.nnetRep = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.nnetRep
 #' @S3method trainLearner classif.nnetRep
-trainLearner.classif.nnetRep = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		nnetRep(formula = f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.nnetRep = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# nnetRep(formula = f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else  
 		nnetRep(formula = f, data = getTaskData(.task, .subset), ...)      
 }
 

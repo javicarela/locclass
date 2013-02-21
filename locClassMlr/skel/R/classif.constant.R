@@ -54,11 +54,11 @@ makeRLearner.classif.constant = function() {
 #' @method trainLearner classif.constant
 #' @S3method trainLearner classif.constant
 #' @importFrom mlr trainLearner
-trainLearner.classif.constant <- function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-    	constant(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.constant <- function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+    	# constant(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else  
 		constant(f, data = getTaskData(.task, .subset), ...)
 }
 

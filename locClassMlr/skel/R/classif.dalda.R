@@ -29,11 +29,11 @@ makeRLearner.classif.dalda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.dalda
 #' @S3method trainLearner classif.dalda
-trainLearner.classif.dalda <- function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-    if (.task$task.desc$has.weights)
-        dalda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.dalda <- function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+    # if (.task$task.desc$has.weights)
+        # dalda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else  
 		dalda(f, data = getTaskData(.task, .subset), ...)
 }
 

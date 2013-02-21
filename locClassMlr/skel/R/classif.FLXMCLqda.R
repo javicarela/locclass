@@ -37,10 +37,10 @@ makeRLearner.classif.FLXMCLqda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.FLXMCLqda
 #' @S3method trainLearner classif.FLXMCLqda
-trainLearner.classif.FLXMCLqda = function(.learner, .task, .subset,  ...) {
-	# f1 = getTaskFormula(.task)
+trainLearner.classif.FLXMCLqda = function(.learner, .task, .subset, .weights, ...) {
+	# f1 = as.formula(getTaskFormulaAsString(.task))
 	# f2 = as.formula(paste("~ ", paste(getTaskFeatureNames(.task), collapse = "+")))
-	f = getTaskFormula(.task)
+	f = as.formula(getTaskFormulaAsString(.task))
 	model = FLXMCLqda(...)
 	mf = match.call()
     mcontrol = match(c("iter.max", "minprior", "tolerance", "verbose", "classify", "nrep"), names(mf), 0)
@@ -54,9 +54,9 @@ trainLearner.classif.FLXMCLqda = function(.learner, .task, .subset,  ...) {
 	mfkmeans$x = getTaskData(.task, .subset, target.extra = TRUE)$data
 	mfkmeans[[1]] = as.name("kmeans")
 	cluster = replicate(5, eval(mfkmeans)$cluster)	# FIXME: 5 should not be hard-coded
-	if (.task$task.desc$has.weights) {
-		fit <- myStepFlexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = controlInit, cluster = cluster)
-		flexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = control, cluster = posterior(fit))
+	if (!missing(.weights)) {
+		fit <- myStepFlexmix(f, data = getTaskData(.task, .subset), weights = .weights, model = model, control = controlInit, cluster = cluster)
+		flexmix(f, data = getTaskData(.task, .subset), weights = .weights, model = model, control = control, cluster = posterior(fit))
 		# flexmix(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = model, control = control, cluster = cluster)
 		# flexmix(f1, data = getTaskData(.task, .subset), weights = .task$weights[.subset], concomitant = FLXPwlda(f2), model = model, control = control, cluster = cluster)
 		# k = eval(mf$k), cluster = eval(mf$cluster))

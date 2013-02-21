@@ -32,15 +32,15 @@ makeRLearner.classif.mobConstantModel = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.mobConstantModel
 #' @S3method trainLearner classif.mobConstantModel
-trainLearner.classif.mobConstantModel = function(.learner, .task, .subset,  ...) {
+trainLearner.classif.mobConstantModel = function(.learner, .task, .subset, .weights, ...) {
 	f = as.formula(paste(.task$task.desc$target, "~", paste(getTaskFeatureNames(.task), collapse = "+"), "|", paste(getTaskFeatureNames(.task), collapse = "+")))
 	mf = match.call()
 	m = match(c("alpha", "bonferroni", "minsplit", "trim", "objfun", "breakties", "parm", "verbose"), names(mf), 0)
 	mf = mf[c(1, m)]
 	mf[[1]] = as.name("mob_control")
-	if (.task$task.desc$has.weights)
-		mob(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = constantModel, control = eval(mf), ...)
-	else  
+	# if (.task$task.desc$has.weights)
+		# mob(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], model = constantModel, control = eval(mf), ...)
+	# else  
 		mob(f, data = getTaskData(.task, .subset), model = constantModel, control = eval(mf), ...)
 }
 

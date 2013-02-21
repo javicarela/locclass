@@ -24,11 +24,11 @@ makeRLearner.classif.wlda = function() {
 #' @rdname trainLearner
 #' @method trainLearner classif.wlda
 #' @S3method trainLearner classif.wlda
-trainLearner.classif.wlda = function(.learner, .task, .subset,  ...) {
-	f = getTaskFormula(.task)
-	if (.task$task.desc$has.weights)
-		wlda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
-	else  
+trainLearner.classif.wlda = function(.learner, .task, .subset, .weights, ...) {
+	f = as.formula(getTaskFormulaAsString(.task))
+	# if (.task$task.desc$has.weights)
+		# wlda(f, data = getTaskData(.task, .subset), weights = .task$weights[.subset], ...)
+	# else  
 		wlda(f, data = getTaskData(.task, .subset), ...)
 }
 
