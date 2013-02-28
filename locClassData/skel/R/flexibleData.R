@@ -132,7 +132,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 	## determine distribution parameters - fixed
 	classes <- numeric(centersMix)							# vector for class labels of mixture centers
 	classes[1:K] <- 1:K										# first K centers get labels 1:K
-	dUseless <- floor(d * propUseless)				# number of useless variables, floor() guarantees that there is at least one useful variable if d < 1
+	dUseless <- floor(d * propUseless)	# number of useless variables, floor() guarantees that there is at least one useful variable if propUseless < 1
 	dUseful <- d - dUseless									# number of useful variables
 
 	## determine distribution parameters - stochastic
