@@ -143,7 +143,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 		muMix[, 1:dUseful] <- runif(centersMix*dUseful, -0.5, 0.5)		# sample centers from uniform distribution on [-0.5,0.5]
 		if (centersMix > K) {						# the first K centers get labels 1:K; if centersMix > K the remaining centers have to be labeled
 			## centers near to each other get a higher probability to belong to the same class
-			prob <- sapply(1:K, function(k) dmvnorm(muMix[(K+1):centersMix, 1:dUseful, drop = FALSE], mean = muMix[k, 1:dUseful, drop = FALSE]))
+			prob <- matrix(sapply(1:K, function(k) dmvnorm(muMix[(K+1):centersMix, 1:dUseful, drop = FALSE], mean = muMix[k, 1:dUseful, drop = FALSE])), ncol = K)
 			prob <- prior * prob/rowSums(prior * prob)
 			classes[(K+1):centersMix] <- apply(prob, 1, function(x) sample(1:K, size = 1, prob = x))			
 ## FIXME alternative: sample, entspricht gleichverteilung, je größer man die varianz beim nv-ansatz wählt, desto näher kommt man der gleichverteilung...
@@ -167,6 +167,7 @@ flexibleDataParams <- function(n, probMix, centersMix, sigmaMix = 0.2, centersOt
 	if (probMix < 1) {										# determine parameters of second distribution and generate data
 		muOther <- matrix(0, centersOther, d)
 		nc <- floor(centersOther * 0.5)
+		## FIXME: centersOther = 1
 		muOther[1:nc,] <- matrix(runif(nc*d, -0.25, 0.25), nc, d)
 		muOther[(nc+1):centersOther,] <- matrix(runif((centersOther-nc)*d, -1, 1), centersOther-nc, d)		
 		return(list(prior = prior, K = K, d = d, dUseless = dUseless, probMix = probMix, nMix = nMix, muMix = muMix, sigmaMix = sigmaMix, lambdaMix = lambdaMix, nOther = nOther, muOther = muOther, sigmaOther = sigmaOther))
