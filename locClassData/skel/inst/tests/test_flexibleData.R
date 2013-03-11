@@ -364,6 +364,23 @@ test_that("flexibleData works if priors are zero", {
 
 
 
+test_that("flexibleData works if centersMix is 1 larger than the number of classes", {
+	# centersMix = 3, K = 2
+	a <- flexibleDataParams(n = 100, probMix = 0.5, centersMix = 3, sigmaMix = 0.2, centersOther = 2, sigmaOther = 0.5, d = 5, propUseless = 0.5, prior = c(0.5,0.5))
+	d <- flexibleData(a)
+})
+
+
+
+test_that("flexibleData works if centersOther = 1", {
+	# centersOther = 1
+	centersMix <- 3
+	a <- flexibleDataParams(n = 100, probMix = 0.5, centersMix = 3, sigmaMix = 0.2, centersOther = 1, sigmaOther = 0.5, d = 5, propUseless = 0.5, prior = c(0,0.5,0.5))
+	d <- flexibleData(a)
+})
+
+
+
 test_that("seeding for flexibleData works", {
 	## no seed at all -> neither distribution params nor data are equal
 	a1 <- flexibleDataParams(n = 100, probMix = 0, centersMix = 5, sigmaMix = 0.2, centersOther = 10, sigmaOther = 0.5, d = 5, propUseless = 0, prior = rep(1/3,3))
