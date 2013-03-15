@@ -362,15 +362,15 @@ classShapeHelper <- function(data, m, resolution, a, ...) {
 	data$y <- split(data$y, ybayes)
 	counts <- as.vector(table(ybayes))
 	notEmpty <- counts > 0
-# positiver wert sinnvoller?
+# FIXME: positiver wert sinnvoller?
 	if (sum(notEmpty) <= 1) {
 		result <- list(nSubclasses = 1, propSubclasses = 1, convexityClasses = TRUE, convexitySubclasses = NULL, nForeign = 0, nBoundaries = 0)
 	} else {
 		result <- lapply(data$x[notEmpty], function(x) singleClassShapeHelper(x, a = a, resolution = resolution))
-# print(str(result))	
-#		names(result) <- lev
 	}
-	return(c(result, list(counts = counts, data = data)))
+	# return(c(result, list(counts = counts, data = data)))
+	return(c(result, list(counts = counts)))
+	
 	## only margin
 	# # margin <- apply(b$posterior, 1, sort, decreasing = TRUE)
 	# # margin <- margin[1,] - margin[2,]							# distance to class boundary
@@ -390,7 +390,6 @@ classShapeHelper <- function(data, m, resolution, a, ...) {
 #' @noRd
 
 singleClassShapeHelper <- function(datax, a, resolution = 10) {
-# # singleClassShapeHelper <- function(datax, margin, a, q, resolution = 10) {
 	# adjacency checks for one pair of data points
 	# 1. if there is a foreign class on the direct connection between these points and
 	#    returns 1 if all considered points on the connection belong to class k and 0 otherwise
@@ -408,8 +407,8 @@ singleClassShapeHelper <- function(datax, a, resolution = 10) {
 		attributes(path) <- c(attributes(path), a[-1])
 		b <- bayes(path)$ybayes
 ## sanity check
-#print(b[1] == k)
-#print(b[resolution] == k)
+# print(b[1] == 1)
+# print(b[resolution] == 1)
 		l <- length(unique(as.numeric(b)))
 		return(c(foreign = (l == 1), nForeign = l - 1, nBoundaries = sum(diff(as.numeric(b)) != 0)))
 	}
@@ -420,10 +419,8 @@ singleClassShapeHelper <- function(datax, a, resolution = 10) {
 	# # m <- datax[index,]
 	# # pairs <- combn(nrow(m), 2)								# all pairs of data points
 	segments <- seq(0, 1, length.out = resolution)	
-# print(str(datax))
 	pairs <- combn(nrow(datax), 2)								# all pairs of data points
 	adj <- apply(pairs, 2, adjacency, segments = segments, m = datax, a = a)
-#print(t(rbind(pairs, adj)))
 	nForeign <- table(adj["nForeign",])							# distribution of number of crossed foreign classes
 	nBoundaries <- table(adj["nBoundaries",])					# distribution of number of crossed decision boundaries
 	A <- matrix(0, nrow(datax), nrow(datax)) 					# build adjacency matrix
@@ -442,11 +439,6 @@ singleClassShapeHelper <- function(datax, a, resolution = 10) {
 		convexitySubclasses <- NULL								# there are no subclasses
 	}	
 	tab <- sapply(subg, vcount)
-	# if (length(index) < length(ord)) {
-# andere punkte der nächstgelegenen subklasse zuordnen, damit größenschätzung genauer wird
-# evtl. handelt man sich dadurch aber auch verzerrung ein			
-	# }
 	tab <- tab/sum(tab)											# proportion of observations in different subclasses
 	return(list(nSubclasses = nSubclasses, propSubclasses = tab, convexityClasses = convexityClasses, convexitySubclasses = convexitySubclasses, nForeign = nForeign, nBoundaries = nBoundaries))
 }
-## varianten mit q = 1 und q < 1 vergleichen, sowohl rechenzeit als auch richtigkeit der ergebnisse, evtl. findet man durch randpunkte mehr subklassen
