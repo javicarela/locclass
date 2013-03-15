@@ -361,9 +361,9 @@ classShapeHelper <- function(data, m, resolution, a, ...) {
 	names(data$x) <- lev
 	data$y <- split(data$y, ybayes)
 	counts <- as.vector(table(ybayes))
-	notEmpty <- counts > 0
-# FIXME: positiver wert sinnvoller?
-	if (sum(notEmpty) <= 1) {
+	notEmpty <- counts > 1 
+# FIXME: größerer wert sinnvoller?
+	if (sum(notEmpty) <= 1) {	# only one class
 		result <- list(nSubclasses = 1, propSubclasses = 1, convexityClasses = TRUE, convexitySubclasses = NULL, nForeign = 0, nBoundaries = 0)
 	} else {
 		result <- lapply(data$x[notEmpty], function(x) singleClassShapeHelper(x, a = a, resolution = resolution))
