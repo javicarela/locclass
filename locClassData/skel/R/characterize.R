@@ -72,7 +72,6 @@ characterize.locClass <- function(object, sparseness = TRUE, distribution = TRUE
 		ch <- c(ch, classShape(object, ...))
 	ch$Nk <- as.list(ch$Nk) # oder rausnehmen???
 	return(ch)
-	# return(as.data.frame(ch))
 }
 
 
@@ -105,15 +104,15 @@ sparseness.locClass <- function(object, chBasics, ...) {
 	ch$DS <- chBasics$N^(1/chBasics$V)					# data sparseness (assume exponential relationship)
 	## class-specific sparseness measures
 	ch$NkMin <- min(chBasics$Nk[chBasics$Nk > 0])		# minimum # of observations per class
-	ch$NkMax <- max(chBasics$Nk[chBasics$Nk > 0])
 	ch$NkMean <- mean(chBasics$Nk[chBasics$Nk > 0])		# mean # of observations per class
+	ch$NkMax <- max(chBasics$Nk[chBasics$Nk > 0])
 	## only classes with at least 1 training observation are taken into account
 	ch$NkVRMin <- ch$NkMin/chBasics$V					# observation/dimension ratio
-	ch$NkVRmax <- ch$NkMax/basics$V
 	ch$NkVRMean <- mean(chBasics$Nk/chBasics$V)
+	ch$NkVRMax <- ch$NkMax/chBasics$V
 	ch$DSkMin <- ch$NkMin^(1/chBasics$V)				# data sparseness (assume exponential relationship)
-	ch$DSkmax <- ch$NkMax^(1/chBasics$V)
 	ch$DSkMean <- mean(chBasics$Nk^(1/chBasics$V))
+	ch$DSkMax <- ch$NkMax^(1/chBasics$V)
 	# anz. beobachtungen pro klasse mittelwert, varianz min, max
 	return(ch)
 }
@@ -155,11 +154,11 @@ distribution.locClass <- function(object, chBasics, ...) {
 		r <- sapply(xk[ind], correlation)
 		#sapply(xk[ind], function(x) (sum(abs(cor(x))) - chBasics$V)/(chBasics$V*(chBasics$V-1)))
 		ch$rhoMin <- min(r["rhos",])
-		ch$rhoMean <- weighted.mean(r["rhos",], chBasics$Nk)
+		ch$rhoMean <- weighted.mean(r["rhos",], chBasics$Nk[ind])
 		ch$rhoMax <- max(r["rhos",])
 		# Rs <- colMeans(sapply(xk[ind], multipleCorrelation))
 		ch$RMin <- min(r["Rs",])
-		ch$RMean <- weighted.mean(r["Rs",], chBasics$Nk)
+		ch$RMean <- weighted.mean(r["Rs",], chBasics$Nk[ind])
 		ch$RMax <- max(r["Rs",])
 		## FIXME: distribution of R over predictors
 		## FIXME: wahre priors nehmen?
@@ -178,31 +177,35 @@ distribution.locClass <- function(object, chBasics, ...) {
 	## tests for multivariate normality
 	if (chBasics$V > 1) {
 		require(ICS)
-		skew <- sapply(xk, function(x) mvnorm.skew.test(x)$p.value)
-		kurt <- sapply(xk, function(x) mvnorm.kur.test(x, method = "simulation")$p.value)
+		skew <- sapply(xk[ind], function(x) mvnorm.skew.test(x)$p.value)
+		kurt <- sapply(xk[ind], function(x) mvnorm.kur.test(x, method = "simulation")$p.value)
 		ch$skewMin <- min(skew)
-		ch$skewMean <- weighted.mean(skew, chBasics$Nk)
+		ch$skewMean <- weighted.mean(skew, chBasics$Nk[ind])
 		ch$skewMax <- max(skew)
 		ch$kurtMin <- min(kurt)
-		ch$kurtMean <- weighted.mean(kurt, chBasics$Nk)
+		ch$kurtMean <- weighted.mean(kurt, chBasics$Nk[ind])
 		ch$kurtMax <- max(kurt)
+		require(energy)
+		etest <- sapply(xk[ind], function(x) mvnorm.etest(x)$p.value)
+		ch$etestMin <- min(etest)
+		ch$etestMean <- weighted.mean(etest, chBasics$Nk[ind])
+		ch$etestMax <- max(etest)
 	} else {
+		## mvnorm.skew.test and mvnorm.kur.test do not work for dimensionality 1
+		## mvnorm.etest: bug for dimensionality 1
 		## FIXME
-		# sapply(xk, skewness)
-		# sapply(xk, kurtosis)		
+		# sapply(xk[ind], skewness)
+		# sapply(xk[ind], kurtosis)		
 		ch$skewMin <- NA
 		ch$skewMean <- NA
 		ch$skewMax <- NA
 		ch$kurtMin <- NA
 		ch$kurtMean <- NA
 		ch$kurtMax <- NA
+		ch$etestMin <- NA
+		ch$etestMean <- NA
+		ch$etestMax <- NA
 	}
-	require(energy)
-	etest <- sapply(xk, function(x) mvnorm.etest(x)$p.value)
-	ch$etestMin <- min(etest)
-	ch$etestMean <- weighted.mean(etest, chBasics$Nk)
-	ch$etestMax <- max(etest)
-	
 	
 	## Statlog: homogenität kovarianzmatrizen nötig?
 
@@ -228,11 +231,12 @@ separability.locClass <- function(object, chBasics, ...) {
 	
 	## loo error of LDA - Bayes error
 	require(MASS)
+	require(nnet)
 	ch$LDAE <- mean(lda(y ~ ., data = as.data.frame(object), CV = TRUE)$class != object$y)
 	ch$LDAS <- ch$LDAE - ch$noise
 	## logreg error
-	predLogReg <- predict(glm(y ~ ., data = as.data.frame(object), family = "binomial"), type = "response")
-	predLogReg <- factor(max.col(predLogReg), levels = levels(object$y))
+	predLogReg <- predict(multinom(y ~ ., data = as.data.frame(object), trace = FALSE))
+	predLogReg <- factor(predLogReg, levels = levels(object$y))
 	ch$LRE <- mean(predLogReg != object$y)
 	ch$LRS <- ch$LRE - ch$noise
 	## first canonical correlation
@@ -250,7 +254,11 @@ separability.locClass <- function(object, chBasics, ...) {
 	ch$frac1 <- max(lambda)/sum(lambda)	
 	
 	## loo error of QDA - Bayes error
-	ch$QDAE <- mean(qda(y ~ ., data = as.data.frame(object), CV = TRUE)$class != object$y)
+	d <- as.data.frame(object)
+	if (any(ind <- chBasics$Nk == 0)) {
+		d$y <- factor(d$y, levels = levels(d$y)[!ind])
+	}	
+	ch$QDAE <- mean(qda(y ~ ., data = d, CV = TRUE)$class != d$y)
 	ch$QS <- ch$QDAE - ch$noise
 
 	return(ch)
@@ -269,12 +277,11 @@ characterize.locClass.flexibleData <- function(object, pars = TRUE, ...) {
 	if (pars) {
 		## data sparseness ratio
 		## known relationship between x and y, number of parameters -> relationship N and V
-		Nmin <- 5 ###???
-		ch$DSR <- ch$N/Nmin
+		# Nmin <- 5 ###???
+		# ch$DSR <- ch$N/Nmin
 
 		a <- attributes(object)
-
-		#ch$prior <- a$prior		# verschieden lang
+		ch$prior <- a$prior		# verschieden lang
 		## information content of predictors
 		ch$IC <- 1 - ch$noise/(1 - max(a$prior))
 		## normalized Shannon entropy
@@ -290,14 +297,14 @@ characterize.locClass.flexibleData <- function(object, pars = TRUE, ...) {
 		## # of mixture components
 		centersMix <- sapply(a$muMix, nrow)
 		ch$centersMix <- sum(centersMix)
-		ch$minCentersMix <- min(centersMix)
-		ch$meanCentersMix <- mean(centersMix)
-		ch$maxCentersMix <- max(centersMix)
+		ch$cntersMixMin <- min(centersMix)
+		ch$centersMixMean <- mean(centersMix)
+		ch$centersMixMax <- max(centersMix)
 ## FIXME: mean(centersMix) gewichtetes arithmetisches Mittel?
 
-		#ch$sigmaMix <- a$sigmaMix	# verschieden lang
+		ch$sigmaMix <- a$sigmaMix	# verschieden lang
 		
-		# lambdaMix	# verschieden lang
+		ch$lambdaMix <- a$lambdaMix	# verschieden lang
 
 		ch$NOther <- a$nOther
 		
@@ -308,7 +315,6 @@ characterize.locClass.flexibleData <- function(object, pars = TRUE, ...) {
 			ch$centersOther <- NA
 			ch$sigmaOther <- NA
 		}
-	}	
-
+	}
 	return(ch)
 }
