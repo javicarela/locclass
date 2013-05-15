@@ -1,4 +1,4 @@
-#  Copyright (C) 2011 J. Schiffner
+#  Copyright (C) 2011-2013 J. Schiffner
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,33 +14,38 @@
 #  http://www.r-project.org/Licenses/
 #
 #
-#' Compute the bias-variance decomposition of the misclassification rate according to the approaches of James (2003) and Domingos (2000).
+#' Computes the bias-variance decomposition of the misclassification rate according to the approaches of James (2003) and Domingos (2000).
 #'
-#' If \code{posterior} is specified, \code{ybayes} is calculated from the posterior probabilities and the posteriors are used to estimate noise, 
-#' error, systematic effect and variance effect.
-#' If \code{ybayes} is specified it is ignored if the posteriors are given. Otherwise the empirical distribution of \code{ybayes} is inferred and used
+#' If \code{posterior} is specified, \code{ybayes} is calculated from the posterior probabilities and the posteriors are used to 
+#' calculate/estimate noise, the misclassification rate, systematic effect and variance effect.
+#' If \code{ybayes} is specified it is ignored if \code{posterior} is given. Otherwise the empirical distribution of \code{ybayes} is inferred and used
 #' to calculate the quantities of interest.
-#' If neither \code{posterior} nor \code{ybayes} are specified is assumed that the noise level is zero and 
-#' the remaining quantities are calculated based on this assumption.
+#' If neither \code{posterior} nor \code{ybayes} are specified it is assumed that the noise level is zero and 
+#' the remaining quantities are calculated based on this supposition.
 #'
 #' @param y Predicted class labels on a test data set based on multiple training data sets. \code{y} is supposed to be a list where each element contains 
-#'  the predictions for one single test observation. #factor???
+#'  the predictions for one single test observation. factor??? stimmt das noch?
 #' @param grouping Vector of true class labels (a \code{factor}).
-#' @param ybayes (Optional.) Bayes prediction. Not used if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
+#' @param ybayes (Optional.) Bayes prediction. Ignored if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
 #' @param posterior (Optional.) Matrix of posterior probabilities, either known or estimated. It is assumed that the columns are ordered according
 #'  to the factor levels of \code{grouping}.
-#' @param ybest Prediction from best fitting model on the whole population. Used for calculation of model bias.
+#' @param ybest Prediction from the best fitting model on the whole population. Used for calculation of model and estimation bias as well as 
+#'  systematic model effect and systematic estimation effect.
 #' @param \dots Currently unused.
 #'
-#' @return A \code{data.frame} containing the following columns:
+#' @return A \code{data.frame} with the following columns:
 #' \item{error}{Estimated misclassification probability.}
-#' \item{noise}{(Only if \code{ybayes} or \code{posterior} was specified.) Noise.}
+#' \item{noise}{(Only if \code{ybayes} or \code{posterior} was specified.) Noise or Bayes error rate.}
 #' \item{bias}{Bias.}
+#' \item{model.bias}{(Only if \code{ybest} was specified.) Model bias.}
+#' \item{estimation.bias}{(Only if \code{ybest} was specified.) Estimation bias.}
 #' \item{variance}{Variance.}
 #' \item{unbiased.variance}{Unbiased variance.}
 #' \item{biased.variance}{Biased variance.}
 #' \item{net.variance}{Pointwise net variance.}
 #' \item{systematic.effect}{Systematic effect.}
+#' \item{systematic.model.effect}{(Only if \code{ybest} was specified.) Systematic model effect.}
+#' \item{systematic.estimation.effect}{(Only if \code{ybest} was specified.) Systematic estimation effect.}
 #' \item{variance.effect}{Variance effect.}
 #' \item{ymain}{Main prediction.}
 #' \item{ybayes}{(Only if \code{ybayes} or \code{posterior} was specified.) The optimal prediction.}
@@ -128,7 +133,7 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
     #ymain <- factor(ymain, levels = lev) ## wieso in 2 schritten? klappt das? lev[max.col()]
 #print(ymain)
     if (any(names(pred) != lev)) 
-    	cat("Warnung: Probleme bei Faktorlevels", "\n", "names(pred): ", names(pred), "\n", "lev: ", lev)#?
+    	warning("problems with factor levels", "\n", "names(pred): ", names(pred), "\n", "lev: ", lev)#?
 	if (missing(posterior)) {		## use empirical distribution of y
         V <- error <- numeric(n)
     	for (i in 1:n) {
@@ -142,22 +147,17 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
             Vb <- B * V
             Vn <- Vu - Vb
             VE <- error - SE                                                        # variance effect (decomposition of James), = Vn?
-            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-                biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
+            # res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+                # biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
             if (!is.null(ybest)) {
 				if (length(ybest) != n)
 					stop("'length(ybest)' must equal 'length(grouping)")
-	   			MB <- SEM <- as.numeric(ybayes != ybest)							# model bias under the assumption noise = 0, systematic model effect
+	   			MB <- SEM <- as.numeric(grouping != ybest)							# model bias under the assumption noise = 0, systematic model effect
    				EB <- as.numeric(ybest != ymain)									# estimation bias
-				h3 <- numeric(n)
-    			for (i in 1:n) {
-        			h3[i] <- mean(y[[i]] != ybest[i])                                  	
-    			}
-            	SEE <- h3 - V
-            	SEE.SEM.corr <- SE - SEE - SEM
+				SEE <- B - MB
 	            res <- data.frame(main = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
     	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
-    	            corr = SEE.SEM.corr, variance.effect = VE, size = p)
+    	            variance.effect = VE, size = p)
 			} else {
 	            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
     	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
@@ -181,17 +181,12 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
 	   			MB <- as.numeric(ybayes != ybest)									# model bias
    				EB <- as.numeric(ybest != ymain)									# estimation bias
             	SEM <- as.numeric(grouping != ybest) - N
-				h3 <- numeric(n)
-    			for (i in 1:n) {
-        			h3[i] <- mean(y[[i]] != ybest[i])                                  	
-    			}
-            	SEE <- h3 - V
-            	SEE.SEM.corr <- SE - SEE - SEM
-	            res <- data.frame(main = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
+				SEE <- SE - SEM
+	            res <- data.frame(ymain = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
     	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
-    	            corr = SEE.SEM.corr, variance.effect = VE, noise = N, ybayes = ybayes, size = p)
+    	            variance.effect = VE, noise = N, ybayes = ybayes, size = p)
             } else {
-	            res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
+	            res <- data.frame(ymain = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
     	            biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
         	        noise = N, ybayes = ybayes, size = p)
 			}
@@ -208,14 +203,14 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
         	V[i] <- mean(y[[i]] != ymain[i])                                     	# variance
     	}
     	ybayes <- factor(max.col(posterior, ties.method = "random"), levels = 1:k, labels = lev)  # Bayes prediction lev[max.col()] # muss nach faktorleveln geordnet sein!!!
-    	h1 <- posterior[cbind(1:n,ybayes)]
+    	h1 <- posterior[cbind(1:n,ybayes)]											# P(Y = ybayes | x)
     	N <- 1 - h1 
 	    error <- rowSums(posterior * (1 - pred/p))                                 	# expected error
  	   	B <- as.numeric(ybayes != ymain)                                            # bias
 	    Vu <- (1-B) * V
     	Vb <- B * V
     	Vn <- Vu - Vb
-    	h2 <- posterior[cbind(1:n,ymain)]
+    	h2 <- posterior[cbind(1:n,ymain)]											# P(Y = ymain | x)
 	    SE <- h1 - h2                                                              	# systematic effect
 	    VE <- error - 1 + h2                                                     	# variance effect
        	if (!is.null(ybest)) {
@@ -227,12 +222,12 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
     		for (i in 1:n) {
         		h3[i] <- mean(y[[i]] != ybest[i])                                  	
     		}
-			SEM <- h1 - posterior[cbind(1:n, ybest)]
-			SEE <- h3 - V
-            SEE.SEM.corr <- SE - SEE - SEM
+    		h4 <- posterior[cbind(1:n, ybest)]
+			SEM <- h1 - h4
+			SEE <- h4 - h2
 	    	res <- data.frame(ymain = ymain, error = error, bias = B, model.bias = MB, estimation.bias = EB, variance = V, unbiased.variance = Vu,
     	    	biased.variance = Vb, net.variance = Vn, systematic.effect = SE, systematic.model.effect = SEM, systematic.estimation.effect = SEE, 
-    	    	corr = SEE.SEM.corr, variance.effect = VE, noise = N, ybayes = ybayes, size = p)
+    	    	variance.effect = VE, noise = N, ybayes = ybayes, size = p)
        	} else {
     		res <- data.frame(ymain = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
         		biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE,
