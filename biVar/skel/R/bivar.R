@@ -147,9 +147,7 @@ bivar.default <- function(y, grouping, ybayes, posterior, ybest = NULL, ...) {
             Vb <- B * V
             Vn <- Vu - Vb
             VE <- error - SE                                                        # variance effect (decomposition of James), = Vn?
-            # res <- data.frame(main = ymain, error = error, bias = B, variance = V, unbiased.variance = Vu,
-                # biased.variance = Vb, net.variance = Vn, systematic.effect = SE, variance.effect = VE, size = p)
-            if (!is.null(ybest)) {
+			if (!is.null(ybest)) {
 				if (length(ybest) != n)
 					stop("'length(ybest)' must equal 'length(grouping)")
 	   			MB <- SEM <- as.numeric(grouping != ybest)							# model bias under the assumption noise = 0, systematic model effect
