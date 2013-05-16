@@ -6,6 +6,6 @@ Author: Julia Schiffner
 Maintainer: Julia Schiffner <schiffner@statistik.tu-dortmund.de>
 Depends: R (>= 2.15.0), mlr, locClass
 Suggests: party
-Description: Provides functions to use methods from package locClass in conjunction with package mlr.
+Description: Provides functions to use classification methods from package locClass in the framework provided by package mlr.
 License: GPL-2
 URL: http://www.statistik.tu-dortmund.de
