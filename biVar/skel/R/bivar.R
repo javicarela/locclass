@@ -25,9 +25,9 @@
 #'
 #' @param y Predicted class labels on a test data set based on multiple training data sets. 
 #'  For the default method \code{y} is supposed to be a list where each element contains 
-#'  the predictions for one single test observation. The list elements are supposed \code{factor}s with the same levels as \code{grouping}.
+#'  the predictions for one single test observation. The list elements are supposed to be \code{factor}s with the same levels as \code{grouping}.
 #'  \code{y} can also be a \code{data.frame} where the rows correspond to test observations and the columns correspond to predictions on these
-#'  test observations.
+#'  test observations based on the different training sets.
 #' @param grouping Vector of true class labels (a \code{factor}).
 #' @param ybayes (Optional.) Bayes prediction (a \code{factor} with the same levels as \code{grouping}). 
 #'  Ignored if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
@@ -58,11 +58,11 @@
 #' @title Bias-Variance Decomposition of the Misclassification Rate
 #'
 #' @references
-#' James, G. M. (2003). Variance and bias for general loss functions. \emph{Machine Learning}, \bold{51(2)} 115--135.
-#'
 #' Domingos, P. (2000). A unified bias-variance decomposition for zero-one and squared loss. In
 #' Proceedings of the Seventeenth National Conference on Artificial Intelligence and Twelfth Conference on 
 #' Innovative Applications of Artificial Intelligence, pages 564--569. AAAI Press / The MIT Press.
+#'
+#' James, G. M. (2003). Variance and bias for general loss functions. \emph{Machine Learning}, \bold{51(2)} 115--135.
 #'
 #' @export
 
