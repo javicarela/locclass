@@ -23,14 +23,18 @@
 #' If neither \code{posterior} nor \code{ybayes} are specified it is assumed that the noise level is zero and 
 #' the remaining quantities are calculated based on this supposition.
 #'
-#' @param y Predicted class labels on a test data set based on multiple training data sets. \code{y} is supposed to be a list where each element contains 
-#'  the predictions for one single test observation. factor??? stimmt das noch?
+#' @param y Predicted class labels on a test data set based on multiple training data sets. 
+#'  For the default method \code{y} is supposed to be a list where each element contains 
+#'  the predictions for one single test observation. The list elements are supposed \code{factor}s with the same levels as \code{grouping}.
+#'  \code{y} can also be a \code{data.frame} where the rows correspond to test observations and the columns correspond to predictions on these
+#'  test observations.
 #' @param grouping Vector of true class labels (a \code{factor}).
-#' @param ybayes (Optional.) Bayes prediction. Ignored if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
+#' @param ybayes (Optional.) Bayes prediction (a \code{factor} with the same levels as \code{grouping}). 
+#'  Ignored if \code{posterior} is specified as \code{ybayes} can be easily calculated from the posterior probabilities.
 #' @param posterior (Optional.) Matrix of posterior probabilities, either known or estimated. It is assumed that the columns are ordered according
 #'  to the factor levels of \code{grouping}.
-#' @param ybest Prediction from the best fitting model on the whole population. Used for calculation of model and estimation bias as well as 
-#'  systematic model effect and systematic estimation effect.
+#' @param ybest Prediction from the best fitting model on the whole population (a \code{factor} with the same levels as \code{grouping}). 
+#'  Used for calculation of model and estimation bias as well as systematic model effect and systematic estimation effect.
 #' @param \dots Currently unused.
 #'
 #' @return A \code{data.frame} with the following columns:
@@ -42,7 +46,7 @@
 #' \item{variance}{Variance.}
 #' \item{unbiased.variance}{Unbiased variance.}
 #' \item{biased.variance}{Biased variance.}
-#' \item{net.variance}{Pointwise net variance.}
+#' \item{net.variance}{Point-wise net variance.}
 #' \item{systematic.effect}{Systematic effect.}
 #' \item{systematic.model.effect}{(Only if \code{ybest} was specified.) Systematic model effect.}
 #' \item{systematic.estimation.effect}{(Only if \code{ybest} was specified.) Systematic estimation effect.}
@@ -69,19 +73,13 @@ bivar <- function(y, ...)
 
 ## todo:
 # methods for other input structures for y:
-# 1. mlr results / "long format", i.e. a data.frame with all predictions and ids of test observations
+# 1. mlr results / "long format", i.e. a data.frame with all predictions and ids of test observations, reshape?
 # 2. list of data.frames as long as number of training data sets / resampling iterations containing response, truth and ids of test observations
 # noise estimation (via knn or other methods)
 # further decomposition for local?
 # extensibility for other loss functions
 # 3. table method?
 
-	
-# bivar.ResamplePrediction <- function(y, ...) {
-	
-	
-# }	
-	
 	
 	
 #' @method bivar data.frame
@@ -97,18 +95,6 @@ bivar.data.frame <- function(y, ...) {
 	return(res)
 }
 
-
-
-# @method bivar list
-# @S3method bivar list
-#
-# @rdname bivar
-
-# bivar.list <- function(y, ...) {
-	# y <- as.data.frame(t(sapply(y, table)))										# distribution of y
-	# res <- bivar.default(y, ...)
-	# return(res)	
-# }
 
 
 #' @method bivar default
